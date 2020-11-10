@@ -683,14 +683,17 @@ Class RelOutputHtml {
 
 				if(!empty($taxonomies)){
 
-					$term = wp_get_post_terms($post->ID,  $taxonomies);
+					foreach($taxonomies as $taxonomy){
+						$term = wp_get_post_terms($post->ID, array($taxonomy));
 
-					if(!empty($term) && empty($term->errors)){
-						$url = str_replace(site_url(),$rpl,get_term_link($term[0])).'index.json';
-
-						$posts_arr[$key]['term_id'] = $term[0]->term_id;
-						$posts_arr[$key]['term_name'] = $term[0]->name;
-						$posts_arr[$key]['term_json'] = $url;
+						if(!empty($term) && empty($term->errors)){
+							foreach($term as $tm_k => $tm){
+								$url = str_replace(site_url(),$rpl,get_term_link($tm)).'index.json';
+								$posts_arr[$key][$taxonomy][$tm_k]['term_id'] = $tm->term_id;
+								$posts_arr[$key][$taxonomy][$tm_k]['term_name'] = $tm->name;
+								$posts_arr[$key][$taxonomy][$tm_k]['term_json'] = $url;
+							}
+						}
 					}
 				}
 				$i++;
