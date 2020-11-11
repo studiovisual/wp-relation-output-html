@@ -670,6 +670,9 @@ Class RelOutputHtml {
 
 				$posts_arr[$key]['ID'] = $post->ID;
 				$posts_arr[$key]['post_title'] = $post->post_title;
+				$posts_arr[$key]['post_date'] = $post->post_date;
+				$posts_arr[$key]['post_excerpt'] = $post->post_excerpt;
+				
 				$thumbnail = get_the_post_thumbnail_url($post, "thumbnail");
 				if(empty($thumbnail)){
 					$thumbnail = get_option("uri_rlout").'/img/default.jpg';
