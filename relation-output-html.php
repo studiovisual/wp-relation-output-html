@@ -622,6 +622,8 @@ Class RelOutputHtml {
 
 				$object->posts[$key_p]['ID'] = $post->ID;
 				$object->posts[$key_p]['post_title'] = $post->post_title;
+				$object->posts[$key_p]['post_date'] = $post->post_date;
+				$object->posts[$key_p]['post_excerpt'] = $post->post_excerpt;
 				$object->posts[$key_p]['thumbnail'] = $post->thumbnails['thumbnail'];
 				$object->posts[$key_p]['post_json'] = $post->post_json;
 			}
