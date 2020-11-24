@@ -623,7 +623,7 @@ Class RelOutputHtml {
 				$object->posts[$key_p]['ID'] = $post->ID;
 				$object->posts[$key_p]['post_title'] = $post->post_title;
 				$object->posts[$key_p]['post_date'] = $post->post_date;
-				$object->posts[$key_p]['post_excerpt'] = $post->post_excerpt;
+				$object->posts[$key_p]['post_excerpt'] = get_the_excerpt($post);
 				$object->posts[$key_p]['thumbnail'] = $post->thumbnails['thumbnail'];
 				$object->posts[$key_p]['post_json'] = $post->post_json;
 			}
@@ -673,7 +673,7 @@ Class RelOutputHtml {
 				$posts_arr[$key]['ID'] = $post->ID;
 				$posts_arr[$key]['post_title'] = $post->post_title;
 				$posts_arr[$key]['post_date'] = $post->post_date;
-				$posts_arr[$key]['post_excerpt'] = $post->post_excerpt;
+				$posts_arr[$key]['post_excerpt'] = get_the_excerpt($post);
 				
 				$thumbnail = get_the_post_thumbnail_url($post, "thumbnail");
 				if(empty($thumbnail)){
