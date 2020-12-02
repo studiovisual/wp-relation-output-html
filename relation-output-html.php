@@ -9,6 +9,7 @@ Author URI:   http://www.claudioweb.com.br/
 Text Domain:  relation-output-html
 **************************************************************************/
 require "vendor/autoload.php";
+require "wp-ajax.php";
 
 use Aws\S3\S3Client;
 
@@ -19,6 +20,8 @@ Class RelOutputHtml {
 	private $repeat_files_rlout;
 
 	public function __construct() {
+
+		new WpAjaxRelOutHtml;
 
 		$this->name_plugin = 'Relation Output HTML';
 
@@ -273,7 +276,7 @@ Class RelOutputHtml {
 				$this->curl_generate(get_post_type_archive_link($pt));
 			}
 		}
-		sleep(1);
+		sleep(0.1);
 
 		if(empty($post_id)){
 
@@ -306,7 +309,7 @@ Class RelOutputHtml {
 			}
 		}
 
-		sleep(1);
+		sleep(0.1);
 
 		$this->git_upload_file('Atualização de object');
 	}
@@ -315,22 +318,22 @@ Class RelOutputHtml {
 
 		update_option('robots_rlout', '0');
 		update_option('blog_public', '1');
-		sleep(1);
+		sleep(0.1);
 		
 		if(!empty($objs)){
 
 			foreach ($objs as $key => $obj) {
 
 				$this->curl_generate($obj);
-				sleep(1);
+				sleep(0.1);
 			}
 		}
 
-		sleep(1);
+		sleep(0.1);
 		$this->subfiles_generate();
-		sleep(1);
+		sleep(0.1);
 		$this->curl_generate(null, true);
-		sleep(1);
+		sleep(0.1);
 		update_option('robots_rlout', '1');
 	}
 
@@ -354,7 +357,7 @@ Class RelOutputHtml {
 
 		$this->api_posts(true);
 		$this->api_terms(true);
-		sleep(1);
+		sleep(0.1);
 		// Generate JSON 1
 		$jsons = explode(',', get_option("api_1_rlout"));
 		$json = array();
@@ -433,6 +436,9 @@ Class RelOutputHtml {
 			}
 		}
 
+		if(filter_var($url, FILTER_VALIDATE_URL)==false){
+			return $url.' - URL COM ERRO DE SINTAX';
+		}
 		$curl = curl_init();
 
 		curl_setopt_array($curl, array(
@@ -455,9 +461,8 @@ Class RelOutputHtml {
 		curl_close($curl);
 
 		if ($err) {
-			echo "cURL Error #:" . $err;
+			return "cURL Error #:" . $err;
 		} else {
-
 			$response = $this->replace_json($response);
 
 			$dir_base =  get_option("path_rlout");
@@ -516,6 +521,8 @@ Class RelOutputHtml {
 
 			$this->ftp_upload_file($dir_base . '/index.json');
 			$this->s3_upload_file($dir_base . '/index.json');
+
+			return $url;
 		}
 
 	}
@@ -652,6 +659,7 @@ Class RelOutputHtml {
 
 		header( "Content-type: application/json");
 		$post_types = explode(",", get_option('post_types_rlout'));
+		$urls = array();
 		foreach ($post_types as $key => $post_type) {
 			$posts = get_posts(
 				array(
@@ -704,7 +712,7 @@ Class RelOutputHtml {
 				$i++;
 				if($i==1000){
 					$i=0;
-					sleep(1);
+					sleep(0.1);
 				}
 			}
 
@@ -712,7 +720,7 @@ Class RelOutputHtml {
 
 			if($generate==true){
 
-				sleep(1);
+				sleep(0.1);
 				$replace_uploads = get_option('uploads_rlout');
 
 				$uploads_url_rlout = get_option('uploads_url_rlout'); 
@@ -723,7 +731,7 @@ Class RelOutputHtml {
 
 					$response = str_replace($upload_url['baseurl'], $rpl.'/uploads', $response);
 					if($uploads_url_rlout){
-						sleep(1);
+						sleep(0.1);
 						$response = str_replace($uploads_url_rlout, $rpl.'/uploads', $response);
 					}
 
@@ -742,11 +750,14 @@ Class RelOutputHtml {
 
 				$this->ftp_upload_file($file_path);
 				$this->s3_upload_file($file_path);
+
+				$urls[] = str_replace($dir_base,$rpl,$file_path);
 			}else{
 
 				die($response);
 			}
 		}
+		return $urls;
 	}
 
 	public function api_terms($generate){
@@ -754,6 +765,7 @@ Class RelOutputHtml {
 		header( "Content-type: application/json");
 
 		$taxonomies = explode(",", get_option('taxonomies_rlout'));
+		$urls = array();
 
 		foreach($taxonomies as $tax){
 
@@ -772,7 +784,7 @@ Class RelOutputHtml {
 
 			if($generate==true){
 
-				sleep(1);
+				sleep(0.1);
 
 				$replace_uploads = get_option('uploads_rlout');
 
@@ -784,7 +796,7 @@ Class RelOutputHtml {
 
 					$response = str_replace($upload_url['baseurl'], $rpl.'/uploads', $response);
 
-					sleep(1);
+					sleep(0.1);
 
 					if($uploads_url_rlout){
 						$response = str_replace($uploads_url_rlout, $rpl.'/uploads', $response);
@@ -804,11 +816,15 @@ Class RelOutputHtml {
 
 				$this->ftp_upload_file($file_path);
 				$this->s3_upload_file($file_path);
+
+				$urls[] = str_replace($dir_base,$rpl,$file_path);
+
 			}else{
 
 				die($response);
 			}
 		}
+		return $urls;
 	}
 
 	public function replace_reponse($url_replace, $response, $media=null, $debug=false){
@@ -1086,7 +1102,7 @@ Class RelOutputHtml {
 		 	$login_result = ftp_login($conn_id, $user, $passwd);
 
 		 	$destination_file = $folder . str_replace(get_option("path_rlout"), '', $file_dir);
-
+			
 			// upload the file
 		 	$upload = ftp_put($conn_id, $destination_file, $file_dir, FTP_BINARY);
 
@@ -1233,8 +1249,8 @@ Class RelOutputHtml {
 
 			//$fields['horario_cron_rlout'] = array('type'=>'time', 'label'=>'Horário para sincronização diária');
 
-			$fields['api_1_rlout'] = array('type'=>'repeater','label'=>'URL API AJAX STATIC<br>
-				<small>Default: ('.site_url().'/wp-admin/admin-ajax.php?action=<u>EXEMPLO</u>)</small>');
+			// $fields['api_1_rlout'] = array('type'=>'repeater','label'=>'URL API AJAX STATIC<br>
+			// 	<small>Default: ('.site_url().'/wp-admin/admin-ajax.php?action=<u>EXEMPLO</u>)</small>');
 
 			$fields['subfiles_rlout'] = array('type'=>'repeater','label'=>'Arquivos ignorados<br>
 				<small>insira a URL de todos os arquivos que foram ignorados pelo sistema.</small>');
