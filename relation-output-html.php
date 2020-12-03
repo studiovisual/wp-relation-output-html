@@ -422,7 +422,6 @@ Class RelOutputHtml {
 				foreach($slug_term as $key_b => $barra){
 					$term_exist = get_term_by('slug',$slug_term[$key_b], $tax);
 					if($term_exist){
-						die(var_dump($term_exist));
 						$object = $term_exist;
 					}
 				}
