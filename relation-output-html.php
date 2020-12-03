@@ -726,7 +726,7 @@ Class RelOutputHtml {
 					$i++;
 					if($i==1000){
 						$i=0;
-						sleep(0.1);
+						sleep(1);
 					}
 				}
 				
