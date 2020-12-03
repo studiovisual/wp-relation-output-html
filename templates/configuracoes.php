@@ -212,6 +212,8 @@
 					jQuery('.total_page').html(qtd+parseInt(jQuery('.total_page').html()));
 					deploy(0, response);
 				});
+			}).fail(function (response_json){
+				jQuery('#results_static').append('<p><a href="'+response_json+'" target="_blank">FAIL JSON</a></p>');
 			});
 
 		}
@@ -227,7 +229,21 @@
 				var total = parseInt(jQuery('.statics_page').html());
 				var url_main = response_url.replace("<?php echo site_url(); ?>","<?php echo get_option('replace_url_rlout'); ?>");
 				jQuery('.statics_page').html(total+1);
-				jQuery('#results_static').append('<p><a href="'+url_main+'" target="_blank">'+url_main+'</a></p>');
+				jQuery('#results_static').append('<p><a href="'+url_main+'" target="_blank">'+url_main+'</a> - OK</p>');
+				
+				if(jQuery('.statics_page').html()==jQuery('.total_page').html()){
+					jQuery('#loading_static img').hide();
+					jQuery("#post_type_static").removeAttr('disabled');
+					jQuery("#taxonomy_static").removeAttr('disabled');
+					jQuery("#deploy_all_static").removeAttr('disabled');
+				}else{
+					deploy(key_main+1, response);
+				}
+			}).fail(function(response_url){
+				var total = parseInt(jQuery('.statics_page').html());
+				var url_main = response_url.replace("<?php echo site_url(); ?>","<?php echo get_option('replace_url_rlout'); ?>");
+				jQuery('.statics_page').html(total+1);
+				jQuery('#results_static').append('<p><a href="'+url_main+'" target="_blank">'+url_main+'</a> - FAIL </p>');
 				
 				if(jQuery('.statics_page').html()==jQuery('.total_page').html()){
 					jQuery('#loading_static img').hide();
