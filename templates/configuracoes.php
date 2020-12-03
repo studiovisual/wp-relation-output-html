@@ -232,7 +232,7 @@
 								jQuery("#deploy_all_static").removeAttr('disabled');
 							}
 						});
-					},500*index);
+					},1000*index);
 				}
 			});
 		}

@@ -45,6 +45,8 @@ Class WpAjaxRelOutHtml {
         // Taxonomy
         if($taxonomy=='all'){
             $taxonomy = explode(",", get_option('taxonomies_rlout'));
+        }else{
+            $taxonomy = array($taxonomy);
         }
         foreach($taxonomy as $tax){
             $terms = get_terms(array("taxonomy"=>$tax, 'hide_empty' => false));
@@ -57,6 +59,8 @@ Class WpAjaxRelOutHtml {
         $args_posts = array();
         if($post_type=='all'){
             $post_type = explode(",", get_option('post_types_rlout'));
+        }else{
+            $post_type = array($post_type);
         }
         foreach($post_type as $pt){
             $url = get_post_type_archive_link($pt);
