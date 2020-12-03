@@ -618,7 +618,8 @@ Class RelOutputHtml {
 		$object->post_type = $object->post_type;
 		
 		$object->thumbnails = array();
-		$object->thumbnails['thumbnail'] = get_the_post_thumbnail_url($object, 'thumbnail');
+		$size_thumb = get_option('size_thumbnail_rlout');
+		$object->thumbnails['thumbnail'] = get_the_post_thumbnail_url($object, $size_thumb);
 		if(empty($object->thumbnails['thumbnail'])){
 			$object->thumbnails['thumbnail'] = get_option("uri_rlout").'/img/default.jpg';
 		}
@@ -678,12 +679,12 @@ Class RelOutputHtml {
 			foreach ($posts as $key_p => $post) {
 				
 				$post = $this->object_post($post);
-				
+				$size_thumb = get_option('size_thumbnail_rlout');
 				$object->posts[$key_p]['ID'] = $post->ID;
 				$object->posts[$key_p]['post_title'] = $post->post_title;
 				$object->posts[$key_p]['post_date'] = $post->post_date;
 				$object->posts[$key_p]['post_excerpt'] = strip_tags(get_the_excerpt($post));
-				$object->posts[$key_p]['thumbnail'] = $post->thumbnails['thumbnail'];
+				$object->posts[$key_p]['thumbnail'] = $post->thumbnails[$size_thumb];
 				$object->posts[$key_p]['post_json'] = $post->post_json;
 				$object->posts[$key_p] = apply_filters('rel_output_custom_post', $post, $object->posts[$key_p]);
 			}
@@ -737,8 +738,9 @@ Class RelOutputHtml {
 					$posts_arr[$key]['post_date'] = $post->post_date;
 					$posts_arr[$key]['post_excerpt'] = strip_tags(get_the_excerpt($post));
 					$posts_arr[$key] = apply_filters('rel_output_custom_post', $post, $posts_arr[$key]);
+					$size_thumb = get_option('size_thumbnail_rlout');
 					
-					$thumbnail = get_the_post_thumbnail_url($post, "thumbnail");
+					$thumbnail = get_the_post_thumbnail_url($post, $size_thumb);
 					if(empty($thumbnail)){
 						$thumbnail = get_option("uri_rlout").'/img/default.jpg';
 						$thumbnail = str_replace(get_option("uri_rlout"), $rpl, $thumbnail);
@@ -1295,7 +1297,13 @@ Class RelOutputHtml {
 			(<b>".wp_upload_dir()['baseurl']."</b>) serão TRANSFERIDAS</small>");
 			
 			$fields['uploads_url_rlout'] = array('type'=>'text', 'label'=>"<small> URL de imagens para transferi-las");
-			
+
+			$fields['size_thumbnail_rlout'] = array('type'=>'select', 'label'=>'Tamanho padrão (thumbnail)');
+			$sizes = get_intermediate_image_sizes();
+			foreach($sizes as $size){
+				$fields['size_thumbnail_rlout']['options'][] = $size;
+			}
+
 			$fields['path_rlout'] = array('type'=>'text', 'label'=>"Path:<br><small> ".get_home_path() . 'html/</small>');
 			
 			$fields['uri_rlout'] = array('type'=>'text', 'label'=>"Directory_uri():<br><small>Caminho do template</small>");
