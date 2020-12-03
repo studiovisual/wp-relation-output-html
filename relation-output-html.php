@@ -690,6 +690,7 @@ Class RelOutputHtml {
 				if(empty($rpl)){
 					$rpl = site_url().'/html';
 				}
+
 				foreach ($posts as $key => $post) {
 					
 					$posts_arr[$key]['ID'] = $post->ID;
@@ -707,7 +708,7 @@ Class RelOutputHtml {
 					$posts_arr[$key]['post_json'] = $url;
 					
 					$taxonomies = explode(",", get_option('taxonomies_rlout'));
-					
+
 					if(!empty($taxonomies)){
 						
 						foreach($taxonomies as $taxonomy){
