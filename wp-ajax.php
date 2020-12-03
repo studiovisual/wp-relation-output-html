@@ -41,6 +41,16 @@ Class WpAjaxRelOutHtml {
         $taxonomy = $_GET['taxonomy'];
         $post_type = $_GET['post_type'];
         $urls = array();
+
+        // Subfiles
+        $files = explode(',', get_option("subfiles_rlout"));
+
+		foreach ($files as $key => $file) {
+
+			if(!empty($file)){
+                $urls[] = $file;
+            }
+        }
         
         // Taxonomy
         if($taxonomy=='all'){

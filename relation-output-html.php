@@ -412,7 +412,19 @@ Class RelOutputHtml {
 	}
 
 	public function curl_generate($object, $home=null){
-
+		$text_post = get_post(url_to_postid($object));
+		if(!empty($text_post)){
+			$object = $text_post;
+		}else{
+            $taxonomy = explode(",", get_option('taxonomies_rlout'));
+			foreach($taxonomy as $tax){
+				$slug_term = explode("/",$object);
+				$term_exist = get_term_by('slug','boleto', $tax);
+				if($term_exist){
+					$object = $term_exist;
+				}
+			}
+		}
 		if(!empty($object->ID)){
 
 			$url = get_permalink( $object );
