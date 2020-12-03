@@ -57,6 +57,8 @@ Class RelOutputHtml {
 		remove_action('wp_head', 'rsd_link');
 		remove_action('wp_head', 'wlwmanifest_link');
 		remove_action('wp_head', 'wp_generator');
+
+		add_action( 'activated_plugin', array($this, 'log_table') );
 		
 		// add_action("init", array($this, 'json_generate'));
 		
@@ -121,6 +123,24 @@ Class RelOutputHtml {
 			
 			header('Location:'.admin_url('admin.php?&loading_deploy=true&page='.$redirect_param));
 		}
+	}
+
+	public function log_table(){
+
+		global $wpdb;
+
+		$table_name = $wpdb->prefix . "relation_output"; 
+		$charset_collate = $wpdb->get_charset_collate();
+
+		$sql = "CREATE TABLE $table_name (
+		id mediumint(9) NOT NULL AUTO_INCREMENT,
+		time datetime DEFAULT '0000-00-00 00:00:00' NOT NULL,
+		text text NOT NULL,
+		PRIMARY KEY  (id)
+		) $charset_collate;";
+
+		require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
+		dbDelta( $sql );
 	}
 	
 	public function blog_public(){
@@ -410,6 +430,21 @@ Class RelOutputHtml {
 		}
 		
 	}
+
+	public function save_log($url){
+
+		global $wpdb;
+
+		$table_name = $wpdb->prefix . 'relation_output';
+
+		$wpdb->insert( 
+			$table_name, 
+			array( 
+				'time' => current_time( 'mysql' ),
+				'text' => $url, 
+			) 
+		);
+	}
 	
 	public function curl_generate($object, $home=null){
 		$text_post = get_post(url_to_postid($object));
@@ -453,6 +488,9 @@ Class RelOutputHtml {
 		if(filter_var($url, FILTER_VALIDATE_URL)==false){
 			return $url.' - URL COM ERRO DE SINTAX';
 		}
+
+		$this->save_log($url);
+
 		$curl = curl_init();
 		
 		curl_setopt_array($curl, array(
@@ -647,6 +685,7 @@ Class RelOutputHtml {
 				$object->posts[$key_p]['post_excerpt'] = strip_tags(get_the_excerpt($post));
 				$object->posts[$key_p]['thumbnail'] = $post->thumbnails['thumbnail'];
 				$object->posts[$key_p]['post_json'] = $post->post_json;
+				$object->posts[$key_p] = apply_filters('rel_output_custom_post', $post, $object->posts[$key_p]);
 			}
 		}
 		
@@ -697,6 +736,7 @@ Class RelOutputHtml {
 					$posts_arr[$key]['post_title'] = $post->post_title;
 					$posts_arr[$key]['post_date'] = $post->post_date;
 					$posts_arr[$key]['post_excerpt'] = strip_tags(get_the_excerpt($post));
+					$posts_arr[$key] = apply_filters('rel_output_custom_post', $post, $posts_arr[$key]);
 					
 					$thumbnail = get_the_post_thumbnail_url($post, "thumbnail");
 					if(empty($thumbnail)){
