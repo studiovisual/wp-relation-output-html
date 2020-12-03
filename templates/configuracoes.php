@@ -198,45 +198,48 @@
 					jQuery('.statics_page').html(current+1);
 					jQuery('#results_static').append('<p><a href="'+response_json[index_j]+'" target="_blank">'+response_json[index_j]+'</a></p>');
 				}
+
+				var post_type = jQuery('select#post_type_static').val();
+				var taxonomy = jQuery('select#taxonomy_static').val();
+				var settings = {
+				"url": "<?php echo site_url(); ?>/wp-admin/admin-ajax.php?action=static_output_files&post_type="+post_type+"&taxonomy="+taxonomy,
+				"method": "GET",
+				"timeout": 0,
+				};
+
+				jQuery.ajax(settings).done(function (response) {
+					var qtd = response.length;
+					jQuery('.total_page').html(qtd+parseInt(jQuery('.total_page').html()));
+					deploy(0, response);
+				});
 			});
 
-			var post_type = jQuery('select#post_type_static').val();
-			var taxonomy = jQuery('select#taxonomy_static').val();
-			var settings = {
-			"url": "<?php echo site_url(); ?>/wp-admin/admin-ajax.php?action=static_output_files&post_type="+post_type+"&taxonomy="+taxonomy,
+		}
+		
+		function deploy(key_main, response){
+			var settings_url = {
+			"url": "<?php echo site_url(); ?>/wp-admin/admin-ajax.php?action=static_output_deploy&file_url="+response[key_main],
 			"method": "GET",
 			"timeout": 0,
 			};
 
-			jQuery.ajax(settings).done(function (response) {
-				var qtd = response.length;
-				jQuery('.total_page').html(qtd+parseInt(jQuery('.total_page').html()));
-				for (let index = 0; index < response.length; index++) {
-					setTimeout(() => {
-						var settings_url = {
-						"url": "<?php echo site_url(); ?>/wp-admin/admin-ajax.php?action=static_output_deploy&file_url="+response[index],
-						"method": "GET",
-						"timeout": 0,
-						};
-
-						jQuery.ajax(settings_url).done(function (response_url) {
-							var total = parseInt(jQuery('.statics_page').html());
-							var url_main = response_url.replace("<?php echo site_url(); ?>","<?php echo get_option('replace_url_rlout'); ?>");
-							jQuery('.statics_page').html(total+1);
-							jQuery('#results_static').append('<p><a href="'+url_main+'" target="_blank">'+url_main+'</a></p>');
-							
-							if(jQuery('.statics_page').html()==jQuery('.total_page').html()){
-								jQuery('#loading_static img').hide();
-								jQuery("#post_type_static").removeAttr('disabled');
-								jQuery("#taxonomy_static").removeAttr('disabled');
-								jQuery("#deploy_all_static").removeAttr('disabled');
-							}
-						});
-					},1000*index);
+			jQuery.ajax(settings_url).done(function (response_url) {
+				var total = parseInt(jQuery('.statics_page').html());
+				var url_main = response_url.replace("<?php echo site_url(); ?>","<?php echo get_option('replace_url_rlout'); ?>");
+				jQuery('.statics_page').html(total+1);
+				jQuery('#results_static').append('<p><a href="'+url_main+'" target="_blank">'+url_main+'</a></p>');
+				
+				if(jQuery('.statics_page').html()==jQuery('.total_page').html()){
+					jQuery('#loading_static img').hide();
+					jQuery("#post_type_static").removeAttr('disabled');
+					jQuery("#taxonomy_static").removeAttr('disabled');
+					jQuery("#deploy_all_static").removeAttr('disabled');
+				}else{
+					deploy(key_main+1, response);
 				}
 			});
 		}
-		
+
 		function start_loading(){
 			jQuery(function(){
 				jQuery("#loading_deploy").fadeIn();

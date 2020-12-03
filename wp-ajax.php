@@ -62,7 +62,6 @@ Class WpAjaxRelOutHtml {
             $terms = get_terms(array("taxonomy"=>$tax, 'hide_empty' => false));
             foreach ($terms as $key => $term) {
                 $urls[] = get_term_link($term);
-                sleep(0.01);
             }
         }
         // Post_type
@@ -76,7 +75,6 @@ Class WpAjaxRelOutHtml {
             $url = get_post_type_archive_link($pt);
             if($url){
                 $urls[] = $url;
-                sleep(0.01);
             }
         }
         $args_posts = array();
@@ -87,7 +85,6 @@ Class WpAjaxRelOutHtml {
         $posts = get_posts($args_posts);
         foreach($posts as $post){
             $urls[] = get_permalink($post);
-            sleep(0.01);
         }
         
         header("Content-type: application/json");
