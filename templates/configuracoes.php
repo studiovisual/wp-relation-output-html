@@ -214,6 +214,9 @@
 				});
 			}).fail(function (response_json){
 				jQuery('#results_static').append('<p><a href="'+response_json+'" target="_blank">FAIL JSON</a></p>');
+				setTimeout(function(){
+					get_urls();
+				},1000);
 			});
 
 		}
@@ -251,7 +254,7 @@
 					jQuery("#taxonomy_static").removeAttr('disabled');
 					jQuery("#deploy_all_static").removeAttr('disabled');
 				}else{
-					deploy(key_main+1, response);
+					deploy(key_main+1, response[key_main]);
 				}
 			});
 		}

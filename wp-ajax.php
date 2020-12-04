@@ -31,7 +31,6 @@ Class WpAjaxRelOutHtml {
         $posts = $rlout->api_posts(true);
         
         $urls = array_merge($terms, $posts);
-
         die(json_encode($urls));
     }
     
@@ -60,8 +59,12 @@ Class WpAjaxRelOutHtml {
         }
         foreach($taxonomy as $tax){
             $terms = get_terms(array("taxonomy"=>$tax, 'hide_empty' => false));
+            $ignore_json_rlout = explode(',' ,get_option("ignore_json_rlout"));
             foreach ($terms as $key => $term) {
-                $urls[] = get_term_link($term);
+                $url = get_term_link($term);
+                if(array_search($url, $ignore_json_rlout)!='NULL'){
+                    $urls[] = $url;
+                }
             }
         }
         // Post_type
@@ -77,17 +80,33 @@ Class WpAjaxRelOutHtml {
                 $urls[] = $url;
             }
         }
-        $args_posts = array();
-        $args_posts['post_type'] = $post_type;
-        $args_posts['posts_per_page'] = -1;
-        $args_posts['order'] = 'DESC';
-        $args_posts['orderby'] = 'post_modified';
-        $posts = get_posts($args_posts);
-        foreach($posts as $post){
-            $urls[] = get_permalink($post);
-        }
+
+        $urls = $this->recursive_post($post_type, $urls);
         
         header("Content-type: application/json");
         die(json_encode($urls));
+    }
+    public function recursive_post($post_type, $urls=array(), $not_in=array()){
+        $args_posts = array();
+        $args_posts['post_type'] = $post_type;
+        $args_posts['posts_per_page'] = 25;
+        $args_posts['order'] = 'DESC';
+        $args_posts['orderby'] = 'post_modified';
+        $args_posts['post__not_in'] = $not_in;
+  
+        $posts = get_posts($args_posts);
+        $ignore_json_rlout = explode(',' ,get_option("ignore_json_rlout"));
+        foreach($posts as $post){
+            $url = get_permalink($post);
+            if(array_search($url, $ignore_json_rlout)!='NULL'){
+                $not_in[] = $post->ID;
+                $urls[] = $url;
+            }
+        }
+        if(count($posts)==25){
+            sleep(0.5);
+            $urls = array_unique(array_merge($urls, $this->recursive_post($post_type, $urls, $not_in)));
+        }
+        return array_values($urls);
     }
 }
