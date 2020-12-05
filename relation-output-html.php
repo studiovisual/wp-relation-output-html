@@ -688,7 +688,7 @@ Class RelOutputHtml {
 			$args_posts['post_type'] = explode(",", get_option('post_types_rlout'));
 			$args_posts['posts_per_page'] = -1;
 			$args_posts['order'] = 'DESC';
-			$args_posts['orderby'] = 'post_modified';
+			$args_posts['orderby'] = 'date';
 			$args_posts['tax_query'][0]['taxonomy'] = $object->taxonomy;
 			$args_posts['tax_query'][0]['terms'] = array($object->term_id);
 			
@@ -741,7 +741,7 @@ Class RelOutputHtml {
 				'post_type'=>$post_type,
 				'posts_per_page' => 25,
 				'order'=>'DESC',
-				'orderby'=>'post_modified',
+				'orderby'=>'date',
 				'post__not_in'=>$not_in
 			)
 		);

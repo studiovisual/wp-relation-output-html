@@ -91,7 +91,7 @@ Class WpAjaxRelOutHtml {
         $args_posts['post_type'] = $post_type;
         $args_posts['posts_per_page'] = 25;
         $args_posts['order'] = 'DESC';
-        $args_posts['orderby'] = 'post_modified';
+        $args_posts['orderby'] = 'date';
         $args_posts['post__not_in'] = $not_in;
   
         $posts = get_posts($args_posts);
