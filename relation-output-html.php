@@ -456,6 +456,7 @@ Class RelOutputHtml {
 	}
 	
 	public function curl_generate($object, $home=null){
+
 		$text_post = get_post(url_to_postid($object));
 		if(!empty($text_post)){
 			$object = $text_post;
@@ -471,6 +472,7 @@ Class RelOutputHtml {
 				}
 			}
 		}
+
 		if(!empty($object->ID)){
 			
 			$url = get_permalink( $object );
@@ -535,16 +537,20 @@ Class RelOutputHtml {
 			}
 
 			$replace_path = str_replace(site_url(), '', $url);
-			$dir_base = $dir_base . $replace_path; 
+			$dir_base = $dir_base . $replace_path;
 
 			$verify_files_point = explode('.',$dir_base);
+
 			$file_default = '/index.html';
 			$json_default = '/index.json';
 
-			if(!empty($verify_files_point)){
+			if(count($verify_files_point)>1){
 				$file_default = '';
 				$json_default = '';
 				if($verify_files_point[1]=='xml'){
+
+					$htt = str_replace('http:', '', site_url());
+					$original_response = str_replace($htt, get_option("replace_url_rlout"), $original_response);
 					$xml = simplexml_load_string($original_response);
 					foreach($xml->sitemap as $sitemap){
 						if(isset($sitemap->loc)){
@@ -554,6 +560,7 @@ Class RelOutputHtml {
 							}
 						}
 					}
+					$response=$original_response;
 				}
 			}else{
 			
@@ -565,7 +572,6 @@ Class RelOutputHtml {
 					}
 				}
 			}
-			
 			$file = fopen( $dir_base . $file_default,"w");
 			
 			$file_json = fopen( $dir_base . $json_default,"w");
