@@ -549,9 +549,11 @@ Class RelOutputHtml {
 				$json_default = '';
 				if($verify_files_point[1]=='xml'){
 
-					$htt = str_replace('http:', '', site_url());
-					$original_response = str_replace($htt, get_option("replace_url_rlout"), $original_response);
-					$xml = simplexml_load_string($original_response);
+					$htt = str_replace('https:', '', site_url());
+					$htt = str_replace('http:', '', $htt);
+					$original_response = str_replace(site_url(), get_option("replace_url_rlout"), $original_response);
+					$original_response = str_replace('href="'.$htt, 'href="'.get_option("replace_url_rlout"), $original_response);
+					$xml = simplexml_load_string($response);
 					foreach($xml->sitemap as $sitemap){
 						if(isset($sitemap->loc)){
 							$url_map = (array) $sitemap->loc;
@@ -562,16 +564,16 @@ Class RelOutputHtml {
 					}
 					$response=$original_response;
 				}
-			}else{
+			}
 			
-				$explode_path = explode("/", $dir_base);
-				foreach ($explode_path as $keyp => $path) {
-					$wp_path = $wp_path . $path . '/';
-					if( is_dir($wp_path) === false ){
-						mkdir($wp_path);
-					}
+			$explode_path = explode("/", $dir_base);
+			foreach ($explode_path as $keyp => $path) {
+				$wp_path = $wp_path . $path . '/';
+				if( is_dir($wp_path) === false && $keyp+1<count($explode_path)){
+					mkdir($wp_path);
 				}
 			}
+
 			$file = fopen( $dir_base . $file_default,"w");
 			
 			$file_json = fopen( $dir_base . $json_default,"w");
