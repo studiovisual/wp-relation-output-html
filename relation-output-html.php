@@ -743,7 +743,7 @@ Class RelOutputHtml {
 					$object->posts[$key_p]['ID'] = $post->ID;
 					$object->posts[$key_p]['post_title'] = $post->post_title;
 					$object->posts[$key_p]['post_date'] = $post->post_date;
-					$object->posts[$key_p]['post_excerpt'] = strip_tags(get_the_excerpt($post));
+					$object->posts[$key_p]['post_excerpt'] = strip_tags(get_the_excerpt($post),'<a>');
 					$object->posts[$key_p]['thumbnail'] = $post->thumbnails[$size_thumb];
 					$object->posts[$key_p]['post_json'] = $post->post_json;
 					$object->posts[$key_p] = apply_filters('rel_output_custom_post', $post, $object->posts[$key_p]);
@@ -796,7 +796,7 @@ Class RelOutputHtml {
 				$posts_arr[$key]['ID'] = $post->ID;
 				$posts_arr[$key]['post_title'] = $post->post_title;
 				$posts_arr[$key]['post_date'] = $post->post_date;
-				$posts_arr[$key]['post_excerpt'] = strip_tags(get_the_excerpt($post));
+				$posts_arr[$key]['post_excerpt'] = strip_tags(get_the_excerpt($post),'<a>');
 				$posts_arr[$key] = apply_filters('rel_output_custom_post', $post, $posts_arr[$key]);
 				$size_thumb = get_option('size_thumbnail_rlout');
 				
