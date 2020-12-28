@@ -59,6 +59,9 @@ Class RelOutputHtml {
 		remove_action('wp_head', 'wp_generator');
 
 		add_action( 'activated_plugin', array($this, 'log_table') );
+
+		
+		add_action('admin_enqueue_scripts', array($this, 'my_enqueue') );
 		
 		// add_action("init", array($this, 'json_generate'));
 		
@@ -125,6 +128,30 @@ Class RelOutputHtml {
 		}
 		
 		add_filter('excerpt_more', array($this, 'custom_excerpt_more') );
+		
+	}
+
+	public function my_enqueue($hook) {
+		// Only add to the edit.php admin page.
+		// See WP docs.
+		if ('post.php' == $hook || 'edit-tags.php' == $hook || 'edit.php' == $hook || 'term.php' == $hook) {
+			
+			global $post;
+
+			$post_types = explode(',', get_option('post_types_rlout'));
+			$post_type = $_GET['post_type'];
+			if(empty($post_type)){
+				$post_type = $post->post_type;
+			}
+
+			$taxonomies = explode(',', get_option('taxonomies_rlout'));
+			$taxonomy = $_GET['taxonomy'];
+
+			if(in_array($taxonomy, $taxonomies) || in_array($post_type, $post_types)){
+			
+				wp_enqueue_script('my_custom_script_relation_output', plugin_dir_url(__FILE__) . '/myscript.js');
+			}
+		}
 	}
 	
 	public function custom_excerpt_more( $more ) {
@@ -179,30 +206,32 @@ Class RelOutputHtml {
 	
 	public function term_create_folder($term_id, $tt_id, $taxonomy, $deleted_term=null){
 		
-		$term = get_term($term_id);
-		
-		$taxonomies = explode(',', get_option('taxonomies_rlout'));
-		
-		if(in_array($term->taxonomy, $taxonomies)){
+		if($_POST['static_output_html']){
+			$term = get_term($term_id);
 			
-			$slug_old = $term->slug;
-			$slug_new = $_POST['slug'];
+			$taxonomies = explode(',', get_option('taxonomies_rlout'));
 			
-			$url = str_replace(site_url(), '', get_term_link($term));
-			
-			if($slug_old!=$slug_new){
+			if(in_array($term->taxonomy, $taxonomies)){
 				
-				$term->slug = $slug_new;
+				$slug_old = $term->slug;
+				$slug_new = $_POST['slug'];
+				
+				$url = str_replace(site_url(), '', get_term_link($term));
+				
+				if($slug_old!=$slug_new){
+					
+					$term->slug = $slug_new;
+				}
+				
+				$dir_base = get_option("path_rlout") . $url;
+				
+				$objects = array($term);
+				
+				$this->deploy($objects);
 			}
-			
-			$dir_base = get_option("path_rlout") . $url;
-			
-			$objects = array($term);
-			
-			$this->deploy($objects);
+			$this->api_posts(true);
+			$this->api_terms(true);
 		}
-		$this->api_posts(true);
-		$this->api_terms(true);
 	}
 	
 	public function term_delete_folder($term_id, $tt_id, $taxonomy, $deleted_term=null){
@@ -300,53 +329,56 @@ Class RelOutputHtml {
 	}
 	
 	public function post_auto_deploy($post_id=null){
-		
-		$post_types = explode(',', get_option('post_types_rlout'));
-		foreach ($post_types as $key => $pt) {
-			$link = get_post_type_archive_link($pt);
-			if($link){
-				$this->curl_generate(get_post_type_archive_link($pt));
+
+		if($_POST['static_output_html']){
+			
+			$post_types = explode(',', get_option('post_types_rlout'));
+			foreach ($post_types as $key => $pt) {
+				$link = get_post_type_archive_link($pt);
+				if($link){
+					$this->curl_generate(get_post_type_archive_link($pt));
+				}
 			}
-		}
-		sleep(0.5);
-		
-		if(empty($post_id)){
+			sleep(0.5);
 			
-			$objects = get_posts(array('post_type'=>$post_types, 'posts_per_page'=>-1));
-			
-			$this->deploy($objects);
-			foreach ($taxonomies as $key => $tax) {
-				$objects = get_terms( array('taxonomy' => $tax, 'hide_empty' => false) );
+			if(empty($post_id)){
+				
+				$objects = get_posts(array('post_type'=>$post_types, 'posts_per_page'=>-1));
+				
 				$this->deploy($objects);
-			}
-			
-		}else{
-			
-			$post =  get_post($post_id);
-			
-			if(in_array($post->post_type, $post_types)){
-				
-				$terms = wp_get_post_terms($post->ID, $taxonomies);
-				
-				$objects = array();
-				
-				$objects[] = $post;
-				
-				// categorias relacionadas
-				foreach ($terms as $key => $term) {
-					$objects[] = $term;
+				foreach ($taxonomies as $key => $tax) {
+					$objects = get_terms( array('taxonomy' => $tax, 'hide_empty' => false) );
+					$this->deploy($objects);
 				}
 				
-				$this->deploy($objects);
+			}else{
+				
+				$post =  get_post($post_id);
+				
+				if(in_array($post->post_type, $post_types)){
+					
+					$terms = wp_get_post_terms($post->ID, $taxonomies);
+					
+					$objects = array();
+					
+					$objects[] = $post;
+					
+					// categorias relacionadas
+					foreach ($terms as $key => $term) {
+						$objects[] = $term;
+					}
+					
+					$this->deploy($objects);
+				}
 			}
-		}
-		
-		sleep(0.5);
-		
-		$this->git_upload_file('Atualização de object');
+			
+			sleep(0.5);
+			
+			$this->git_upload_file('Atualização de object');
 
-		$this->api_posts(true);
-		$this->api_terms(true);
+			$this->api_posts(true);
+			$this->api_terms(true);
+		}
 	}
 	
 	public function deploy($objs=null){
@@ -1464,4 +1496,4 @@ Class RelOutputHtml {
 	
 	$init_plugin = new RelOutputHtml;
 	
-	?>
+?>
