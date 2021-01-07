@@ -494,6 +494,9 @@ Class RelOutputHtml {
 	}
 	
 	public function curl_generate($object, $home=null){
+		
+		update_option('robots_rlout', '0');
+		update_option('blog_public', '1');
 
 		$text_post = get_post(url_to_postid($object));
 		if(!empty($text_post)){
@@ -669,9 +672,9 @@ Class RelOutputHtml {
 				}
 			}
 			
+			update_option('robots_rlout', '1');
 			return $url;
 		}
-		
 	}
 	
 	public function url_json_obj($object){
