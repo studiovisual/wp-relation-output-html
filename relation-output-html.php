@@ -12,6 +12,7 @@ require "vendor/autoload.php";
 require "wp-ajax.php";
 
 use Aws\S3\S3Client;
+use Aws\CloudFront\CloudFrontClient;
 
 Class RelOutputHtml {
 	
@@ -129,6 +130,47 @@ Class RelOutputHtml {
 		
 		add_filter('excerpt_more', array($this, 'custom_excerpt_more') );
 		
+	}
+
+	public function invalidfileaws($response){
+
+		$DistributionId = get_option('s3_distributionid_rlout');
+
+		if(!empty($DistributionId)){
+			$CallerReference = (string) strtotime(date('Y-m-d H:i:s'));
+			$path = str_replace(site_url(), '', $response);
+			
+			$access_key = get_option('s3_key_rlout');
+			$secret_key = get_option('s3_secret_rlout');
+			$acl_key = get_option('s3_acl_rlout');
+			$region = get_option('s3_region_rlout');
+			
+			$cloudFrontClient = CloudFrontClient::factory(array(
+				'region' => $region,
+				'version' => '2016-01-28',
+		
+				'credentials' => [
+					'key'    => $access_key,
+					'secret' => $secret_key,
+				]
+			));
+
+			// $result = $cloudFrontClient->listDistributions([]);
+			// $result = $cloudFrontClient->listInvalidations(['DistributionId'=>$DistributionId]);
+
+			$args = [
+				'DistributionId' => $DistributionId,
+				'CallerReference' => $CallerReference,
+				'Paths' => [
+					'Quantity' => 1,
+					'Items' => [$path],
+				],
+			];
+			
+			$result = $cloudFrontClient->createInvalidation($args);
+
+			return $result;
+		}
 	}
 
 	public function my_enqueue($hook) {
@@ -1232,6 +1274,8 @@ Class RelOutputHtml {
 							'SourceFile' => $file_dir,
 							'ACL'    => $acl_key
 						));
+						$this->invalidfileaws('/'.$key_file_s3);
+
 					}
 					
 				}
@@ -1448,6 +1492,8 @@ Class RelOutputHtml {
 			<small>insira a URL de todos os arquivos que foram ignorados pelo sistema.</small>');
 			
 			$fields['s3_rlout'] = array('type'=>'label','label'=>'Storage AWS S3');
+			
+			$fields['s3_distributionid_rlout'] = array('type'=>'text','label'=>'Distribution ID (Cloudfront)');
 			
 			$fields['s3_key_rlout'] = array('type'=>'text', 'label'=>'S3 Key');
 			
