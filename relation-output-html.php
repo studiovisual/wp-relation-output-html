@@ -137,7 +137,7 @@ Class RelOutputHtml {
 		$DistributionId = get_option('s3_distributionid_rlout');
 
 		if(!empty($DistributionId)){
-			$CallerReference = (string) strtotime(date('Y-m-d H:i:s'));
+			$CallerReference = (string) rand(100000,9999999).strtotime(date('Y-m-dH:i:s'));
 			$path = str_replace(site_url(), '', $response);
 			
 			$access_key = get_option('s3_key_rlout');
@@ -1274,8 +1274,8 @@ Class RelOutputHtml {
 							'SourceFile' => $file_dir,
 							'ACL'    => $acl_key
 						));
-						$this->invalidfileaws('/'.$key_file_s3);
 
+						$this->invalidfileaws('/'.$key_file_s3);
 					}
 					
 				}
