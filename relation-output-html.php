@@ -1274,8 +1274,11 @@ Class RelOutputHtml {
 							'SourceFile' => $file_dir,
 							'ACL'    => $acl_key
 						));
-
-						$this->invalidfileaws('/'.$key_file_s3);
+						
+						if($response){
+							sleep(0.1);
+							$this->invalidfileaws('/'.$key_file_s3);
+						}
 					}
 					
 				}
