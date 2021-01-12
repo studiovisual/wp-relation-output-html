@@ -513,7 +513,7 @@ Class RelOutputHtml {
 					fwrite($file, $response);
 					
 					$this->ftp_upload_file($file_path);
-					$this->s3_upload_file($file_path);
+					$this->s3_upload_file($file_path, false);
 				}
 			}
 		}
@@ -689,7 +689,7 @@ Class RelOutputHtml {
 				fwrite($file, $response);
 			
 				$this->ftp_upload_file($dir_base . $file_default);
-				$this->s3_upload_file($dir_base . $file_default);
+				$this->s3_upload_file($dir_base . $file_default, false);
 			}
 
 			if(term_exists($object->term_id)){
@@ -710,7 +710,7 @@ Class RelOutputHtml {
 				
 					$this->ftp_upload_file($dir_base . $json_default);
 				
-					$this->s3_upload_file($dir_base . $json_default);
+					$this->s3_upload_file($dir_base . $json_default, false);
 				}
 			}
 			
@@ -971,7 +971,7 @@ Class RelOutputHtml {
 					fwrite($file, $response);
 					
 					$this->ftp_upload_file($file_path);
-					$this->s3_upload_file($file_path);
+					$this->s3_upload_file($file_path, false);
 					
 					$urls[] = str_replace($dir_base,$rpl,$file_path);
 				}else{
@@ -1037,7 +1037,7 @@ Class RelOutputHtml {
 					fwrite($file, $response);
 					
 					$this->ftp_upload_file($file_path);
-					$this->s3_upload_file($file_path);
+					$this->s3_upload_file($file_path, false);
 					
 					$urls[] = str_replace($dir_base,$rpl,$file_path);
 					
@@ -1238,7 +1238,7 @@ Class RelOutputHtml {
 			return $response;
 		}
 		
-		public function s3_upload_file($file_dir){
+		public function s3_upload_file($file_dir, $ignore_cloud=true){
 			
 			if($file_dir){
 				
@@ -1274,9 +1274,8 @@ Class RelOutputHtml {
 							'SourceFile' => $file_dir,
 							'ACL'    => $acl_key
 						));
-						
-						if($response){
-							sleep(0.1);
+
+						if($response && $ignore_cloud==false){
 							$this->invalidfileaws('/'.$key_file_s3);
 						}
 					}
