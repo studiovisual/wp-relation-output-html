@@ -156,6 +156,7 @@ Class RelOutputHtml {
 			));
 
 			// $result = $cloudFrontClient->listDistributions([]);
+			// die(var_dump($result));
 			// $result = $cloudFrontClient->listInvalidations(['DistributionId'=>$DistributionId]);
 
 			$args = [
@@ -710,7 +711,7 @@ Class RelOutputHtml {
 				
 					$this->ftp_upload_file($dir_base . $json_default);
 				
-					$this->s3_upload_file($dir_base . $json_default, false);
+					$this->s3_upload_file($dir_base . $json_default, true);
 				}
 			}
 			
@@ -1276,6 +1277,7 @@ Class RelOutputHtml {
 						));
 
 						if($response && $ignore_cloud==false){
+							$key_file_s3 = str_replace('index.html', '', $key_file_s3);
 							$this->invalidfileaws('/'.$key_file_s3);
 						}
 					}
