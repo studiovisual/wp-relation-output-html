@@ -1419,25 +1419,36 @@ Class RelOutputHtml {
 		}
 		
 		public function add_admin_menu(){
+
+
+			if ( ! function_exists( 'get_home_path' ) || ! function_exists( 'wp_get_current_user' ) ) {
+				include_once(ABSPATH . '/wp-admin/includes/file.php');
+				include_once(ABSPATH . '/wp-includes/pluggable.php');
+			}
 			
-			add_menu_page(
-				$this->name_plugin,
-				$this->name_plugin,
-				'manage_options', 
-				sanitize_title($this->name_plugin), 
-				array($this,'reloutputhtml_home'), 
-				'', //URL ICON
-				93.1110 // Ordem menu
-			);
+			$user = wp_get_current_user();
 			
-			add_submenu_page( 
-				sanitize_title($this->name_plugin), 
-				'Configurações', 
-				'Configurações', 
-				'manage_options', 
-				sanitize_title($this->name_plugin).'-config', 
-				array($this,'reloutputhtml_settings')
-			);
+			if(in_array('administrator', $user->roles)){
+				
+				add_menu_page(
+					$this->name_plugin,
+					$this->name_plugin,
+					'manage_options', 
+					sanitize_title($this->name_plugin), 
+					array($this,'reloutputhtml_home'), 
+					'', //URL ICON
+					93.1110 // Ordem menu
+				);
+				
+				add_submenu_page( 
+					sanitize_title($this->name_plugin), 
+					'Configurações', 
+					'Configurações', 
+					'manage_options', 
+					sanitize_title($this->name_plugin).'-config', 
+					array($this,'reloutputhtml_settings')
+				);
+			}
 		}
 		
 		public function reloutputhtml_home(){
