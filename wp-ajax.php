@@ -1,7 +1,4 @@
 <?php 
-require "vendor/autoload.php";
-
-use Aws\S3\S3Client;
 
 Class WpAjaxRelOutHtml {
     
@@ -21,7 +18,8 @@ Class WpAjaxRelOutHtml {
         $file = $_GET['file_url'];
         if(!empty($file)){
             $rlout = new RelOutputHtml;
-            die($rlout->curl_generate($file));
+            $response = $rlout->curl_generate($file);
+            die($response);
         }
     }
     
@@ -90,6 +88,7 @@ Class WpAjaxRelOutHtml {
         $args_posts = array();
         $args_posts['post_type'] = $post_type;
         $args_posts['posts_per_page'] = 25;
+        $args_posts['post_status'] = 'publish';
         $args_posts['order'] = 'DESC';
         $args_posts['orderby'] = 'date';
         $args_posts['post__not_in'] = $not_in;

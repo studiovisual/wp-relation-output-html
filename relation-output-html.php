@@ -35,6 +35,7 @@ Class RelOutputHtml {
 		$post_types = explode(',', get_option('post_types_rlout'));
 		foreach ($post_types as $key => $post_type) {
 			add_action( 'publish_'.$post_type, array($this, 'post_auto_deploy'));
+			add_action( 'draft_'.$post_type, array($this, 'post_delete_folder'));
 			add_action( 'pre_'.$post_type.'_update', array($this, 'post_delete_folder'));
 			add_action( 'trash_'.$post_type,  array($this, 'post_delete_folder'));
 		}
