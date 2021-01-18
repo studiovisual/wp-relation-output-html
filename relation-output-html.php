@@ -31,7 +31,9 @@ Class RelOutputHtml {
 		add_action('init', array($this, 'blog_public') );
 		add_action( 'admin_menu', array( $this, 'add_admin_menu' ));
 		
+
 		// verifica alterações de POST
+
 		$post_types = explode(',', get_option('post_types_rlout'));
 		foreach ($post_types as $key => $post_type) {
 			add_action( 'publish_'.$post_type, array($this, 'post_auto_deploy'));
@@ -178,7 +180,7 @@ Class RelOutputHtml {
 	public function my_enqueue($hook) {
 		// Only add to the edit.php admin page.
 		// See WP docs.
-		if ('post.php' == $hook || 'edit-tags.php' == $hook || 'edit.php' == $hook || 'term.php' == $hook) {
+		if ('post-new.php'== $hook || 'post.php' == $hook || 'edit-tags.php' == $hook || 'edit.php' == $hook || 'term.php' == $hook) {
 			
 			global $post;
 
@@ -376,52 +378,58 @@ Class RelOutputHtml {
 
 		if($_POST['static_output_html']){
 			
-			$post_types = explode(',', get_option('post_types_rlout'));
-			foreach ($post_types as $key => $pt) {
-				$link = get_post_type_archive_link($pt);
-				if($link){
-					$this->curl_generate(get_post_type_archive_link($pt));
-				}
-			}
-			sleep(0.5);
-			
-			if(empty($post_id)){
-				
-				$objects = get_posts(array('post_type'=>$post_types, 'posts_per_page'=>-1));
-				
-				$this->deploy($objects);
-				foreach ($taxonomies as $key => $tax) {
-					$objects = get_terms( array('taxonomy' => $tax, 'hide_empty' => false) );
-					$this->deploy($objects);
-				}
-				
-			}else{
-				
-				$post =  get_post($post_id);
-				
-				if(in_array($post->post_type, $post_types)){
+			add_action('updated_post_meta', function($meta_id, $post_id, $meta_key){
+
+				if($meta_key=='_edit_lock'){
 					
-					$terms = wp_get_post_terms($post->ID, $taxonomies);
+					$post_types = explode(',', get_option('post_types_rlout'));
+					foreach ($post_types as $key => $pt) {
+						$link = get_post_type_archive_link($pt);
+						if($link){
+							$this->curl_generate(get_post_type_archive_link($pt));
+						}
+					}
+					sleep(0.5);
 					
-					$objects = array();
-					
-					$objects[] = $post;
-					
-					// categorias relacionadas
-					foreach ($terms as $key => $term) {
-						$objects[] = $term;
+					if(empty($post_id)){
+						
+						$objects = get_posts(array('post_type'=>$post_types, 'posts_per_page'=>-1));
+						
+						$this->deploy($objects);
+						foreach ($taxonomies as $key => $tax) {
+							$objects = get_terms( array('taxonomy' => $tax, 'hide_empty' => false) );
+							$this->deploy($objects);
+						}
+						
+					}else{
+						
+						$post =  get_post($post_id);
+						
+						if(in_array($post->post_type, $post_types)){
+							
+							$terms = wp_get_post_terms($post->ID, $taxonomies);
+							
+							$objects = array();
+							
+							$objects[] = $post;
+							
+							// categorias relacionadas
+							foreach ($terms as $key => $term) {
+								$objects[] = $term;
+							}
+							
+							$this->deploy($objects);
+						}
 					}
 					
-					$this->deploy($objects);
-				}
-			}
-			
-			sleep(0.5);
-			
-			$this->git_upload_file('Atualização de object');
+					sleep(0.5);
+					
+					$this->git_upload_file('Atualização de object');
 
-			$this->api_posts(true);
-			$this->api_terms(true);
+					$this->api_posts(true);
+				$this->api_terms(true);
+				}
+			},10,3);
 		}
 	}
 	
