@@ -180,7 +180,7 @@ Class RelOutputHtml {
 	public function my_enqueue($hook) {
 		// Only add to the edit.php admin page.
 		// See WP docs.
-		if ('post-new.php'== $hook || 'post.php' == $hook || 'edit-tags.php' == $hook || 'edit.php' == $hook || 'term.php' == $hook) {
+		if ('post.php' == $hook || 'edit-tags.php' == $hook || 'edit.php' == $hook || 'term.php' == $hook) {
 			
 			global $post;
 
