@@ -92,6 +92,8 @@ Class RelOutputHtml {
 			header('Location:'.admin_url('admin.php?page='.$redirect_param));
 			exit;
 		}
+
+		add_filter( 'update_footer', array($this, 'config_admin_var') );
 		
 		if(!empty($_POST['deploy_all_static'])){
 			
@@ -132,7 +134,78 @@ Class RelOutputHtml {
 		}
 		
 		add_filter('excerpt_more', array($this, 'custom_excerpt_more') );
+		add_action('admin_bar_menu', array($this, 'add_toolbar_items'), 100);
+
+		if(isset($_GET['cloudfront_rlout'])){
+
+			$response_cloudfront = $this->invalidfileaws('/*');
+			if($response_cloudfront){
+				echo '<script>alert("Cloudfront Atualizados!");</script>';
+				echo '<script>window.location = document.URL.replace("&cloudfront_rlout=true","");</script>';
+				echo '<script>window.location = document.URL.replace("?cloudfront_rlout=true","");</script>';
+			}
+		}
+
+		if(isset($_GET['essenciais_rlout'])){
+
+			$response_essenciais = $this->subfiles_generate();
+
+			if($response_essenciais){
+				echo '<script>alert("Arquivos Essenciais Atualizados!");</script>';
+				echo '<script>window.location = document.URL.replace("&essenciais_rlout=true","");</script>';
+				echo '<script>window.location = document.URL.replace("?essenciais_rlout=true","");</script>';
+			}
+		}
+	}
+
+	public function config_admin_var(){
+		echo '<style>#loading_rlout h2{text-align:center;} #loading_rlout{display:none;position:fixed;left:0;top:0;width:100%;height:100%;z-index: 99999;background:rgba(255,255,255,0.8);} #loading_rlout .loader_rlout{position: relative;margin: 0 auto;display: block;top: 33%;border:16px solid #f3f3f3;border-radius:50%;border-top:16px solid #3498db;width:120px;height:120px;-webkit-animation:spin 2s linear infinite;animation:spin 2s linear infinite}@-webkit-keyframes spin{0%{-webkit-transform:rotate(0)}100%{-webkit-transform:rotate(360deg)}}@keyframes spin{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}</style>';
+		echo '<div id="loading_rlout"><div class="loader_rlout"></div><h2>Por favor aguarde um instante, estamos processando o HTML.</h2></div>';
+		echo '<script>jQuery(function(){ jQuery("#wp-admin-bar-relation-output-html-rlout li a").click(function(){jQuery("#loading_rlout").fadeIn();}); });</script>';
+	}
+
+	public function add_toolbar_items($admin_bar){
+		$admin_bar->add_menu( array(
+			'id'    => 'relation-output-html-rlout',
+			'title' => 'Relation Output HTML',
+			'parent' => null,
+			'href'  => '',
+			'meta' => [
+				'title' => 'Limpeza e estatização dos principais arquivos e arquios ignorados',
+			]
+		));
+
+		$actual_link = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
 		
+		$actual_link = str_replace('?cloudfront_rlout=true', '', $actual_link);
+		$actual_link = str_replace('&cloudfront_rlout=true', '', $actual_link);
+
+		$actual_link = str_replace('?essenciais_rlout=true', '', $actual_link);
+		$actual_link = str_replace('&essenciais_rlout=true', '', $actual_link);
+
+		$get_param = explode('?', $actual_link);
+
+		if(count($get_param)>1){
+			$cloudfront_link = $actual_link.'&cloudfront_rlout=true';
+			$essenciais_link = $actual_link.'&essenciais_rlout=true';
+		}else{
+			$cloudfront_link = $actual_link.'?cloudfront_rlout=true';
+			$essenciais_link = $actual_link.'?essenciais_rlout=true';
+		}
+
+		$admin_bar->add_menu( array(
+			'id'    => 'cloudfront-html-rlout',
+			'title' => 'Limpar Cloudfront',
+			'parent' => 'relation-output-html-rlout',
+			'href'  => $cloudfront_link
+		));
+
+		$admin_bar->add_menu( array(
+			'id'    => 'essenciais-html-rlout',
+			'title' => 'Gerar aquivos essenciais',
+			'parent' => 'relation-output-html-rlout',
+			'href'  => $essenciais_link
+		));
 	}
 
 	public function invalidfileaws($response){
@@ -338,7 +411,6 @@ Class RelOutputHtml {
 			}
 			
 			if($post->post_name){
-				
 				$dir_base =  str_replace('__trashed', '', get_option("path_rlout") . $post->post_name);
 				
 				unlink($dir_base . '/index.html');
@@ -427,7 +499,7 @@ Class RelOutputHtml {
 					$this->git_upload_file('Atualização de object');
 
 					$this->api_posts(true);
-				$this->api_terms(true);
+					$this->api_terms(true);
 				}
 			},10,3);
 		}
@@ -435,9 +507,9 @@ Class RelOutputHtml {
 	
 	public function deploy($objs=null){
 		
-		update_option('robots_rlout', '0');
-		update_option('blog_public', '1');
-		sleep(0.5);
+		// update_option('robots_rlout', '0');
+		// update_option('blog_public', '1');
+		// sleep(0.5);
 		
 		if(!empty($objs)){
 			
@@ -448,15 +520,31 @@ Class RelOutputHtml {
 			}
 		}
 		
-		sleep(0.5);
-		$this->subfiles_generate();
-		sleep(0.5);
-		$this->curl_generate(null, true);
-		sleep(0.5);
-		update_option('robots_rlout', '1');
+		// sleep(0.5);
+		// $this->subfiles_generate();
+		$this->importantfiles_generate();
+		// sleep(0.5);
+		// $this->curl_generate(null, true);
+		// sleep(0.5);
+		// update_option('robots_rlout', '1');
 	}
 	
-	
+	public function importantfiles_generate(){
+		
+		// Generate FILE 1
+		$files = explode(',', get_option("pages_important_rlout"));
+		
+		foreach ($files as $key => $file) {
+			
+			if(!empty($file)){
+				
+				$this->curl_generate($file);
+				$this->repeat_files_rlout[] = $file;
+			}
+		}
+		return $files;
+	}
+
 	public function subfiles_generate(){
 		
 		// Generate FILE 1
@@ -470,6 +558,7 @@ Class RelOutputHtml {
 				$this->repeat_files_rlout[] = $file;
 			}
 		}
+		return $files;
 	}
 	
 	public function json_generate(){
@@ -1312,13 +1401,25 @@ Class RelOutputHtml {
 					'secret' => $secret_key
 				));
 				
-				$response = $clientS3->deleteObject(array(
-					'Bucket' => get_option('s3_bucket_rlout'),
-					'Key' => str_replace(get_option("path_rlout"),'', $file_dir)
-				));
+				$key_file_s3 = str_replace(get_option("path_rlout").'/','', $file_dir);
+				$key_file_s3 = str_replace(get_option("path_rlout"),'', $key_file_s3);
 				
-				
-				return $response;
+				$directory_empty = explode('/', $key_file_s3);
+
+				if(!empty($key_file_s3) && !empty(end($directory_empty)) ){
+
+					$response = $clientS3->deleteObject(array(
+						'Bucket' => get_option('s3_bucket_rlout'),
+						'Key' => $key_file_s3
+					));
+					
+					if($response){
+						$key_file_s3 = str_replace('index.html', '', $key_file_s3);
+						$this->invalidfileaws('/'.$key_file_s3);
+					}
+					
+					return $response;
+				}
 				
 			}
 		}
@@ -1516,6 +1617,9 @@ Class RelOutputHtml {
 
 			$fields['subfiles_rlout'] = array('type'=>'repeater','label'=>'Arquivos ignorados<br>
 			<small>insira a URL de todos os arquivos que foram ignorados pelo sistema.</small>');
+
+			$fields['pages_important_rlout'] = array('type'=>'repeater','label'=>'Páginas importantes (URL)<br>
+			<small>Páginas importantes para serem atualizadas ao atualizar os posts</small>');
 			
 			$fields['s3_rlout'] = array('type'=>'label','label'=>'Storage AWS S3');
 			
