@@ -105,6 +105,49 @@
 							</tr>
 						<?php endif; ?>
 
+						<?php if($field['type']=='select2'): ?>
+							<tr class="select2-api-rlout">
+								<th scope="row">
+									<label for="<?php echo $key_field; ?>"><?php echo $field['label']; ?></label>
+								</th>
+								<td>
+									<select style="width:350px;" data-action_ajax="<?php echo $field['action_ajax']; ?>" name="<?php echo $key_field; ?><?php if($field['multiple']){echo'[]';} ?>" id="<?php echo $key_field; ?>" <?php if($field['multiple']){echo'multiple';} ?> >
+									<?php if(empty($field['options'])): ?>	
+										<?php $values_select = explode(',',get_option($key_field)); ?>
+											<?php foreach($values_select as $value_select2): ?>
+												<?php
+													$title = $value_select2;
+													$post = get_post(url_to_postid($value_select2)); 
+													if(!empty($post->ID)){
+														$title = $post->post_title;
+													}else{
+
+														$url_term = explode('/',str_replace(site_url(),'',$value_select2));
+														if(empty(end($url_term))){
+															unset($url_term[count($url_term)-1]);
+														}
+														$taxonomies = explode(',',get_option('taxonomies_rlout'));
+														foreach($taxonomies as $tax){
+															$term = get_term_by('slug', end($url_term), $tax);
+															if(!empty($term->term_id)){
+																$title = $term->name;
+															}
+														}
+													}
+													
+												?>
+												<option value="<?php echo $value_select2; ?>" selected><?php echo $title; ?></option>
+											<?php endforeach; ?>
+										<?php else: ?>
+											<?php foreach($field['options'] as $option): ?>
+												<option value="<?php echo $option; ?>" <?php if(in_array($option, explode(',', get_option($key_field)))){echo'selected';} ?> ><?php echo $option; ?></option>
+											<?php endforeach; ?>
+										<?php endif; ?>
+									</select>
+								</td>
+							</tr>
+						<?php endif; ?>
+
 					<?php endforeach; ?>
 
 					<tr>

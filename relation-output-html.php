@@ -150,10 +150,24 @@ Class RelOutputHtml {
 			$response_essenciais = $this->subfiles_generate();
 
 			if($response_essenciais){
+				
+				$this->api_posts(true);
+				$this->api_terms(true);
+
 				echo '<script>alert("Arquivos Essenciais Atualizados!");</script>';
 				echo '<script>window.location = document.URL.replace("&essenciais_rlout=true","")L.replace("?essenciais_rlout=true","");</script>';
 			}
 		}
+
+		add_action( 'admin_enqueue_scripts', array($this,'rudr_select2_enqueue') );
+	}
+
+	public function rudr_select2_enqueue(){
+ 
+		wp_enqueue_style('select2', plugin_dir_url(__FILE__) . '/inc/css/select2.min.css' );
+		wp_enqueue_script('select2', plugin_dir_url(__FILE__) . '/inc/js/select2.min.js', array('jquery') );
+		
+		wp_enqueue_script('my_custom_script_relation_output', plugin_dir_url(__FILE__) . '/select2.js');
 	}
 
 	public function config_admin_var(){
@@ -1578,11 +1592,11 @@ Class RelOutputHtml {
 			$fields['replace_url_rlout'] = array('type'=>'text','label'=>'Substituir a URL <br>
 			<small>Default: ('.site_url().'/html)</small>');
 			
-			$fields['post_types_rlout'] = array('type'=>'select', 'label'=>'Post Type para deploy', 'multiple'=>'multiple');
+			$fields['post_types_rlout'] = array('type'=>'select2', 'label'=>'Post Type para deploy', 'multiple'=>'multiple');
 			$fields['post_types_rlout']['options'] = get_post_types();
 			
 			
-			$fields['taxonomies_rlout'] = array('type'=>'select', 'label'=>'Taxonomy para deploy', 'multiple'=>'multiple');
+			$fields['taxonomies_rlout'] = array('type'=>'select2', 'label'=>'Taxonomy para deploy', 'multiple'=>'multiple');
 			$fields['taxonomies_rlout']['options'] = get_taxonomies();
 			
 			$fields['uploads_rlout'] = array('type'=>'checkbox', 'label'=>"<small> Todas as imagens em: <br>
@@ -1607,17 +1621,17 @@ Class RelOutputHtml {
 			// $fields['api_1_rlout'] = array('type'=>'repeater','label'=>'URL API AJAX STATIC<br>
 			// 	<small>Default: ('.site_url().'/wp-admin/admin-ajax.php?action=<u>EXEMPLO</u>)</small>');
 						
-			$fields['ignore_json_rlout'] = array('type'=>'repeater','label'=>'Ignorar páginas no JSON<br>
-			<small>insira a URL de todos os arquivos que devem ser ignorados no JSON. "/ no final"</small>');
+			$fields['ignore_json_rlout'] = array( 'multiple'=>'multiple','type'=>'select2','action_ajax'=>'all_search_posts','label'=>'Ignorar páginas no JSON<br>
+			<small>insira a URL de todos os arquivos que devem ser ignorados no JSON. </small>');
 
-			$fields['ignore_files_rlout'] = array('type'=>'repeater','label'=>'Ignorar páginas<br>
-			<small>insira a URL de todos os arquivos que devem ser ignorados. "/ no final"</small>');
-
+			$fields['ignore_files_rlout'] = array( 'multiple'=>'multiple','type'=>'select2','action_ajax'=>'all_search_posts','label'=>'Ignorar páginas<br>
+			<small>insira a URL de todos os arquivos que devem ser ignorados. </small>');
+			
+			$fields['pages_important_rlout'] = array( 'multiple'=>'multiple','action_ajax'=>'all_search_posts','type'=>'select2','label'=>'Páginas importantes (URL)<br>
+			<small>Páginas importantes para serem atualizadas ao atualizar os posts</small>');
+			
 			$fields['subfiles_rlout'] = array('type'=>'repeater','label'=>'Arquivos ignorados<br>
 			<small>insira a URL de todos os arquivos que foram ignorados pelo sistema.</small>');
-
-			$fields['pages_important_rlout'] = array('type'=>'repeater','label'=>'Páginas importantes (URL)<br>
-			<small>Páginas importantes para serem atualizadas ao atualizar os posts</small>');
 			
 			$fields['s3_rlout'] = array('type'=>'label','label'=>'Storage AWS S3');
 			

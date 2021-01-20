@@ -12,6 +12,9 @@ Class WpAjaxRelOutHtml {
         
         // get files
         add_action('wp_ajax_static_output_files', array($this, 'files') );
+
+        // get all posts and terms selecteds to search
+        add_action('wp_ajax_all_search_posts', array($this, 'all_search_posts') );
     }
     
     public function deploy(){
@@ -107,5 +110,51 @@ Class WpAjaxRelOutHtml {
             $urls = array_unique(array_merge($urls, $this->recursive_post($post_type, $urls, $not_in)));
         }
         return array_values($urls);
+    }
+
+    public function all_search_posts(){
+
+        $array_search = array();
+
+        $post_types = explode(",", get_option('post_types_rlout'));
+
+        $args_posts = array();
+        $args_posts['post_type'] = $post_types;
+        $args_posts['posts_per_page'] = 25;
+        $args_posts['post_status'] = 'publish';
+        $args_posts['order'] = 'DESC';
+        $args_posts['orderby'] = 'date';
+        $args_posts['meta_query'] = [
+            [
+                'key'     => 'post_title',
+                'value'   => $_GET['search'],
+                'compare' => 'LIKE',
+            ]
+        ];
+        $posts = get_posts($args_posts);
+
+        $key_all = 0;
+
+        foreach($posts as $key_post => $post){
+            $array_search['results'][$key_all]['id'] = get_permalink($post);
+            $array_search['results'][$key_all]['text'] = $post->post_title;
+            $key_all++;
+        }
+
+        $taxonomies = explode(",", get_option('taxonomies_rlout'));
+        foreach($taxonomies as $tax){
+            $terms = get_terms(array("name__like"=>$_GET['search'],"taxonomy"=>$tax, 'hide_empty' => false));
+            foreach ($terms as $key_t => $term) {
+                $array_search['results'][$key_all]['id'] = get_term_link($term);
+                $array_search['results'][$key_all]['text'] = $term->name;
+                $key_all++;
+            }
+        }
+
+        $array_search['total'] = count($array_search['results']);
+        
+        header("Content-type: application/json");
+        die(json_encode($array_search));
+
     }
 }
