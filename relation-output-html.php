@@ -141,8 +141,7 @@ Class RelOutputHtml {
 			$response_cloudfront = $this->invalidfileaws('/*');
 			if($response_cloudfront){
 				echo '<script>alert("Cloudfront Atualizados!");</script>';
-				echo '<script>window.location = document.URL.replace("&cloudfront_rlout=true","");</script>';
-				echo '<script>window.location = document.URL.replace("?cloudfront_rlout=true","");</script>';
+				echo '<script>window.location = document.URL.replace("&cloudfront_rlout=true","").replace("?cloudfront_rlout=true","");</script>';
 			}
 		}
 
@@ -152,8 +151,7 @@ Class RelOutputHtml {
 
 			if($response_essenciais){
 				echo '<script>alert("Arquivos Essenciais Atualizados!");</script>';
-				echo '<script>window.location = document.URL.replace("&essenciais_rlout=true","");</script>';
-				echo '<script>window.location = document.URL.replace("?essenciais_rlout=true","");</script>';
+				echo '<script>window.location = document.URL.replace("&essenciais_rlout=true","")L.replace("?essenciais_rlout=true","");</script>';
 			}
 		}
 	}
