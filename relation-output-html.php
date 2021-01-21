@@ -163,11 +163,13 @@ Class RelOutputHtml {
 	}
 
 	public function rudr_select2_enqueue(){
- 
-		wp_enqueue_style('select2', plugin_dir_url(__FILE__) . '/inc/css/select2.min.css' );
-		wp_enqueue_script('select2', plugin_dir_url(__FILE__) . '/inc/js/select2.min.js', array('jquery') );
-		
-		wp_enqueue_script('my_custom_script_relation_output', plugin_dir_url(__FILE__) . '/select2.js');
+
+		if($_GET['page']=='relation-output-html-config'){		
+			wp_enqueue_style('select2', plugin_dir_url(__FILE__) . '/inc/css/select2.min.css' );
+			wp_enqueue_script('select2', plugin_dir_url(__FILE__) . '/inc/js/select2.min.js', array('jquery') );
+			
+			wp_enqueue_script('my_custom_script_relation_output', plugin_dir_url(__FILE__) . '/select2.js');
+		}
 	}
 
 	public function config_admin_var(){
