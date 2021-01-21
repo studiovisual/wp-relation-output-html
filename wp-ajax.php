@@ -112,30 +112,37 @@ Class WpAjaxRelOutHtml {
         return array_values($urls);
     }
 
+    public function title_filter( $where, &$wp_query )
+    {
+        global $wpdb;
+        if ( $search_term = $wp_query->get( 'search_prod_title' ) ) {
+            $where .= ' AND ' . $wpdb->posts . '.post_title LIKE \'%' . esc_sql( like_escape( $search_term ) ) . '%\'';
+        }
+        return $where;
+    }
+
     public function all_search_posts(){
 
         $array_search = array();
 
         $post_types = explode(",", get_option('post_types_rlout'));
-
         $args_posts = array();
         $args_posts['post_type'] = $post_types;
         $args_posts['posts_per_page'] = 25;
         $args_posts['post_status'] = 'publish';
         $args_posts['order'] = 'DESC';
         $args_posts['orderby'] = 'date';
-        $args_posts['meta_query'] = [
-            [
-                'key'     => 'post_title',
-                'value'   => $_GET['search'],
-                'compare' => 'LIKE',
-            ]
-        ];
-        $posts = get_posts($args_posts);
+        $args_posts['suppress_filters'] = false;
+        $args_posts['search_prod_title'] = $_GET['search'];
+        
+        add_filter( 'posts_where', array($this,'title_filter'), 10, 2 );
+        $posts = new WP_Query($args_posts);
+       
+        remove_filter( 'posts_where', array($this, 'title_filter'), 10, 2 );
 
         $key_all = 0;
 
-        foreach($posts as $key_post => $post){
+        foreach($posts->posts as $key_post => $post){
             $array_search['results'][$key_all]['id'] = get_permalink($post);
             $array_search['results'][$key_all]['text'] = $post->post_title;
             $key_all++;
