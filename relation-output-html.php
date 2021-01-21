@@ -151,8 +151,10 @@ Class RelOutputHtml {
 
 			if($response_essenciais){
 				
-				$this->api_posts(true);
-				$this->api_terms(true);
+				add_action('init', function(){
+					$this->api_posts(true);
+					$this->api_terms(true);
+				});
 
 				echo '<script>alert("Arquivos Essenciais Atualizados!");</script>';
 				echo '<script>window.location = document.URL.replace("&essenciais_rlout=true","")L.replace("?essenciais_rlout=true","");</script>';
