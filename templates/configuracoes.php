@@ -10,9 +10,8 @@
 	<form action="<?php echo admin_url(); ?>" method="POST" name="<?php echo sanitize_title($this->name_plugin); ?>">
 		<table class="form-table">
 			<tbody>
-				
+				<input type="hidden" name="keys_fields" value="<?php echo implode(',',array_keys($fields)); ?>">
 				<?php foreach ($fields as $key_field => $field) : ?>
-					
 					<?php if($field['type']=='label'): ?>
 						<tr>
 							<th scope="row" style="padding-bottom: 0;">
@@ -112,11 +111,12 @@
 								</th>
 								<td>
 									<select style="width:350px;" data-action_ajax="<?php echo $field['action_ajax']; ?>" name="<?php echo $key_field; ?><?php if($field['multiple']){echo'[]';} ?>" id="<?php echo $key_field; ?>" <?php if($field['multiple']){echo'multiple';} ?> >
-									<?php if(empty($field['options'])): ?>	
-										<?php $values_select = explode(',',get_option($key_field)); ?>
+										<?php if(empty($field['options'])): ?>
+											<?php $values_select = explode(',',get_option($key_field)); ?>
 											<?php foreach($values_select as $value_select2): ?>
 												<?php
 													$title = $value_select2;
+													if(!empty($title)):
 													$post = get_post(url_to_postid($value_select2)); 
 													if(!empty($post->ID)){
 														$title = $post->post_title;
@@ -136,7 +136,8 @@
 													}
 													
 												?>
-												<option value="<?php echo $value_select2; ?>" selected><?php echo $title; ?></option>
+													<option value="<?php echo $value_select2; ?>" selected><?php echo $title; ?></option>
+												<?php endif; ?>
 											<?php endforeach; ?>
 										<?php else: ?>
 											<?php foreach($field['options'] as $option): ?>
@@ -169,7 +170,7 @@
 							<div class="form-group" style="margin-bottom: 16px;">
 								<label for="">Post type</label>
 								<select id="post_type_static" class="form-control">
-									<option value="" selected>Nenhum</option>
+									<option value="" selected>Somente JSON</option>
 									<option value="all">Todos</option>
 									<?php foreach(get_post_types() as $pt): ?>
 										<option value="<?php echo $pt; ?>"><?php echo $pt; ?></option>
@@ -180,7 +181,7 @@
 							<div class="form-group" style="margin-bottom: 16px;">
 								<label for="">Taxonomy</label>
 								<select id="taxonomy_static" class="form-control">
-									<option value="" selected>Nenhum</option>
+									<option value="" selected>Somente JSON</option>
 									<option value="all" >Todos</option>
 									<?php foreach(get_taxonomies() as $tax): ?>
 										<option value="<?php echo $tax; ?>"><?php echo $tax; ?></option>

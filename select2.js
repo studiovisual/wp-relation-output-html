@@ -10,7 +10,6 @@ jQuery(function(){
                     delay: 250,
                     dataType: 'json',
                     url: ajaxurl,
-                    delay: 250,
                     data: function (params) {
                         var query = {
                         action: jQuery(this).data('action_ajax'),

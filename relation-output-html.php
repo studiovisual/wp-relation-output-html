@@ -78,8 +78,9 @@ Class RelOutputHtml {
 		if(!empty($_POST['salvar'])){
 			
 			unset($_POST['salvar']);
-			foreach ($_POST as $key_field => $value_field) {
-				
+			$key_fields = explode(',', $_POST['keys_fields']);
+			foreach ($key_fields as $key_field) {
+				$value_field = $_POST[$key_field];
 				if(is_array($value_field)){
 					update_option( $key_field, implode(',', $value_field) );
 				}else{
@@ -157,8 +158,21 @@ Class RelOutputHtml {
 				});
 
 				echo '<script>alert("Arquivos Essenciais Atualizados!");</script>';
-				echo '<script>window.location = document.URL.replace("&essenciais_rlout=true","")L.replace("?essenciais_rlout=true","");</script>';
+				echo '<script>window.location = document.URL.replace("&essenciais_rlout=true","").replace("?essenciais_rlout=true","");</script>';
 			}
+		}
+
+		if(isset($_GET['importants_rlout'])){
+
+			add_action('init', function(){
+			$response_essenciais = $this->importantfiles_generate();
+
+				if($response_essenciais){
+
+					echo '<script>alert("Páginas importantes Atualizadas!");</script>';
+					echo '<script>window.location = document.URL.replace("&importants_rlout=true","").replace("?importants_rlout=true","");</script>';
+				}
+			});
 		}
 
 		add_action( 'admin_enqueue_scripts', array($this,'rudr_select2_enqueue') );
@@ -175,7 +189,7 @@ Class RelOutputHtml {
 	}
 
 	public function config_admin_var(){
-		echo '<style>#loading_rlout h2{text-align:center;} #loading_rlout{display:none;position:fixed;left:0;top:0;width:100%;height:100%;z-index: 99999;background:rgba(255,255,255,0.8);} #loading_rlout .loader_rlout{position: relative;margin: 0 auto;display: block;top: 33%;border:16px solid #f3f3f3;border-radius:50%;border-top:16px solid #3498db;width:120px;height:120px;-webkit-animation:spin 2s linear infinite;animation:spin 2s linear infinite}@-webkit-keyframes spin{0%{-webkit-transform:rotate(0)}100%{-webkit-transform:rotate(360deg)}}@keyframes spin{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}</style>';
+		echo '<style>#loading_rlout h2{text-align:center;} #loading_rlout{display:none;position:fixed;left:0;top:0;width:100%;height:100%;z-index: 99999;background:rgba(255,255,255,0.9);} #loading_rlout .loader_rlout{position: relative;margin: 60px auto;display: block;top: 33%;border:16px solid #f3f3f3;border-radius:50%;border-top:16px solid #3498db;width:120px;height:120px;-webkit-animation:spin 2s linear infinite;animation:spin 2s linear infinite}@-webkit-keyframes spin{0%{-webkit-transform:rotate(0)}100%{-webkit-transform:rotate(360deg)}}@keyframes spin{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}</style>';
 		echo '<div id="loading_rlout"><div class="loader_rlout"></div><h2>Por favor aguarde um instante, estamos processando o HTML.</h2></div>';
 		echo '<script>jQuery(function(){ jQuery("#wp-admin-bar-relation-output-html-rlout li a").click(function(){jQuery("#loading_rlout").fadeIn();}); });</script>';
 	}
@@ -199,14 +213,19 @@ Class RelOutputHtml {
 		$actual_link = str_replace('?essenciais_rlout=true', '', $actual_link);
 		$actual_link = str_replace('&essenciais_rlout=true', '', $actual_link);
 
+		$actual_link = str_replace('?importants_rlout=true', '', $actual_link);
+		$actual_link = str_replace('&importants_rlout=true', '', $actual_link);
+
 		$get_param = explode('?', $actual_link);
 
 		if(count($get_param)>1){
 			$cloudfront_link = $actual_link.'&cloudfront_rlout=true';
 			$essenciais_link = $actual_link.'&essenciais_rlout=true';
+			$importants_link = $actual_link.'&importants_rlout=true';
 		}else{
 			$cloudfront_link = $actual_link.'?cloudfront_rlout=true';
 			$essenciais_link = $actual_link.'?essenciais_rlout=true';
+			$importants_link = $actual_link.'?importants_rlout=true';
 		}
 
 		$admin_bar->add_menu( array(
@@ -217,8 +236,15 @@ Class RelOutputHtml {
 		));
 
 		$admin_bar->add_menu( array(
+			'id'    => 'importants-html-rlout',
+			'title' => 'Atualizar páginas importantes',
+			'parent' => 'relation-output-html-rlout',
+			'href'  => $importants_link
+		));
+
+		$admin_bar->add_menu( array(
 			'id'    => 'essenciais-html-rlout',
-			'title' => 'Gerar aquivos essenciais',
+			'title' => 'Gerar aquivos ignorados',
 			'parent' => 'relation-output-html-rlout',
 			'href'  => $essenciais_link
 		));
@@ -538,7 +564,7 @@ Class RelOutputHtml {
 		
 		// sleep(0.5);
 		// $this->subfiles_generate();
-		$this->importantfiles_generate();
+		// $this->importantfiles_generate();
 		// sleep(0.5);
 		// $this->curl_generate(null, true);
 		// sleep(0.5);
