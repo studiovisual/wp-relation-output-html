@@ -1037,9 +1037,7 @@ Class RelOutputHtml {
 				$posts_arr[$key]['thumbnail'] = $thumbnail;
 				$url = str_replace(site_url(),$rpl,get_permalink($post)).'index.json';
 				$posts_arr[$key]['post_json'] = $url;
-				
-				$posts_arr[$key] = apply_filters('rel_output_custom_post', $post, $posts_arr[$key]);
-				
+								
 				$taxonomies = explode(",", get_option('taxonomies_rlout'));
 
 				if(!empty($taxonomies)){
@@ -1057,6 +1055,7 @@ Class RelOutputHtml {
 						}
 					}
 				}
+				$posts_arr[$key] = apply_filters('rel_output_custom_post', $post, $posts_arr[$key]);
 			}
 			
 		}
