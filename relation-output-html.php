@@ -31,9 +31,7 @@ Class RelOutputHtml {
 		add_action('init', array($this, 'blog_public') );
 		add_action( 'admin_menu', array( $this, 'add_admin_menu' ));
 		
-
 		// verifica alterações de POST
-
 		$post_types = explode(',', get_option('post_types_rlout'));
 		foreach ($post_types as $key => $post_type) {
 			add_action( 'publish_'.$post_type, array($this, 'post_auto_deploy'));
@@ -78,9 +76,8 @@ Class RelOutputHtml {
 		if(!empty($_POST['salvar'])){
 			
 			unset($_POST['salvar']);
-			$key_fields = explode(',', $_POST['keys_fields']);
-			foreach ($key_fields as $key_field) {
-				$value_field = $_POST[$key_field];
+			foreach ($_POST as $key_field => $value_field) {
+				
 				if(is_array($value_field)){
 					update_option( $key_field, implode(',', $value_field) );
 				}else{
@@ -93,8 +90,6 @@ Class RelOutputHtml {
 			header('Location:'.admin_url('admin.php?page='.$redirect_param));
 			exit;
 		}
-
-		add_filter( 'update_footer', array($this, 'config_admin_var') );
 		
 		if(!empty($_POST['deploy_all_static'])){
 			
@@ -135,119 +130,7 @@ Class RelOutputHtml {
 		}
 		
 		add_filter('excerpt_more', array($this, 'custom_excerpt_more') );
-		add_action('admin_bar_menu', array($this, 'add_toolbar_items'), 100);
-
-		if(isset($_GET['cloudfront_rlout'])){
-
-			$response_cloudfront = $this->invalidfileaws('/*');
-			if($response_cloudfront){
-				echo '<script>alert("Cloudfront Atualizados!");</script>';
-				echo '<script>window.location = document.URL.replace("&cloudfront_rlout=true","").replace("?cloudfront_rlout=true","");</script>';
-			}
-		}
-
-		if(isset($_GET['essenciais_rlout'])){
-
-			$response_essenciais = $this->subfiles_generate();
-
-			if($response_essenciais){
-				
-				add_action('init', function(){
-					$this->api_posts(true);
-					$this->api_terms(true);
-				});
-
-				echo '<script>alert("Arquivos Essenciais Atualizados!");</script>';
-				echo '<script>window.location = document.URL.replace("&essenciais_rlout=true","").replace("?essenciais_rlout=true","");</script>';
-			}
-		}
-
-		if(isset($_GET['importants_rlout'])){
-
-			add_action('init', function(){
-			$response_essenciais = $this->importantfiles_generate();
-
-				if($response_essenciais){
-
-					echo '<script>alert("Páginas importantes Atualizadas!");</script>';
-					echo '<script>window.location = document.URL.replace("&importants_rlout=true","").replace("?importants_rlout=true","");</script>';
-				}
-			});
-		}
-
-		add_action( 'admin_enqueue_scripts', array($this,'rudr_select2_enqueue') );
-	}
-
-	public function rudr_select2_enqueue(){
-
-		if($_GET['page']=='relation-output-html-config'){		
-			wp_enqueue_style('select2', plugin_dir_url(__FILE__) . '/inc/css/select2.min.css' );
-			wp_enqueue_script('select2', plugin_dir_url(__FILE__) . '/inc/js/select2.min.js', array('jquery') );
-			
-			wp_enqueue_script('my_custom_script_relation_output', plugin_dir_url(__FILE__) . '/select2.js');
-		}
-	}
-
-	public function config_admin_var(){
-		echo '<style>#loading_rlout h2{text-align:center;} #loading_rlout{display:none;position:fixed;left:0;top:0;width:100%;height:100%;z-index: 99999;background:rgba(255,255,255,0.9);} #loading_rlout .loader_rlout{position: relative;margin: 60px auto;display: block;top: 33%;border:16px solid #f3f3f3;border-radius:50%;border-top:16px solid #3498db;width:120px;height:120px;-webkit-animation:spin 2s linear infinite;animation:spin 2s linear infinite}@-webkit-keyframes spin{0%{-webkit-transform:rotate(0)}100%{-webkit-transform:rotate(360deg)}}@keyframes spin{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}</style>';
-		echo '<div id="loading_rlout"><div class="loader_rlout"></div><h2>Por favor aguarde um instante, estamos processando o HTML.</h2></div>';
-		echo '<script>jQuery(function(){ jQuery("#wp-admin-bar-relation-output-html-rlout li a").click(function(){jQuery("#loading_rlout").fadeIn();}); });</script>';
-	}
-
-	public function add_toolbar_items($admin_bar){
-		$admin_bar->add_menu( array(
-			'id'    => 'relation-output-html-rlout',
-			'title' => 'Relation Output HTML',
-			'parent' => null,
-			'href'  => '',
-			'meta' => [
-				'title' => 'Limpeza e estatização dos principais arquivos e arquios ignorados',
-			]
-		));
-
-		$actual_link = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
 		
-		$actual_link = str_replace('?cloudfront_rlout=true', '', $actual_link);
-		$actual_link = str_replace('&cloudfront_rlout=true', '', $actual_link);
-
-		$actual_link = str_replace('?essenciais_rlout=true', '', $actual_link);
-		$actual_link = str_replace('&essenciais_rlout=true', '', $actual_link);
-
-		$actual_link = str_replace('?importants_rlout=true', '', $actual_link);
-		$actual_link = str_replace('&importants_rlout=true', '', $actual_link);
-
-		$get_param = explode('?', $actual_link);
-
-		if(count($get_param)>1){
-			$cloudfront_link = $actual_link.'&cloudfront_rlout=true';
-			$essenciais_link = $actual_link.'&essenciais_rlout=true';
-			$importants_link = $actual_link.'&importants_rlout=true';
-		}else{
-			$cloudfront_link = $actual_link.'?cloudfront_rlout=true';
-			$essenciais_link = $actual_link.'?essenciais_rlout=true';
-			$importants_link = $actual_link.'?importants_rlout=true';
-		}
-
-		$admin_bar->add_menu( array(
-			'id'    => 'cloudfront-html-rlout',
-			'title' => 'Limpar Cloudfront',
-			'parent' => 'relation-output-html-rlout',
-			'href'  => $cloudfront_link
-		));
-
-		$admin_bar->add_menu( array(
-			'id'    => 'importants-html-rlout',
-			'title' => 'Atualizar páginas importantes',
-			'parent' => 'relation-output-html-rlout',
-			'href'  => $importants_link
-		));
-
-		$admin_bar->add_menu( array(
-			'id'    => 'essenciais-html-rlout',
-			'title' => 'Gerar aquivos ignorados',
-			'parent' => 'relation-output-html-rlout',
-			'href'  => $essenciais_link
-		));
 	}
 
 	public function invalidfileaws($response){
@@ -453,6 +336,7 @@ Class RelOutputHtml {
 			}
 			
 			if($post->post_name){
+				
 				$dir_base =  str_replace('__trashed', '', get_option("path_rlout") . $post->post_name);
 				
 				unlink($dir_base . '/index.html');
@@ -492,66 +376,60 @@ Class RelOutputHtml {
 
 		if($_POST['static_output_html']){
 			
-			add_action('updated_post_meta', function($meta_id, $post_id, $meta_key){
-
-				if($meta_key=='_edit_lock'){
-					
-					$post_types = explode(',', get_option('post_types_rlout'));
-					foreach ($post_types as $key => $pt) {
-						$link = get_post_type_archive_link($pt);
-						if($link){
-							$this->curl_generate(get_post_type_archive_link($pt));
-						}
-					}
-					sleep(0.5);
-					
-					if(empty($post_id)){
-						
-						$objects = get_posts(array('post_type'=>$post_types, 'posts_per_page'=>-1));
-						
-						$this->deploy($objects);
-						foreach ($taxonomies as $key => $tax) {
-							$objects = get_terms( array('taxonomy' => $tax, 'hide_empty' => false) );
-							$this->deploy($objects);
-						}
-						
-					}else{
-						
-						$post =  get_post($post_id);
-						
-						if(in_array($post->post_type, $post_types)){
-							
-							$terms = wp_get_post_terms($post->ID, $taxonomies);
-							
-							$objects = array();
-							
-							$objects[] = $post;
-							
-							// categorias relacionadas
-							foreach ($terms as $key => $term) {
-								$objects[] = $term;
-							}
-							
-							$this->deploy($objects);
-						}
-					}
-					
-					sleep(0.5);
-					
-					$this->git_upload_file('Atualização de object');
-
-					$this->api_posts(true);
-					$this->api_terms(true);
+			$post_types = explode(',', get_option('post_types_rlout'));
+			foreach ($post_types as $key => $pt) {
+				$link = get_post_type_archive_link($pt);
+				if($link){
+					$this->curl_generate(get_post_type_archive_link($pt));
 				}
-			},10,3);
+			}
+			sleep(0.5);
+			
+			if(empty($post_id)){
+				
+				$objects = get_posts(array('post_type'=>$post_types, 'posts_per_page'=>-1));
+				
+				$this->deploy($objects);
+				foreach ($taxonomies as $key => $tax) {
+					$objects = get_terms( array('taxonomy' => $tax, 'hide_empty' => false) );
+					$this->deploy($objects);
+				}
+				
+			}else{
+				
+				$post =  get_post($post_id);
+				
+				if(in_array($post->post_type, $post_types)){
+					
+					$terms = wp_get_post_terms($post->ID, $taxonomies);
+					
+					$objects = array();
+					
+					$objects[] = $post;
+					
+					// categorias relacionadas
+					foreach ($terms as $key => $term) {
+						$objects[] = $term;
+					}
+					
+					$this->deploy($objects);
+				}
+			}
+			
+			sleep(0.5);
+			
+			$this->git_upload_file('Atualização de object');
+
+			$this->api_posts(true);
+			$this->api_terms(true);
 		}
 	}
 	
 	public function deploy($objs=null){
 		
-		// update_option('robots_rlout', '0');
-		// update_option('blog_public', '1');
-		// sleep(0.5);
+		update_option('robots_rlout', '0');
+		update_option('blog_public', '1');
+		sleep(0.5);
 		
 		if(!empty($objs)){
 			
@@ -562,31 +440,15 @@ Class RelOutputHtml {
 			}
 		}
 		
-		// sleep(0.5);
-		// $this->subfiles_generate();
-		// $this->importantfiles_generate();
-		// sleep(0.5);
-		// $this->curl_generate(null, true);
-		// sleep(0.5);
-		// update_option('robots_rlout', '1');
+		sleep(0.5);
+		$this->subfiles_generate();
+		sleep(0.5);
+		$this->curl_generate(null, true);
+		sleep(0.5);
+		update_option('robots_rlout', '1');
 	}
 	
-	public function importantfiles_generate(){
-		
-		// Generate FILE 1
-		$files = explode(',', get_option("pages_important_rlout"));
-		
-		foreach ($files as $key => $file) {
-			
-			if(!empty($file)){
-				
-				$this->curl_generate($file);
-				$this->repeat_files_rlout[] = $file;
-			}
-		}
-		return $files;
-	}
-
+	
 	public function subfiles_generate(){
 		
 		// Generate FILE 1
@@ -600,7 +462,6 @@ Class RelOutputHtml {
 				$this->repeat_files_rlout[] = $file;
 			}
 		}
-		return $files;
 	}
 	
 	public function json_generate(){
@@ -1037,7 +898,9 @@ Class RelOutputHtml {
 				$posts_arr[$key]['thumbnail'] = $thumbnail;
 				$url = str_replace(site_url(),$rpl,get_permalink($post)).'index.json';
 				$posts_arr[$key]['post_json'] = $url;
-								
+				
+				$posts_arr[$key] = apply_filters('rel_output_custom_post', $post, $posts_arr[$key]);
+				
 				$taxonomies = explode(",", get_option('taxonomies_rlout'));
 
 				if(!empty($taxonomies)){
@@ -1055,7 +918,6 @@ Class RelOutputHtml {
 						}
 					}
 				}
-				$posts_arr[$key] = apply_filters('rel_output_custom_post', $post, $posts_arr[$key]);
 			}
 			
 		}
@@ -1442,25 +1304,13 @@ Class RelOutputHtml {
 					'secret' => $secret_key
 				));
 				
-				$key_file_s3 = str_replace(get_option("path_rlout").'/','', $file_dir);
-				$key_file_s3 = str_replace(get_option("path_rlout"),'', $key_file_s3);
+				$response = $clientS3->deleteObject(array(
+					'Bucket' => get_option('s3_bucket_rlout'),
+					'Key' => str_replace(get_option("path_rlout"),'', $file_dir)
+				));
 				
-				$directory_empty = explode('/', $key_file_s3);
-
-				if(!empty($key_file_s3) && !empty(end($directory_empty)) ){
-
-					$response = $clientS3->deleteObject(array(
-						'Bucket' => get_option('s3_bucket_rlout'),
-						'Key' => $key_file_s3
-					));
-					
-					if($response){
-						$key_file_s3 = str_replace('index.html', '', $key_file_s3);
-						$this->invalidfileaws('/'.$key_file_s3);
-					}
-					
-					return $response;
-				}
+				
+				return $response;
 				
 			}
 		}
@@ -1469,27 +1319,7 @@ Class RelOutputHtml {
 			
 			$ftp_server = get_option('ftp_host_rlout');//serverip
 			
-			if(!empty($ftp_server)){
-				
-				$conn_id = ftp_connect($ftp_server);
-				
-				// login with username and password
-				$user = get_option('ftp_user_rlout');
-				
-				$passwd = get_option('ftp_passwd_rlout');
-				
-				$folder = get_option('ftp_folder_rlout');
-				
-				$login_result = ftp_login($conn_id, $user, $passwd);
-				
-				$destination_file = $folder . str_replace(get_option("path_rlout"), '', $file_dir);
-				
-				// upload the file
-				$upload = ftp_put($conn_id, $destination_file, $file_dir, FTP_BINARY);
-				
-				// close the FTP stream
-				ftp_close($conn_id);
-			}
+			include_once('ftp_commands/delete_file.php');
 			
 		}
 		
@@ -1497,27 +1327,7 @@ Class RelOutputHtml {
 			
 			$ftp_server = get_option('ftp_host_rlout');//serverip
 			
-			if(!empty($ftp_server)){
-				
-				$conn_id = ftp_connect($ftp_server);
-				
-				// login with username and password
-				$user = get_option('ftp_user_rlout');
-				
-				$passwd = get_option('ftp_passwd_rlout');
-				
-				$folder = get_option('ftp_folder_rlout');
-				
-				$login_result = ftp_login($conn_id, $user, $passwd);
-				
-				$destination_file = $folder . str_replace(get_option("path_rlout"), '', $file_dir);
-				
-				// upload the file
-				$delete = ftp_delete($conn_id, $destination_file);
-				
-				// close the FTP stream
-				ftp_close($conn_id);
-			}
+			require_once('ftp_commands/delete_file.php');
 			
 		}
 		
@@ -1525,49 +1335,7 @@ Class RelOutputHtml {
 			
 			$repository = get_option('git_repository_rlout');
 			
-			if(!empty($repository)){
-				
-				$commands = array();
-				
-				$commands[] = 'cd ' . get_option("path_rlout");
-				
-				$commands[] = 'git init';
-				
-				$commands[] = 'git remote add origin ' . $repository;
-				
-				$commands[] = 'git add .';
-				
-				$commands[] = 'git commit -m "'. $commit .'" ';
-				
-				$commands[] = 'git push origin master -f';
-				
-				$command = implode(" && ", $commands);
-				
-				$process = proc_open(
-					$command,
-					array(
-						// STDIN.``
-						0 => array("pipe", "r"),
-						// STDOUT.
-						1 => array("pipe", "w"),
-						// STDERR.
-						2 => array("pipe", "w"),
-					),
-					$pipes
-				);
-				if ($process === FALSE) {
-					die();
-				}
-				$stdout = stream_get_contents($pipes[1]);
-				$stderr = stream_get_contents($pipes[2]);
-				fclose($pipes[1]);
-				fclose($pipes[2]);
-				proc_close($process);
-				// var_dump($stderr);
-				// var_dump($stdout);
-				
-				// die();
-			}
+			require_once('github_proc.php');
 		}
 		
 		public function add_admin_menu(){
@@ -1621,11 +1389,11 @@ Class RelOutputHtml {
 			$fields['replace_url_rlout'] = array('type'=>'text','label'=>'Substituir a URL <br>
 			<small>Default: ('.site_url().'/html)</small>');
 			
-			$fields['post_types_rlout'] = array('type'=>'select2', 'label'=>'Post Type para deploy', 'multiple'=>'multiple');
+			$fields['post_types_rlout'] = array('type'=>'select', 'label'=>'Post Type para deploy', 'multiple'=>'multiple');
 			$fields['post_types_rlout']['options'] = get_post_types();
 			
 			
-			$fields['taxonomies_rlout'] = array('type'=>'select2', 'label'=>'Taxonomy para deploy', 'multiple'=>'multiple');
+			$fields['taxonomies_rlout'] = array('type'=>'select', 'label'=>'Taxonomy para deploy', 'multiple'=>'multiple');
 			$fields['taxonomies_rlout']['options'] = get_taxonomies();
 			
 			$fields['uploads_rlout'] = array('type'=>'checkbox', 'label'=>"<small> Todas as imagens em: <br>
@@ -1650,15 +1418,12 @@ Class RelOutputHtml {
 			// $fields['api_1_rlout'] = array('type'=>'repeater','label'=>'URL API AJAX STATIC<br>
 			// 	<small>Default: ('.site_url().'/wp-admin/admin-ajax.php?action=<u>EXEMPLO</u>)</small>');
 						
-			$fields['ignore_json_rlout'] = array( 'multiple'=>'multiple','type'=>'select2','action_ajax'=>'all_search_posts','label'=>'Ignorar páginas no JSON<br>
-			<small>insira a URL de todos os arquivos que devem ser ignorados no JSON. </small>');
+			$fields['ignore_json_rlout'] = array('type'=>'repeater','label'=>'Ignorar páginas no JSON<br>
+			<small>insira a URL de todos os arquivos que devem ser ignorados no JSON. "/ no final"</small>');
 
-			$fields['ignore_files_rlout'] = array( 'multiple'=>'multiple','type'=>'select2','action_ajax'=>'all_search_posts','label'=>'Ignorar páginas<br>
-			<small>insira a URL de todos os arquivos que devem ser ignorados. </small>');
-			
-			$fields['pages_important_rlout'] = array( 'multiple'=>'multiple','action_ajax'=>'all_search_posts','type'=>'select2','label'=>'Páginas importantes (URL)<br>
-			<small>Páginas importantes para serem atualizadas ao atualizar os posts</small>');
-			
+			$fields['ignore_files_rlout'] = array('type'=>'repeater','label'=>'Ignorar páginas<br>
+			<small>insira a URL de todos os arquivos que devem ser ignorados. "/ no final"</small>');
+
 			$fields['subfiles_rlout'] = array('type'=>'repeater','label'=>'Arquivos ignorados<br>
 			<small>insira a URL de todos os arquivos que foram ignorados pelo sistema.</small>');
 			
