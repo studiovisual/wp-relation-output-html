@@ -766,7 +766,7 @@ Class RelOutputHtml {
 			$replace_path = str_replace(site_url(), '', $replace_path);
 			$dir_base = $dir_base . $replace_path;
 
-			$verify_files_point = explode('.',$dir_base);
+			$verify_files_point = explode('.',$replace_path);
 
 			$file_default = '/index.html';
 			$json_default = '/index.json';
