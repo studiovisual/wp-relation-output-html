@@ -1474,21 +1474,21 @@ Class RelOutputHtml {
 			
 			$ftp_server = get_option('ftp_host_rlout');//serverip
 			
-			include_once('ftp_commands/create_file.php');
+			// require_once('ftp_commands/create_file.php');
 		}
 		
 		public function ftp_remove_file($file_dir){
 			
 			$ftp_server = get_option('ftp_host_rlout');//serverip
 			
-			require_once('ftp_commands/delete_file.php');
+			// require_once('ftp_commands/delete_file.php');
 		}
 		
 		public function git_upload_file($commit){
 			
 			$repository = get_option('git_repository_rlout');
 			
-			require_once('github_proc.php');
+			// require_once('github_proc.php');
 		}
 		
 		public function add_admin_menu(){
