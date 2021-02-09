@@ -630,7 +630,10 @@ Class RelOutputHtml {
 					CURLOPT_FOLLOWLOCATION => true,
 					CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
 					CURLOPT_CUSTOMREQUEST => "GET",
-					CURLOPT_HTTPHEADER => array(),
+					CURLOPT_HTTPHEADER => array(
+						"cache-control: no-cache",
+						"Authorization: Basic ".base64_encode(get_option('userpwd_rlout').":".get_option('passpwd_rlout'))
+					),
 				));
 				
 				$response = curl_exec($curl);
@@ -738,7 +741,8 @@ Class RelOutputHtml {
 			CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
 			CURLOPT_CUSTOMREQUEST => "GET",
 			CURLOPT_HTTPHEADER => array(
-				"cache-control: no-cache"
+				"cache-control: no-cache",
+				"Authorization: Basic ".base64_encode(get_option('userpwd_rlout').":".get_option('passpwd_rlout'))
 			),
 		));
 		
@@ -1261,7 +1265,8 @@ Class RelOutputHtml {
 					CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
 					CURLOPT_CUSTOMREQUEST => "GET",
 					CURLOPT_HTTPHEADER => array(
-						"cache-control: no-cache"
+						"cache-control: no-cache",
+						"Authorization: Basic ".base64_encode(get_option('userpwd_rlout').":".get_option('passpwd_rlout'))
 					),
 				));
 				
@@ -1613,6 +1618,10 @@ Class RelOutputHtml {
 			$fields['s3_acl_rlout']['options'][] = 'bucket-owner-full-control';
 			
 			$fields['s3_bucket_rlout'] = array('type'=>'text', 'label'=>'S3 Bucket');
+
+			$fields['pwd_rlout'] = array('type'=>'label','label'=>'PWD ACESSO');
+			$fields['userpwd_rlout'] = array('type'=>'text','label'=>'USUÁRIO PWD');
+			$fields['passpwd_rlout'] = array('type'=>'text','label'=>'SENHA PWD');
 			
 			$fields['ftp_rlout'] = array('type'=>'label','label'=>'FTP SERVER');
 			$fields['ftp_host_rlout'] = array('type'=>'text','label'=>'FTP Host');
