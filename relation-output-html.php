@@ -439,7 +439,6 @@ Class RelOutputHtml {
 		$post_types = explode(',', get_option('post_types_rlout'));
 		
 		if(in_array($post->post_type, $post_types)){
-			
 			if($post->post_status=='publish' && $_POST['post_status']=='publish'){
 				
 				$slug_old = $post->post_name;
@@ -452,14 +451,17 @@ Class RelOutputHtml {
 				}
 			}
 			
-			if($post->post_name){
-				$dir_base =  str_replace('__trashed', '', get_option("path_rlout") . $post->post_name);
-				
-				unlink($dir_base . '/index.html');
+			$url_delete = get_sample_permalink($post);
+			$url_delete = str_replace('%pagename%',$url_delete[1],$url_delete[0]);
+			if($url_delete){
+				$dir_base =  str_replace('__trashed', '', $url_delete);
+				$dir_base = get_option("path_rlout") . str_replace(site_url(), '', $dir_base);
+
+				unlink($dir_base . 'index.html');
 				rmdir($dir_base);
 				
-				$this->ftp_remove_file($dir_base . '/index.html');
-				$this->s3_remove_file($dir_base . '/index.html');
+				$this->ftp_remove_file($dir_base . 'index.html');
+				$this->s3_remove_file($dir_base . 'index.html');
 			}
 			
 		}
@@ -491,7 +493,6 @@ Class RelOutputHtml {
 	public function post_auto_deploy($post_id=null){
 
 		if($_POST['static_output_html']){
-			
 			add_action('updated_post_meta', function($meta_id, $post_id, $meta_key){
 
 				if($meta_key=='_edit_lock'){
@@ -535,7 +536,7 @@ Class RelOutputHtml {
 							$this->deploy($objects);
 						}
 					}
-					
+
 					sleep(0.5);
 					
 					$this->git_upload_file('Atualização de object');
@@ -1560,7 +1561,7 @@ Class RelOutputHtml {
 				$fields['size_thumbnail_rlout']['options'][] = $size;
 			}
 
-			$fields['path_rlout'] = array('type'=>'text', 'label'=>"Path:<br><small> ".get_home_path() . 'html/</small>');
+			$fields['path_rlout'] = array('type'=>'text', 'label'=>"Path:<br><small> ".get_home_path() . 'html</small>');
 			
 			$fields['uri_rlout'] = array('type'=>'text', 'label'=>"Directory_uri():<br><small>Caminho do template</small>");
 			
