@@ -1240,7 +1240,7 @@ Class RelOutputHtml {
 		
 		public function deploy_upload($url, $media=null){
 			
-			if(empty(array_search($url, $this->repeat_files_rlout))){
+			if(empty(array_search($url, $this->repeat_files_rlout)) && !empty($url)){
 				
 				$curl = curl_init();
 				
