@@ -8,11 +8,12 @@ Author:       Claudio Web (claudioweb)
 Author URI:   http://www.claudioweb.com.br/
 Text Domain:  relation-output-html
 **************************************************************************/
-require "vendor/autoload.php";
-require "wp-ajax.php";
 
-use Aws\S3\S3Client;
-use Aws\CloudFront\CloudFrontClient;
+require "wp-ajax.php";
+require "vendor/autoload.php";
+
+use AwsWp\S3\S3Client;
+use AwsWp\CloudFront\CloudFrontClient;
 
 Class RelOutputHtml {
 	

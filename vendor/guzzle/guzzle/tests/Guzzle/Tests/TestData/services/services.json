@@ -21,7 +21,7 @@
     },
 
     "test.s3": {
-        "class": "Guzzle\\Service\\Aws\\S3Client",
+        "class": "Guzzle\\Service\\AwsWp\\S3Client",
         "extends": "test.abstract.aws",
         "params": {
             "devpay_product_token": "",
@@ -30,12 +30,12 @@
     },
 
     "test.simple_db": {
-        "class":   "Guzzle\\Service\\Aws\\SimpleDb\\SimpleDbClient",
+        "class":   "Guzzle\\Service\\AwsWp\\SimpleDb\\SimpleDbClient",
         "extends": "test.abstract.aws"
     },
 
     "test.sqs": {
-        "class":   "Guzzle\\Service\\Aws\\Sqs\\SqsClient",
+        "class":   "Guzzle\\Service\\AwsWp\\Sqs\\SqsClient",
         "extends": "test.abstract.aws"
     },
 
