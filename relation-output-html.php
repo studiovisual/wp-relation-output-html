@@ -453,9 +453,11 @@ Class RelOutputHtml {
 			}
 			
 			$url_delete = get_sample_permalink($post);
-			$url_delete = str_replace('%pagename%',$url_delete[1],$url_delete[0]);
+			$url_del = str_replace('%pagename%',$url_delete[1],$url_delete[0]);
+			$url_del = str_replace('%postname%',$url_delete[1],$url_del);
+			$url_delete = $url_del;
 			if($url_delete){
-				$dir_base =  str_replace('__trashed', '', $url_delete);
+				$dir_base =  explode('__trashed', '', $url_delete);
 				$dir_base = get_home_path() . str_replace(site_url(), '', $dir_base);
 
 				unlink($dir_base . 'index.html');
