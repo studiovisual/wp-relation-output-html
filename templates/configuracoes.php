@@ -28,7 +28,7 @@
 								<label for="<?php echo $key_field; ?>"><?php echo $field['label']; ?></label>
 							</th>
 							<td>
-								<input name="<?php echo $key_field; ?>" type="text" id="<?php echo $key_field; ?>" value="<?php echo get_option($key_field); ?>" class="regular-text">
+								<input name="<?php echo $key_field; ?>" <?php if(!empty($field['disabled'])){echo 'disabled="'.$field['disabled'].'"';} ?> type="text" id="<?php echo $key_field; ?>" value="<?php echo get_option($key_field); ?>" class="regular-text">
 							</td>
 						</tr>
 					<?php endif; ?>

@@ -350,14 +350,14 @@ Class RelOutputHtml {
 			update_option('blog_public', '1');
 		}
 		
+		include_once(ABSPATH . '/wp-admin/includes/file.php');
+		include_once(ABSPATH . '/wp-includes/pluggable.php');
 		
-		$path = get_option("path_rlout");
-		if(empty($path)){
-			if ( ! function_exists( 'get_home_path' ) || ! function_exists( 'wp_get_current_user' ) ) {
-				include_once(ABSPATH . '/wp-admin/includes/file.php');
-				include_once(ABSPATH . '/wp-includes/pluggable.php');
-			}
-			update_option('path_rlout', get_home_path() . "html");
+		$path = get_home_path().'html';
+		update_option('path_rlout', $path);
+		
+		if(defined('PATH_RLOUT')==true){
+			update_option('path_rlout', PATH_RLOUT);
 		}
 		
 		$uri = get_option("uri_rlout");
@@ -385,7 +385,7 @@ Class RelOutputHtml {
 					$term->slug = $slug_new;
 				}
 				
-				$dir_base = get_option("path_rlout") . $url;
+				$dir_base = get_home_path() . $url;
 				
 				$objects = array($term);
 				
@@ -414,7 +414,7 @@ Class RelOutputHtml {
 				$term->slug = $slug_new;
 			}
 			
-			$dir_base = get_option("path_rlout") . $url;
+			$dir_base = get_home_path() . $url;
 			
 			unlink($dir_base . '/index.html');
 			rmdir($dir_base);
@@ -456,7 +456,7 @@ Class RelOutputHtml {
 			$url_delete = str_replace('%pagename%',$url_delete[1],$url_delete[0]);
 			if($url_delete){
 				$dir_base =  str_replace('__trashed', '', $url_delete);
-				$dir_base = get_option("path_rlout") . str_replace(site_url(), '', $dir_base);
+				$dir_base = get_home_path() . str_replace(site_url(), '', $dir_base);
 
 				unlink($dir_base . 'index.html');
 				rmdir($dir_base);
@@ -478,7 +478,7 @@ Class RelOutputHtml {
 		
 		if($hora_marcada==strtotime(date('H:i'))){
 			
-			$dir_base =  get_option("path_rlout");
+			$dir_base =  get_home_path();
 			
 			if( is_dir($dir_base) === true ){
 				
@@ -647,7 +647,7 @@ Class RelOutputHtml {
 					echo "cURL Error #:" . $err;
 				} else {
 					
-					$dir_base =  get_option("path_rlout");
+					$dir_base =  get_home_path();
 					if( is_dir($dir_base) === false ){
 						mkdir($dir_base);
 					}
@@ -761,7 +761,7 @@ Class RelOutputHtml {
 		} else {
 			$response = $this->replace_json($response);
 			
-			$dir_base =  get_option("path_rlout");
+			$dir_base =  get_home_path();
 			if( is_dir($dir_base) === false ){
 				mkdir($dir_base);
 			}
@@ -868,7 +868,7 @@ Class RelOutputHtml {
 	
 	public function url_json_obj($object){
 		
-		$dir_base =  get_option("path_rlout");
+		$dir_base =  get_home_path();
 		$rpl = get_option('replace_url_rlout');
 		if(empty($rpl)){
 			$rpl = site_url().'/html';
@@ -1107,7 +1107,7 @@ Class RelOutputHtml {
 						
 					}
 					
-					$dir_base =  get_option("path_rlout");
+					$dir_base =  get_home_path();
 					if( is_dir($dir_base) === false ){
 						mkdir($dir_base);
 					}
@@ -1173,7 +1173,7 @@ Class RelOutputHtml {
 						}
 					}
 					
-					$dir_base =  get_option("path_rlout");
+					$dir_base =  get_home_path();
 					if( is_dir($dir_base) === false ){
 						mkdir($dir_base);
 					}
@@ -1283,13 +1283,13 @@ Class RelOutputHtml {
 					
 					$response = $this->replace_json($response);
 					
-					$dir_base =  get_option("path_rlout");
+					$dir_base =  get_home_path();
 					if( is_dir($dir_base) === false ){
 						mkdir($dir_base);
 					}
 					
 					if($media){
-						$dir_base =  get_option("path_rlout") . $media;
+						$dir_base =  get_home_path() . $media;
 						if( is_dir($dir_base) === false ){
 							mkdir($dir_base);
 						}
@@ -1338,7 +1338,7 @@ Class RelOutputHtml {
 									
 									$attr = $dir_base  . '/' . $attr;
 									
-									$attr = str_replace(get_option("path_rlout"), '', $attr);
+									$attr = str_replace(get_home_path(), '', $attr);
 									
 									$attr = get_option("uri_rlout") . $attr;
 									
@@ -1379,7 +1379,7 @@ Class RelOutputHtml {
 				
 				$json_name = explode("action=", $json);
 				$json_name = explode("&", $json_name[1]);
-				$json_name = get_option("path_rlout") . $json_name[0] . '.json';
+				$json_name = get_home_path() . $json_name[0] . '.json';
 				
 				$response = str_replace($json, $json_name, $response);
 			}
@@ -1410,8 +1410,8 @@ Class RelOutputHtml {
 					$file_dir = str_replace("//", "/", $file_dir);
 					$file_dir = str_replace("./", "/", $file_dir);
 					
-					$key_file_s3 = str_replace(get_option("path_rlout").'/','', $file_dir);
-					$key_file_s3 = str_replace(get_option("path_rlout"),'', $key_file_s3);
+					$key_file_s3 = str_replace(get_home_path().'/','', $file_dir);
+					$key_file_s3 = str_replace(get_home_path(),'', $key_file_s3);
 					
 					$directory_empty = explode('/', $key_file_s3);
 					
@@ -1449,8 +1449,8 @@ Class RelOutputHtml {
 					'secret' => $secret_key
 				));
 				
-				$key_file_s3 = str_replace(get_option("path_rlout").'/','', $file_dir);
-				$key_file_s3 = str_replace(get_option("path_rlout"),'', $key_file_s3);
+				$key_file_s3 = str_replace(get_home_path().'/','', $file_dir);
+				$key_file_s3 = str_replace(get_home_path(),'', $key_file_s3);
 				
 				$directory_empty = explode('/', $key_file_s3);
 
@@ -1562,7 +1562,7 @@ Class RelOutputHtml {
 				$fields['size_thumbnail_rlout']['options'][] = $size;
 			}
 
-			$fields['path_rlout'] = array('type'=>'text', 'label'=>"Path:<br><small> ".get_home_path() . 'html</small>');
+			$fields['path_rlout'] = array('type'=>'text','disabled'=>'disabled','label'=>"Path:<br><small> ".get_home_path() . 'html</small>');
 			
 			$fields['uri_rlout'] = array('type'=>'text', 'label'=>"Directory_uri():<br><small>Caminho do template</small>");
 			

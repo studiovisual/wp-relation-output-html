@@ -19,7 +19,7 @@ Class WpAjaxRelOutHtml {
     
     public function deploy(){
         $file = $_GET['file_url'];
-        if(!empty($file)){
+        if(!empty($file) && filter_var($file, FILTER_VALIDATE_URL)){
             $rlout = new RelOutputHtml;
             $response = $rlout->curl_generate($file);
             die($response);
