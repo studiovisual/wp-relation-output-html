@@ -805,7 +805,7 @@ Class RelOutputHtml {
 			foreach ($explode_raiz as $keyp => $raiz) {
 				$wp_raiz = $wp_raiz . $raiz . '/';
 				if( is_dir($wp_raiz) === false && $keyp+1<count($explode_raiz)){
-					mkdir($wp_raiz);
+					mkdir(realpath($wp_raiz));
 				}
 			}
 
