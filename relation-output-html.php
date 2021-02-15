@@ -385,7 +385,7 @@ Class RelOutputHtml {
 					$term->slug = $slug_new;
 				}
 				
-				$dir_base = get_home_path() . $url;
+				$dir_base = get_option("path_rlout") . $url;
 				
 				$objects = array($term);
 				
@@ -414,7 +414,7 @@ Class RelOutputHtml {
 				$term->slug = $slug_new;
 			}
 			
-			$dir_base = get_home_path() . $url;
+			$dir_base = get_option("path_rlout") . $url;
 			
 			unlink($dir_base . '/index.html');
 			rmdir($dir_base);
@@ -458,7 +458,7 @@ Class RelOutputHtml {
 			$url_delete = $url_del;
 			if($url_delete){
 				$dir_base =  explode('__trashed', '', $url_delete);
-				$dir_base = get_home_path() . str_replace(site_url(), '', $dir_base);
+				$dir_base = get_option("path_rlout") . str_replace(site_url(), '', $dir_base);
 
 				unlink($dir_base . 'index.html');
 				rmdir($dir_base);
@@ -480,7 +480,7 @@ Class RelOutputHtml {
 		
 		if($hora_marcada==strtotime(date('H:i'))){
 			
-			$dir_base =  get_home_path();
+			$dir_base =  get_option("path_rlout");
 			
 			if( is_dir($dir_base) === true ){
 				
@@ -649,7 +649,7 @@ Class RelOutputHtml {
 					echo "cURL Error #:" . $err;
 				} else {
 					
-					$dir_base =  get_home_path();
+					$dir_base =  get_option("path_rlout");
 					if( is_dir($dir_base) === false ){
 						mkdir($dir_base);
 					}
@@ -763,7 +763,7 @@ Class RelOutputHtml {
 		} else {
 			$response = $this->replace_json($response);
 			
-			$dir_base =  get_home_path();
+			$dir_base =  get_option("path_rlout");
 			if( is_dir($dir_base) === false ){
 				mkdir($dir_base);
 			}
@@ -870,7 +870,7 @@ Class RelOutputHtml {
 	
 	public function url_json_obj($object){
 		
-		$dir_base =  get_home_path();
+		$dir_base =  get_option("path_rlout");
 		$rpl = get_option('replace_url_rlout');
 		if(empty($rpl)){
 			$rpl = site_url().'/html';
@@ -1109,7 +1109,7 @@ Class RelOutputHtml {
 						
 					}
 					
-					$dir_base =  get_home_path();
+					$dir_base =  get_option("path_rlout");
 					if( is_dir($dir_base) === false ){
 						mkdir($dir_base);
 					}
@@ -1175,7 +1175,7 @@ Class RelOutputHtml {
 						}
 					}
 					
-					$dir_base =  get_home_path();
+					$dir_base =  get_option("path_rlout");
 					if( is_dir($dir_base) === false ){
 						mkdir($dir_base);
 					}
@@ -1285,13 +1285,13 @@ Class RelOutputHtml {
 					
 					$response = $this->replace_json($response);
 					
-					$dir_base =  get_home_path();
+					$dir_base =  get_option("path_rlout");
 					if( is_dir($dir_base) === false ){
 						mkdir($dir_base);
 					}
 					
 					if($media){
-						$dir_base =  get_home_path() . $media;
+						$dir_base =  get_option("path_rlout") . $media;
 						if( is_dir($dir_base) === false ){
 							mkdir($dir_base);
 						}
@@ -1340,7 +1340,7 @@ Class RelOutputHtml {
 									
 									$attr = $dir_base  . '/' . $attr;
 									
-									$attr = str_replace(get_home_path(), '', $attr);
+									$attr = str_replace(get_option("path_rlout"), '', $attr);
 									
 									$attr = get_option("uri_rlout") . $attr;
 									
@@ -1381,7 +1381,7 @@ Class RelOutputHtml {
 				
 				$json_name = explode("action=", $json);
 				$json_name = explode("&", $json_name[1]);
-				$json_name = get_home_path() . $json_name[0] . '.json';
+				$json_name = get_option("path_rlout") . $json_name[0] . '.json';
 				
 				$response = str_replace($json, $json_name, $response);
 			}
@@ -1412,8 +1412,8 @@ Class RelOutputHtml {
 					$file_dir = str_replace("//", "/", $file_dir);
 					$file_dir = str_replace("./", "/", $file_dir);
 					
-					$key_file_s3 = str_replace(get_home_path().'/','', $file_dir);
-					$key_file_s3 = str_replace(get_home_path(),'', $key_file_s3);
+					$key_file_s3 = str_replace(get_option("path_rlout").'/','', $file_dir);
+					$key_file_s3 = str_replace(get_option("path_rlout"),'', $key_file_s3);
 					
 					$directory_empty = explode('/', $key_file_s3);
 					
@@ -1451,8 +1451,8 @@ Class RelOutputHtml {
 					'secret' => $secret_key
 				));
 				
-				$key_file_s3 = str_replace(get_home_path().'/','', $file_dir);
-				$key_file_s3 = str_replace(get_home_path(),'', $key_file_s3);
+				$key_file_s3 = str_replace(get_option("path_rlout").'/','', $file_dir);
+				$key_file_s3 = str_replace(get_option("path_rlout"),'', $key_file_s3);
 				
 				$directory_empty = explode('/', $key_file_s3);
 
