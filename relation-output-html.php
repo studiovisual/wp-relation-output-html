@@ -257,7 +257,7 @@ Class RelOutputHtml {
 
 		if(!empty($DistributionId)){
 			$CallerReference = (string) rand(100000,9999999).strtotime(date('Y-m-dH:i:s'));
-			$path = str_replace(site_url(), '', $response);
+			$raiz = str_replace(site_url(), '', $response);
 			
 			$access_key = get_option('s3_key_rlout');
 			$secret_key = get_option('s3_secret_rlout');
@@ -283,7 +283,7 @@ Class RelOutputHtml {
 				'CallerReference' => $CallerReference,
 				'Paths' => [
 					'Quantity' => 1,
-					'Items' => [$path],
+					'Items' => [$raiz],
 				],
 			];
 			
@@ -353,8 +353,8 @@ Class RelOutputHtml {
 		include_once(ABSPATH . '/wp-admin/includes/file.php');
 		include_once(ABSPATH . '/wp-includes/pluggable.php');
 		
-		$path = get_home_path().'html';
-		update_option('path_rlout', $path);
+		$raiz = get_home_path().'html';
+		update_option('path_rlout', $raiz);
 		
 		if(defined('PATH_RLOUT')==true){
 			update_option('path_rlout', PATH_RLOUT);
@@ -654,14 +654,14 @@ Class RelOutputHtml {
 						mkdir($dir_base);
 					}
 					
-					$file_path = $dir_base . '/' . $json_name . '.json';
+					$file_raiz = $dir_base . '/' . $json_name . '.json';
 					
-					$file = fopen($file_path, "w");
+					$file = fopen($file_raiz, "w");
 					
 					fwrite($file, $response);
 					
-					$this->ftp_upload_file($file_path);
-					$this->s3_upload_file($file_path, false);
+					$this->ftp_upload_file($file_raiz);
+					$this->s3_upload_file($file_raiz, false);
 				}
 			}
 		}
@@ -770,11 +770,11 @@ Class RelOutputHtml {
 
 			$uri = get_option("uri_rlout");
 
-			$replace_path = str_replace($uri, '', $url);
-			$replace_path = str_replace(site_url(), '', $replace_path);
-			$dir_base = $dir_base . $replace_path;
+			$replace_raiz = str_replace($uri, '', $url);
+			$replace_raiz = str_replace(site_url(), '', $replace_raiz);
+			$dir_base = $dir_base . $replace_raiz;
 
-			$verify_files_point = explode('.',$replace_path);
+			$verify_files_point = explode('.',$replace_raiz);
 
 			$file_default = '/index.html';
 			$json_default = '/index.json';
@@ -801,11 +801,11 @@ Class RelOutputHtml {
 				}
 			}
 			
-			$explode_path = explode("/", $dir_base);
-			foreach ($explode_path as $keyp => $path) {
-				$wp_path = $wp_path . $path . '/';
-				if( is_dir($wp_path) === false && $keyp+1<count($explode_path)){
-					mkdir($wp_path);
+			$explode_raiz = explode("/", $dir_base);
+			foreach ($explode_raiz as $keyp => $raiz) {
+				$wp_raiz = $wp_raiz . $raiz . '/';
+				if( is_dir($wp_raiz) === false && $keyp+1<count($explode_raiz)){
+					mkdir($wp_raiz);
 				}
 			}
 
@@ -1114,16 +1114,16 @@ Class RelOutputHtml {
 						mkdir($dir_base);
 					}
 					
-					$file_path = $dir_base . '/'.$post_type.'.json';
+					$file_raiz = $dir_base . '/'.$post_type.'.json';
 					
-					$file = fopen($file_path, "w");
+					$file = fopen($file_raiz, "w");
 					
 					fwrite($file, $response);
 					
-					$this->ftp_upload_file($file_path);
-					$this->s3_upload_file($file_path, false);
+					$this->ftp_upload_file($file_raiz);
+					$this->s3_upload_file($file_raiz, false);
 					
-					$urls[] = str_replace($dir_base,$rpl,$file_path);
+					$urls[] = str_replace($dir_base,$rpl,$file_raiz);
 				}else{
 					
 					die($response);
@@ -1180,16 +1180,16 @@ Class RelOutputHtml {
 						mkdir($dir_base);
 					}
 					
-					$file_path = $dir_base . '/'.$tax.'.json';
+					$file_raiz = $dir_base . '/'.$tax.'.json';
 					
-					$file = fopen($file_path, "w");
+					$file = fopen($file_raiz, "w");
 					
 					fwrite($file, $response);
 					
-					$this->ftp_upload_file($file_path);
-					$this->s3_upload_file($file_path, false);
+					$this->ftp_upload_file($file_raiz);
+					$this->s3_upload_file($file_raiz, false);
 					
-					$urls[] = str_replace($dir_base,$rpl,$file_path);
+					$urls[] = str_replace($dir_base,$rpl,$file_raiz);
 					
 				}else{
 					
