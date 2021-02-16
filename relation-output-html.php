@@ -804,14 +804,14 @@ Class RelOutputHtml {
 			$explode_raiz = explode("/", $dir_base);
 			foreach ($explode_raiz as $keyp => $raiz) {
 				$wp_raiz = $wp_raiz . $raiz . '/';
-				if( is_dir($wp_raiz) === false && $keyp+1<count($explode_raiz)){
-					mkdir(realpath($wp_raiz));
+				if( realpath($wp_raiz) === false && $keyp+1<count($explode_raiz)){
+					mkdir($wp_raiz);
 				}
 			}
 
-			$file = fopen( realpath($dir_base . $file_default),"w");
+			$file = fopen( realpath($dir_base) . $file_default,"w");
 			
-			$file_json = fopen( realpath($dir_base . $json_default),"w");
+			$file_json = fopen( realpath($dir_base) . $json_default,"w");
 			
 			$replace_uploads = get_option('uploads_rlout');
 			
@@ -1110,7 +1110,7 @@ Class RelOutputHtml {
 					}
 					
 					$dir_base =  get_option("path_rlout");
-					if( is_dir($dir_base) === false ){
+					if( realpath($dir_base) === false ){
 						mkdir($dir_base);
 					}
 					
@@ -1176,7 +1176,7 @@ Class RelOutputHtml {
 					}
 					
 					$dir_base =  get_option("path_rlout");
-					if( is_dir($dir_base) === false ){
+					if( realpath($dir_base) === false ){
 						mkdir($dir_base);
 					}
 					
@@ -1317,7 +1317,7 @@ Class RelOutputHtml {
 						if($key+1<count($folders)){
 							$dir_base = $dir_base . '/' . $folder;
 							if( is_dir($dir_base) === false ){
-								mkdir(realpath($dir_base));
+								mkdir($dir_base);
 							}
 						}
 					}
@@ -1363,7 +1363,7 @@ Class RelOutputHtml {
 					
 					$folders = implode(".", $folders_point);
 					
-					$file = fopen( realpath($dir_base . '/' . $folders),"w");
+					$file = fopen( realpath($dir_base) . '/' . $folders,"w");
 					
 					fwrite($file, $response);
 					
@@ -1390,7 +1390,6 @@ Class RelOutputHtml {
 		}
 		
 		public function s3_upload_file($file_dir, $ignore_cloud=true){
-			
 			if($file_dir){
 				
 				$access_key = get_option('s3_key_rlout');
