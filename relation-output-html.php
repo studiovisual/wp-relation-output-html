@@ -809,9 +809,9 @@ Class RelOutputHtml {
 				}
 			}
 
-			$file = fopen( $dir_base . $file_default,"w");
+			$file = fopen( realpath($dir_base . $file_default),"w");
 			
-			$file_json = fopen( $dir_base . $json_default,"w");
+			$file_json = fopen( realpath($dir_base . $json_default),"w");
 			
 			$replace_uploads = get_option('uploads_rlout');
 			
@@ -1317,7 +1317,7 @@ Class RelOutputHtml {
 						if($key+1<count($folders)){
 							$dir_base = $dir_base . '/' . $folder;
 							if( is_dir($dir_base) === false ){
-								mkdir($dir_base);
+								mkdir(realpath($dir_base));
 							}
 						}
 					}
@@ -1363,7 +1363,7 @@ Class RelOutputHtml {
 					
 					$folders = implode(".", $folders_point);
 					
-					$file = fopen( $dir_base . '/' . $folders,"w");
+					$file = fopen( realpath($dir_base . '/' . $folders),"w");
 					
 					fwrite($file, $response);
 					
