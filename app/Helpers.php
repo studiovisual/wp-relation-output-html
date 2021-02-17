@@ -1,45 +1,12 @@
 <?php
 
-Class HelpersRlout {
+namespace WpRloutHtml;
 
-	public function __construct(){
+use WpRloutHtml\Curl;
 
-		$this->curl = new CurlRlout;
+Class Helpers {
 
-		add_action('init', array($this, 'blog_public') );
-		add_filter('excerpt_more', array($this, 'custom_excerpt_more') );
-
-		if(isset($_GET['importants_rlout'])){
-			
-			add_action('init', function(){
-				$response_essenciais = $this->importantfiles_generate();
-				
-				if($response_essenciais){
-					
-					echo '<script>alert("Páginas importantes Atualizadas!");</script>';
-					echo '<script>window.location = document.URL.replace("&importants_rlout=true","").replace("?importants_rlout=true","");</script>';
-				}
-			});
-		}
-
-		if(isset($_GET['essenciais_rlout'])){
-			
-			$response_essenciais = $this->helpers->subfiles_generate();
-			
-			if($response_essenciais){
-				
-				add_action('init', function(){
-					$this->posts->api(true);
-					$this->terms->api(true);
-				});
-				
-				echo '<script>alert("Arquivos Essenciais Atualizados!");</script>';
-				echo '<script>window.location = document.URL.replace("&essenciais_rlout=true","").replace("?essenciais_rlout=true","");</script>';
-			}
-		}
-	}
-
-	public function subfiles_generate(){
+	static function subfiles_generate(){
 		
 		$files = explode(',', get_option("subfiles_rlout"));
 		
@@ -48,17 +15,17 @@ Class HelpersRlout {
 			if(!empty($file)){
 				
 				$this->deploy_upload($file);
-				$this->repeat_files_rlout[] = $file;
+				App::$repeat_files_rlout[] = $file;
 			}
 		}
 		return $files;
 	}
 
-	public function custom_excerpt_more( $more ) {
+	static function custom_excerpt_more( $more ) {
 		return '';
 	}
 
-    public function blog_public(){
+    static function blog_public(){
 		
 		$robots = get_option('robots_rlout');
 		
@@ -86,7 +53,7 @@ Class HelpersRlout {
 		}
 	}
 
-    public function gen_html_cron_function() {
+    static function gen_html_cron_function() {
 		
 		$hora_marcada = strtotime(get_option('horario_cron_rlout'));
 		
@@ -105,7 +72,9 @@ Class HelpersRlout {
 		}
 	}
 
-    public function importantfiles_generate(){
+    static function importantfiles_generate(){
+
+		$curl = new Curl;
 		
 		// Generate FILE 1
 		$files = explode(',', get_option("pages_important_rlout"));
@@ -114,14 +83,14 @@ Class HelpersRlout {
 			
 			if(!empty($file)){
 				
-				$this->curl_generate($file);
-				$this->repeat_files_rlout[] = $file;
+				$curl->generate($file);
+				App::$repeat_files_rlout[] = $file;
 			}
 		}
 		return $files;
 	}
 
-    public function url_json_obj($object){
+    static function url_json_obj($object){
 		
 		$dir_base =  get_option("path_rlout");
 		$rpl = get_option('replace_url_rlout');
@@ -140,8 +109,10 @@ Class HelpersRlout {
 		return $object;
 	}
 
-    public function replace_reponse($url_replace, $response, $media=null, $debug=false){
-			
+    static function replace_reponse($url_replace, $response, $media=null, $debug=false){
+		
+		$curl = new Curl;
+
         // pegando itens 
         $itens_theme = explode($url_replace, $response);
         
@@ -154,8 +125,9 @@ Class HelpersRlout {
             $item = $url_replace . $item[0];
             
             if(!empty($item)){
-                $this->deploy_upload($item, $media);
-                $this->repeat_files_rlout[] = $item;
+
+                App::$repeat_files_rlout[] = $item;
+                $curl->deploy_upload($item, $media);
             }
         }
         
@@ -182,8 +154,8 @@ Class HelpersRlout {
         return $response;
     }
     
-    public function replace_json($response){
-        
+    static function replace_json($response){
+
         $jsons = explode(",", get_option("api_1_rlout"));
         
         foreach ($jsons as $key => $json) {

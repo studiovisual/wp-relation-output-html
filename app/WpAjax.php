@@ -1,5 +1,8 @@
 <?php
-Class AjaxRlout {
+
+namespace WpRloutHtml;
+
+Class WpAjax Extends App {
     
     public function __construct() {
         

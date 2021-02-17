@@ -1,10 +1,18 @@
 <?php
 
-use AwsWp\S3\S3Client;
+namespace WpRloutHtml\Modules;
 
-Class S3Rlout {
+use Aws\S3\S3Client;
+use WpRloutHtml\Modules\Cloudfront;
+
+Class S3 {
+
+    public function __construct(){
+        $this->cloudfront = new Cloudfront;
+    }
 
     public function upload_file($file_dir, $ignore_cloud=true){
+
         if($file_dir){
             
             $access_key = get_option('s3_key_rlout');
@@ -42,7 +50,7 @@ Class S3Rlout {
 
                     if($response && $ignore_cloud==false){
                         $key_file_s3 = str_replace('index.html', '', $key_file_s3);
-                        $this->invalidfileaws('/'.$key_file_s3);
+                        $this->cloudfront->invalid('/'.$key_file_s3);
                     }
                 }
                 
@@ -79,7 +87,7 @@ Class S3Rlout {
                 
                 if($response){
                     $key_file_s3 = str_replace('index.html', '', $key_file_s3);
-                    $this->invalidfileaws('/'.$key_file_s3);
+                    $this->cloudfront->invalid('/'.$key_file_s3);
                 }
                 
                 return $response;

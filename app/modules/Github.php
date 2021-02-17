@@ -1,4 +1,7 @@
 <?php
+
+namespace WpRloutHtml\Modules;
+
 Class GithubRlout {
     
     public function git_upload_file($commit){

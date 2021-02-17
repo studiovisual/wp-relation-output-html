@@ -1,6 +1,16 @@
 <?php
 
-Class CurlRlout {
+namespace WpRloutHtml;
+
+use WpRloutHtml\Posts;
+use WpRloutHtml\Helpers;
+use WpRloutHtml\Modules\S3;
+
+Class Curl {
+
+	public function __construct(){
+		$this->s3 = new S3;
+	}
 
     public function deploy_upload($url, $media=null){
 			
@@ -44,7 +54,7 @@ Class CurlRlout {
                 echo "cURL Error #:" . $err;
             } else {
                 
-                $response = $this->replace_json($response);
+                $response = Helpers::replace_json($response);
                 
                 $dir_base =  get_option("path_rlout");
                 if( is_dir($dir_base) === false ){
@@ -128,16 +138,16 @@ Class CurlRlout {
                 
                 fwrite($file, $response);
                 
-                $this->ftp_upload_file($dir_base . '/' . $folders);
-                $this->s3_upload_file($dir_base . '/' . $folders);
+                //$this->ftp->upload_file($dir_base . '/' . $folders);
+                $this->s3->upload_file($dir_base . '/' . $folders);
             }
         }
     }
 
     public function json(){
 		
-		$this->api_posts(true);
-		$this->api_terms(true);
+		$this->posts->api(true);
+		$this->terms->api(true);
 		sleep(0.5);
 
 		// Generate JSON 1
@@ -188,8 +198,8 @@ Class CurlRlout {
 					
 					fwrite($file, $response);
 					
-					$this->ftp_upload_file($file_raiz);
-					$this->s3_upload_file($file_raiz, false);
+					//$this->ftp->upload_file($file_raiz);
+					$this->s3->upload_file($file_raiz, false);
 				}
 			}
 		}
@@ -213,75 +223,17 @@ Class CurlRlout {
 	}
 
     public function list_deploy($objs=null){
-		
+
 		if(!empty($objs)){
 			
 			foreach ($objs as $key => $obj) {
 				
-				$this->curl_generate($obj);
+				$this->generate($obj);
 				sleep(0.5);
 			}
 		}
 	
 	}
-
-    public function auto_deploy($post_id=null){
-        
-		if($_POST['static_output_html']){
-			add_action('updated_post_meta', function($meta_id, $post_id, $meta_key){
-
-				if($meta_key=='_edit_lock'){
-					
-					$post_types = explode(',', get_option('post_types_rlout'));
-					foreach ($post_types as $key => $pt) {
-						$link = get_post_type_archive_link($pt);
-						if($link){
-							$this->generate(get_post_type_archive_link($pt));
-						}
-					}
-					sleep(0.5);
-					
-					if(empty($post_id)){
-						
-						$objects = get_posts(array('post_type'=>$post_types, 'posts_per_page'=>-1));
-						
-						$this->list_deploy($objects);
-						foreach ($taxonomies as $key => $tax) {
-							$objects = get_terms( array('taxonomy' => $tax, 'hide_empty' => false) );
-							$this->list_deploy($objects);
-						}
-						
-					}else{
-						
-						$post =  get_post($post_id);
-						
-						if(in_array($post->post_type, $post_types)){
-							
-							$terms = wp_get_post_terms($post->ID, $taxonomies);
-							
-							$objects = array();
-							
-							$objects[] = $post;
-							
-							// categorias relacionadas
-							foreach ($terms as $key => $term) {
-								$objects[] = $term;
-							}
-							
-							$this->list_deploy($objects);
-						}
-					}
-
-					sleep(0.5);
-					
-					$this->git_upload_file('Atualização de object');
-
-					$this->api_posts(true);
-					$this->api_terms(true);
-				}
-			},10,3);
-		}
-    }
 
     public function generate($object, $home=null){
 		
@@ -331,8 +283,6 @@ Class CurlRlout {
 			return $url.' - URL COM ERRO DE SINTAX';
 		}
 
-		// $this->save_log($url);
-
 		$curl = curl_init();
 		
 		curl_setopt_array($curl, array(
@@ -361,7 +311,8 @@ Class CurlRlout {
 		if ($err) {
 			return "cURL Error #:" . $err;
 		} else {
-			$response = $this->replace_json($response);
+			
+			$response = Helpers::replace_json($response);
 			
 			$dir_base =  get_option("path_rlout");
 			if( is_dir($dir_base) === false ){
@@ -420,15 +371,15 @@ Class CurlRlout {
 			if($replace_uploads){
 				$upload_url = wp_upload_dir();
 				
-				$response = $this->replace_reponse($upload_url['baseurl'], $response, '/uploads');
+				$response = Helpers::replace_reponse($upload_url['baseurl'], $response, '/uploads');
 
 				if($uploads_url_rlout){
-					$response = $this->replace_reponse($uploads_url_rlout, $response, '/uploads');
+					$response = Helpers::replace_reponse($uploads_url_rlout, $response, '/uploads');
 				}
 				
 			}
 			
-			$response = $this->replace_reponse(get_option("uri_rlout"), $response);
+			$response = Helpers::replace_reponse(get_option("uri_rlout"), $response);
 			
 			$jsons = array();
 
@@ -437,18 +388,18 @@ Class CurlRlout {
 			
 				fwrite($file, $response);
 			
-				$this->ftp_upload_file($dir_base . $file_default);
-				$this->s3_upload_file($dir_base . $file_default, false);
+				//$this->ftp_upload_file($dir_base . $file_default);
+				$this->s3->upload_file($dir_base . $file_default, false);
 			}
 
 			if(term_exists($object->term_id)){
 				$this->object_term($object);
 			}else{
-				$this->object_post($object);
+				Posts::object_post($object);
 			}
 			
 			if($json_default!=''){
-				$response_json = $this->replace_reponse(get_option("uri_rlout"), json_encode($object));
+				$response_json = Helpers::replace_reponse(get_option("uri_rlout"), json_encode($object));
 				
 
 				$ignore_json_rlout = explode(',' ,get_option("ignore_json_rlout"));
@@ -457,9 +408,9 @@ Class CurlRlout {
 					fwrite($file_json,  $response_json);
 				
 				
-					$this->ftp_upload_file($dir_base . $json_default);
+					//$this->ftp->upload_file($dir_base . $json_default);
 				
-					$this->s3_upload_file($dir_base . $json_default, true);
+					$this->s3->upload_file($dir_base . $json_default, true);
 				}
 			}
 			

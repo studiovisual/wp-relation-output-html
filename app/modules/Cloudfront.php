@@ -1,8 +1,10 @@
 <?php
 
-use AwsWp\CloudFront\CloudFrontClient;
+namespace WpRloutHtml\Modules;
 
-Class CloudFrontRlout {
+use Aws\CloudFront\CloudFrontClient;
+
+Class Cloudfront {
 
 	public function __construct(){
 		if(isset($_GET['cloudfront_rlout'])){

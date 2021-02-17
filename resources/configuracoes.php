@@ -320,9 +320,8 @@
 
         			// Now the one above it
         			// var $trAbove = $tr.prev('tr');
-
         			// Now insert the clone
-        			$tr.clone().insertBefore($tr);
+        			$tr.clone().insertBefore($tr).find('input').attr('value','');
         		});
 		});
 	</script>

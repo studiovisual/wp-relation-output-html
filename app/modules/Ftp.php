@@ -1,4 +1,7 @@
 <?php
+
+namespace WpRloutHtml\Modules;
+
 Class FtpRlout {
     
     public function upload_file($file_dir){

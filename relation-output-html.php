@@ -11,6 +11,6 @@ Text Domain:  relation-output-html
 
 require 'vendor/autoload.php';
 
-$request = new WpRlout\Config();
+$request = new WpRloutHtml\App();
 
 ?>

@@ -1,23 +1,129 @@
 <?php
-Class PostsRlout {
+
+namespace WpRloutHtml;
+
+use WpRloutHtml\Curl;
+use WpRloutHtml\Modules\S3;
+use WpRloutHtml\Helpers;
+
+Class Posts {
 
     public function __construct(){
 
-        // verifica alterações de posts
-		$post_types = explode(',', get_option('post_types_rlout'));
-		foreach ($post_types as $key => $post_type) {
-			add_action( 'publish_'.$post_type, array($this, 'post_auto_deploy'));
-			add_action( 'draft_'.$post_type, array($this, 'post_delete_folder'));
-			add_action( 'pre_'.$post_type.'_update', array($this, 'post_delete_folder'));
-			add_action( 'trash_'.$post_type,  array($this, 'post_delete_folder'));
-		}
+        //apps
+        $this->curl = new Curl;
+        $this->s3 = new S3;
 
-        add_action('wp_ajax_posts', array($this, 'api_posts') );
-		// Definindo action para acesso público
-		add_action('wp_ajax_nopriv_posts', array($this, 'api_posts') );
+        // verifica alterações de posts
+        $post_types = explode(',', get_option('post_types_rlout'));
+        foreach ($post_types as $key => $post_type) {
+            add_action( 'publish_'.$post_type, array($this, 'create_folder'));
+            add_action( 'draft_'.$post_type, array($this, 'delete_folder'));
+            add_action( 'pre_'.$post_type.'_update', array($this, 'delete_folder'));
+            add_action( 'trash_'.$post_type,  array($this, 'delete_folder'));
+        }
     }
 
-    public function object_post($object, $show_terms=true){
+    public function create_folder($post_id=null){
+        
+		if($_POST['static_output_html']){
+
+			add_action('updated_post_meta', function($meta_id, $post_id, $meta_key){
+
+				if($meta_key=='_edit_lock'){
+					
+					$post_types = explode(',', get_option('post_types_rlout'));
+					foreach ($post_types as $key => $pt) {
+						$link = get_post_type_archive_link($pt);
+						if($link){
+							$this->curl->generate(get_post_type_archive_link($pt));
+						}
+					}
+					sleep(0.5);
+					
+					if(empty($post_id)){
+						
+						$objects = get_posts(array('post_type'=>$post_types, 'posts_per_page'=>-1));
+						
+						$this->curl->list_deploy($objects);
+						foreach ($taxonomies as $key => $tax) {
+							$objects = get_terms( array('taxonomy' => $tax, 'hide_empty' => false) );
+							$this->curl->list_deploy($objects);
+						}
+						
+					}else{
+						
+						$post =  get_post($post_id);
+						
+						if(in_array($post->post_type, $post_types)){
+							
+							$terms = wp_get_post_terms($post->ID, $taxonomies);
+							
+							$objects = array();
+							
+							$objects[] = $post;
+							
+							// categorias relacionadas
+							foreach ($terms as $key => $term) {
+								$objects[] = $term;
+							}
+							
+							$this->curl->list_deploy($objects);
+						}
+					}
+
+					sleep(0.5);
+					
+					// $this->git_upload_file('Atualização de object');
+
+					$this->api(true);
+					$this->terms->api(true);
+				}
+			},10,3);
+		}
+    }
+
+    public function delete_folder($post_id){
+		
+		$post = get_post($post_id);
+		
+		$post_types = explode(',', get_option('post_types_rlout'));
+		
+		if(in_array($post->post_type, $post_types)){
+			if($post->post_status=='publish' && $_POST['post_status']=='publish'){
+				
+				$slug_old = $post->post_name;
+				
+				$slug_new = $_POST['post_name'];
+				
+				if($slug_old==$slug_new){
+					
+					return false;
+				}
+			}
+			
+			$url_delete = get_sample_permalink($post);
+			$url_del = str_replace('%pagename%',$url_delete[1],$url_delete[0]);
+			$url_del = str_replace('%postname%',$url_delete[1],$url_del);
+			$url_delete = $url_del;
+			if($url_delete){
+				$dir_base =  explode('__trashed', '', $url_delete);
+				$dir_base = get_option("path_rlout") . str_replace(site_url(), '', $dir_base);
+
+				unlink($dir_base . 'index.html');
+				rmdir($dir_base);
+				
+				$this->ftp_remove_file($dir_base . 'index.html');
+				$this->s3_remove_file($dir_base . 'index.html');
+			}
+			
+		}
+
+		$this->api_posts(true);
+		$this->api_terms(true);
+	}
+
+    static function object_post($object, $show_terms=true){
 		
 		$url = get_permalink($object);
 		$ignore_json_rlout = explode(',' ,get_option("ignore_json_rlout"));
@@ -35,7 +141,7 @@ Class PostsRlout {
 			unset($object->comment_count);
 			unset($object->filter);
 			
-			$object = $this->url_json_obj($object);
+			$object = Helpers::url_json_obj($object);
 			
 			$object->post_type = $object->post_type;
 			
@@ -79,7 +185,7 @@ Class PostsRlout {
 		
 	}
     
-    public function api_posts($generate){
+    public function api($generate){
         
         header( "Content-type: application/json");
         $post_types = explode(",", get_option('post_types_rlout'));
@@ -90,7 +196,7 @@ Class PostsRlout {
         }
         foreach ($post_types as $key => $post_type) {
             
-            $posts_arr = $this->get_post_api($post_type);
+            $posts_arr = $this->get_post_json($post_type);
             
             $response = json_encode($posts_arr , JSON_UNESCAPED_SLASHES);
             
@@ -124,8 +230,8 @@ Class PostsRlout {
                 
                 fwrite($file, $response);
                 
-                $this->ftp_upload_file($file_raiz);
-                $this->s3_upload_file($file_raiz, false);
+                // $this->ftp_upload_file($file_raiz);
+                $this->s3->upload_file($file_raiz, false);
                 
                 $urls[] = str_replace($dir_base,$rpl,$file_raiz);
             }else{
@@ -136,7 +242,7 @@ Class PostsRlout {
         return $urls;
     }
     
-    public function get_post_api($post_type, $not_in=array()){
+    public function get_post_json($post_type, $not_in=array()){
         
         $rpl = get_option('replace_url_rlout');
         if(empty($rpl)){
@@ -197,7 +303,7 @@ Class PostsRlout {
         
         if(count($posts)==25){
             sleep(0.1);
-            $posts_arr = array_merge($posts_arr, $this->get_post_api($post_type, $not_in));
+            $posts_arr = array_merge($posts_arr, $this->get_post_json($post_type, $not_in));
         }
         
         return $posts_arr;

@@ -1,16 +1,22 @@
 <?php
-Class TermsRlout {
+
+namespace WpRloutHtml;
+
+Class Terms Extends App {
 
 	public function __construct(){
+
+        //modules
+        $this->curl = new Curl;
 
 		// verifica alterações de terms
 		add_action( 'create_term', array($this, 'create_folder'), 10, 3);
 		add_action( 'edit_term', array($this, 'create_folder'), 10, 3);
 		add_action( 'delete_term', array($this, 'delete_folder'), 10, 3);
 
-		add_action('wp_ajax_terms', array($this, 'api_terms') );
+		add_action('wp_ajax_terms', array($this, 'api') );
 		// Definindo action para acesso público
-		add_action('wp_ajax_nopriv_terms', array($this, 'api_terms') );
+		add_action('wp_ajax_nopriv_terms', array($this, 'api') );
 	}
 
     public function object_term($object, $show_posts=true){
@@ -134,12 +140,12 @@ Class TermsRlout {
                 
                 $this->deploy($objects);
             }
-            $this->api_posts(true);
-            $this->api_terms(true);
+            $this->posts->api(true);
+            $this->api(true);
         }
     }
     
-    public function api_terms($generate){
+    public function api($generate){
         
         header( "Content-type: application/json");
         
