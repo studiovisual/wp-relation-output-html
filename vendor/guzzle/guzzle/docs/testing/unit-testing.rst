@@ -28,7 +28,7 @@ to provide the path to their configuration data.
 
 .. code-block:: php
 
-    Guzzle\Tests\GuzzleTestCase::setServiceBuilder(AwsWp\Common\Aws::factory($_SERVER['CONFIG']));
+    Guzzle\Tests\GuzzleTestCase::setServiceBuilder(Aws\Common\Aws::factory($_SERVER['CONFIG']));
 
     Guzzle\Tests\GuzzleTestCase::setServiceBuilder(Guzzle\Service\Builder\ServiceBuilder::factory(array(
         'test.unfuddle' => array(

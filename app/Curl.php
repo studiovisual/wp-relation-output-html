@@ -1,0 +1,470 @@
+<?php
+
+Class CurlRlout {
+
+    public function deploy_upload($url, $media=null){
+			
+        if(empty(in_array($url, $this->repeat_files_rlout)) && !empty($url)){
+            
+            $curl = curl_init();
+            
+            $url = explode('?', $url);
+            
+            $url = $url[0];
+            
+            $url_point = explode(".", $url);
+            
+            $url_space = explode(" ", $url_point[count($url_point)-1]);
+            
+            $url_point[count($url_point)-1] = $url_space[0];
+            
+            $url = implode(".", $url_point);
+            
+            curl_setopt_array($curl, array(
+                CURLOPT_URL => $url,
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_ENCODING => "",
+                CURLOPT_MAXREDIRS => 10,
+                CURLOPT_TIMEOUT => 120,
+                CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                CURLOPT_CUSTOMREQUEST => "GET",
+                CURLOPT_HTTPHEADER => array(
+                    "cache-control: no-cache",
+                    "Authorization: Basic ".base64_encode(get_option('userpwd_rlout').":".get_option('passpwd_rlout'))
+                ),
+            ));
+            
+            $response = curl_exec($curl);
+            $err = curl_error($curl);
+            
+            curl_close($curl);
+            
+            if ($err) {
+                echo "cURL Error #:" . $err;
+            } else {
+                
+                $response = $this->replace_json($response);
+                
+                $dir_base =  get_option("path_rlout");
+                if( is_dir($dir_base) === false ){
+                    mkdir($dir_base);
+                }
+                
+                if($media){
+                    $dir_base =  get_option("path_rlout") . $media;
+                    if( is_dir($dir_base) === false ){
+                        mkdir($dir_base);
+                    }
+                }
+                
+                $url = urldecode($url);
+                
+                if($media){
+                    $upload_url = wp_upload_dir();
+                    $uploads_url_rlout = get_option('uploads_url_rlout'); 
+                    $file_name = str_replace($upload_url['baseurl'], '', $url);
+                    
+                    if($uploads_url_rlout){
+                        $file_name = str_replace($uploads_url_rlout, '', $file_name);
+                    }
+                }else{
+                    $file_name = str_replace(get_option("uri_rlout"), '', $url);
+                    $file_name = str_replace(site_url(), '', $file_name);
+                }
+                
+                $folders = explode("/", $file_name);
+                foreach ($folders as $key => $folder) {
+                    if($key+1<count($folders)){
+                        $dir_base = $dir_base . '/' . $folder;
+                        if( is_dir($dir_base) === false ){
+                            mkdir($dir_base);
+                        }
+                    }
+                }
+                
+                $css = explode(".css", end($folders));
+                if(!empty($css[1])){
+                    $attrs = explode("url(", $response);
+                    if(empty($attrs)){
+                        $attrs = explode("url (", $response);
+                    }						
+                    
+                    if(!empty($attrs)){
+                        unset($attrs[0]);
+                        foreach ($attrs as $key_att => $attr) {
+                            $http = explode("http", $attr);
+                            if(!$http[1]){
+                                $attr = explode(")", $attr);
+                                $attr = str_replace('"', '', $attr[0]);
+                                $attr = str_replace("'", "", $attr);
+                                
+                                $attr = $dir_base  . '/' . $attr;
+                                
+                                $attr = str_replace(get_option("path_rlout"), '', $attr);
+                                
+                                $attr = get_option("uri_rlout") . $attr;
+                                
+                                $svg = explode("data:image", $attr);
+                                
+                                if(!$svg[1]){
+                                    $this->deploy_upload($attr);
+                                    $this->repeat_files_rlout[] = $attr;
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                $folders_point = explode(".", end($folders));
+                
+                $folders_space = explode(" ", $folders_point[count($folders_point)-1]);
+                
+                $folders_point[count($folders_point)-1] = $folders_space[0];
+                
+                $folders = implode(".", $folders_point);
+                
+                $file = fopen( realpath($dir_base) . '/' . $folders,"w");
+                
+                fwrite($file, $response);
+                
+                $this->ftp_upload_file($dir_base . '/' . $folders);
+                $this->s3_upload_file($dir_base . '/' . $folders);
+            }
+        }
+    }
+
+    public function json(){
+		
+		$this->api_posts(true);
+		$this->api_terms(true);
+		sleep(0.5);
+
+		// Generate JSON 1
+		$jsons = explode(',', get_option("api_1_rlout"));
+		$json = array();
+		foreach ($jsons as $key => $json) {
+			
+			if(!empty($json)){
+				
+				$json_name = explode("action=", $json);
+				$json_name = explode("&", $json_name[1]);
+				$json_name = $json_name[0];
+				
+				$curl = curl_init();
+				
+				curl_setopt_array($curl, array(
+					CURLOPT_URL => $json,
+					CURLOPT_RETURNTRANSFER => true,
+					CURLOPT_ENCODING => "",
+					CURLOPT_MAXREDIRS => 10,
+					CURLOPT_TIMEOUT => 120,
+					CURLOPT_FOLLOWLOCATION => true,
+					CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+					CURLOPT_CUSTOMREQUEST => "GET",
+					CURLOPT_HTTPHEADER => array(
+						"cache-control: no-cache",
+						"Authorization: Basic ".base64_encode(get_option('userpwd_rlout').":".get_option('passpwd_rlout'))
+					),
+				));
+				
+				$response = curl_exec($curl);
+				$err = curl_error($curl);
+				
+				curl_close($curl);
+				
+				if ($err) {
+					echo "cURL Error #:" . $err;
+				} else {
+					
+					$dir_base =  get_option("path_rlout");
+					if( is_dir($dir_base) === false ){
+						mkdir($dir_base);
+					}
+					
+					$file_raiz = $dir_base . '/' . $json_name . '.json';
+					
+					$file = fopen($file_raiz, "w");
+					
+					fwrite($file, $response);
+					
+					$this->ftp_upload_file($file_raiz);
+					$this->s3_upload_file($file_raiz, false);
+				}
+			}
+		}
+		
+	}
+
+    public function subfiles(){
+		
+		// Generate FILE 1
+		$files = explode(',', get_option("subfiles_rlout"));
+		
+		foreach ($files as $key => $file) {
+			
+			if(!empty($file)){
+				
+				$this->deploy_upload($file);
+				$this->repeat_files_rlout[] = $file;
+			}
+		}
+		return $files;
+	}
+
+    public function list_deploy($objs=null){
+		
+		if(!empty($objs)){
+			
+			foreach ($objs as $key => $obj) {
+				
+				$this->curl_generate($obj);
+				sleep(0.5);
+			}
+		}
+	
+	}
+
+    public function auto_deploy($post_id=null){
+        
+		if($_POST['static_output_html']){
+			add_action('updated_post_meta', function($meta_id, $post_id, $meta_key){
+
+				if($meta_key=='_edit_lock'){
+					
+					$post_types = explode(',', get_option('post_types_rlout'));
+					foreach ($post_types as $key => $pt) {
+						$link = get_post_type_archive_link($pt);
+						if($link){
+							$this->generate(get_post_type_archive_link($pt));
+						}
+					}
+					sleep(0.5);
+					
+					if(empty($post_id)){
+						
+						$objects = get_posts(array('post_type'=>$post_types, 'posts_per_page'=>-1));
+						
+						$this->list_deploy($objects);
+						foreach ($taxonomies as $key => $tax) {
+							$objects = get_terms( array('taxonomy' => $tax, 'hide_empty' => false) );
+							$this->list_deploy($objects);
+						}
+						
+					}else{
+						
+						$post =  get_post($post_id);
+						
+						if(in_array($post->post_type, $post_types)){
+							
+							$terms = wp_get_post_terms($post->ID, $taxonomies);
+							
+							$objects = array();
+							
+							$objects[] = $post;
+							
+							// categorias relacionadas
+							foreach ($terms as $key => $term) {
+								$objects[] = $term;
+							}
+							
+							$this->list_deploy($objects);
+						}
+					}
+
+					sleep(0.5);
+					
+					$this->git_upload_file('Atualização de object');
+
+					$this->api_posts(true);
+					$this->api_terms(true);
+				}
+			},10,3);
+		}
+    }
+
+    public function generate($object, $home=null){
+		
+		update_option('robots_rlout', '0');
+		update_option('blog_public', '1');
+
+		$text_post = get_post(url_to_postid($object));
+		if(!empty($text_post)){
+			$object = $text_post;
+		}else{
+			$taxonomy = explode(",", get_option('taxonomies_rlout'));
+			foreach($taxonomy as $tax){
+				$slug_term = explode("/",$object);
+				foreach($slug_term as $key_b => $barra){
+					$term_exist = get_term_by('slug',$slug_term[$key_b], $tax);
+					if($term_exist){
+						$object = $term_exist;
+					}
+				}
+			}
+		}
+
+		if(!empty($object->ID)){
+			
+			$url = get_permalink( $object );
+			$slug = $object->post_name;
+			
+			$thumbnails = get_intermediate_image_sizes();
+			foreach ($thumbnails as $key => $t) {
+				$url_thumb = get_the_post_thumbnail_url($object, $t);
+				$this->deploy_upload($url_thumb, '/uploads');
+			}
+		} else if(!empty($object->term_id)){
+			
+			$url = get_term_link( $object );
+			$slug = $object->slug;
+		}else{
+			
+			if($home){
+				$url = site_url('/');
+			}else{
+				$url = $object;
+			}
+		}
+		
+		if(filter_var($url, FILTER_VALIDATE_URL)==false){
+			return $url.' - URL COM ERRO DE SINTAX';
+		}
+
+		// $this->save_log($url);
+
+		$curl = curl_init();
+		
+		curl_setopt_array($curl, array(
+			CURLOPT_URL => $url,
+			CURLOPT_RETURNTRANSFER => true,
+			CURLOPT_ENCODING => "",
+			CURLOPT_MAXREDIRS => 10,
+			CURLOPT_TIMEOUT => 120,
+			CURLOPT_FOLLOWLOCATION => true,
+			CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+			CURLOPT_CUSTOMREQUEST => "GET",
+			CURLOPT_HTTPHEADER => array(
+				"cache-control: no-cache",
+				"Authorization: Basic ".base64_encode(get_option('userpwd_rlout').":".get_option('passpwd_rlout'))
+			),
+		));
+		
+		$response = curl_exec($curl);
+
+		$original_response = $response;
+
+		$err = curl_error($curl);
+		
+		curl_close($curl);
+		
+		if ($err) {
+			return "cURL Error #:" . $err;
+		} else {
+			$response = $this->replace_json($response);
+			
+			$dir_base =  get_option("path_rlout");
+			if( is_dir($dir_base) === false ){
+				mkdir($dir_base);
+			}
+
+			$uri = get_option("uri_rlout");
+
+			$replace_raiz = str_replace($uri, '', $url);
+			$replace_raiz = str_replace(site_url(), '', $replace_raiz);
+			$dir_base = $dir_base . $replace_raiz;
+
+			$verify_files_point = explode('.',$replace_raiz);
+
+			$file_default = '/index.html';
+			$json_default = '/index.json';
+
+			if(count($verify_files_point)>1){
+				$file_default = '';
+				$json_default = '';
+				if($verify_files_point[1]=='xml'){
+
+					$htt = str_replace('https:', '', site_url());
+					$htt = str_replace('http:', '', $htt);
+					$original_response = str_replace(site_url(), get_option("replace_url_rlout"), $original_response);
+					$original_response = str_replace('href="'.$htt, 'href="'.get_option("replace_url_rlout"), $original_response);
+					$xml = simplexml_load_string($response);
+					foreach($xml->sitemap as $sitemap){
+						if(isset($sitemap->loc)){
+							$url_map = (array) $sitemap->loc;
+							if(!empty($url_map)){
+								$this->generate($url_map[0]);
+							}
+						}
+					}
+					$response=$original_response;
+				}
+			}
+			
+			$explode_raiz = explode("/", $dir_base);
+			foreach ($explode_raiz as $keyp => $raiz) {
+				$wp_raiz = $wp_raiz . $raiz . '/';
+				if( realpath($wp_raiz) === false && $keyp+1<count($explode_raiz)){
+					mkdir($wp_raiz);
+				}
+			}
+
+			$file = fopen( realpath($dir_base) . $file_default,"w");
+			
+			$file_json = fopen( realpath($dir_base) . $json_default,"w");
+			
+			$replace_uploads = get_option('uploads_rlout');
+			
+			$uploads_url_rlout = get_option('uploads_url_rlout'); 
+			
+			if($replace_uploads){
+				$upload_url = wp_upload_dir();
+				
+				$response = $this->replace_reponse($upload_url['baseurl'], $response, '/uploads');
+
+				if($uploads_url_rlout){
+					$response = $this->replace_reponse($uploads_url_rlout, $response, '/uploads');
+				}
+				
+			}
+			
+			$response = $this->replace_reponse(get_option("uri_rlout"), $response);
+			
+			$jsons = array();
+
+			$ignore_files_rlout = explode(',', get_option("ignore_files_rlout"));
+			if(empty(in_array($url, $ignore_files_rlout))){
+			
+				fwrite($file, $response);
+			
+				$this->ftp_upload_file($dir_base . $file_default);
+				$this->s3_upload_file($dir_base . $file_default, false);
+			}
+
+			if(term_exists($object->term_id)){
+				$this->object_term($object);
+			}else{
+				$this->object_post($object);
+			}
+			
+			if($json_default!=''){
+				$response_json = $this->replace_reponse(get_option("uri_rlout"), json_encode($object));
+				
+
+				$ignore_json_rlout = explode(',' ,get_option("ignore_json_rlout"));
+				if(empty(in_array($url, $ignore_json_rlout))){
+
+					fwrite($file_json,  $response_json);
+				
+				
+					$this->ftp_upload_file($dir_base . $json_default);
+				
+					$this->s3_upload_file($dir_base . $json_default, true);
+				}
+			}
+			
+			update_option('robots_rlout', '1');
+			return $url;
+		}
+	}
+}
