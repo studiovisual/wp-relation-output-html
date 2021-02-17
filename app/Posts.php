@@ -2,9 +2,11 @@
 
 namespace WpRloutHtml;
 
-use WpRloutHtml\Curl;
+use WpRloutHtml\App;
+use WpRloutHtml\Essentials\Curl;
 use WpRloutHtml\Modules\S3;
 use WpRloutHtml\Helpers;
+use WpRloutHtml\Terms;
 
 Class Posts {
 
@@ -12,6 +14,7 @@ Class Posts {
 
         //apps
         $this->curl = new Curl;
+        $this->terms = new Terms;
         $this->s3 = new S3;
 
         // verifica alterações de posts
@@ -242,7 +245,7 @@ Class Posts {
         return $urls;
     }
     
-    public function get_post_json($post_type, $not_in=array()){
+    static function get_post_json($post_type, $not_in=array()){
         
         $rpl = get_option('replace_url_rlout');
         if(empty($rpl)){
@@ -303,7 +306,7 @@ Class Posts {
         
         if(count($posts)==25){
             sleep(0.1);
-            $posts_arr = array_merge($posts_arr, $this->get_post_json($post_type, $not_in));
+            $posts_arr = array_merge($posts_arr, Posts::get_post_json($post_type, $not_in));
         }
         
         return $posts_arr;

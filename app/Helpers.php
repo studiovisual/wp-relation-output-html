@@ -2,7 +2,7 @@
 
 namespace WpRloutHtml;
 
-use WpRloutHtml\Curl;
+use WpRloutHtml\Essentials\Curl;
 
 Class Helpers {
 

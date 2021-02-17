@@ -1,7 +1,8 @@
 <?php
 
-namespace WpRloutHtml;
+namespace WpRloutHtml\Essentials;
 
+use WpRloutHtml\App;
 use WpRloutHtml\Posts;
 use WpRloutHtml\Helpers;
 use WpRloutHtml\Modules\S3;
@@ -14,7 +15,7 @@ Class Curl {
 
     public function deploy_upload($url, $media=null){
 			
-        if(empty(in_array($url, $this->repeat_files_rlout)) && !empty($url)){
+        if(empty(in_array($url, App::$repeat_files_rlout)) && !empty($url)){
             
             $curl = curl_init();
             
@@ -119,7 +120,7 @@ Class Curl {
                                 
                                 if(!$svg[1]){
                                     $this->deploy_upload($attr);
-                                    $this->repeat_files_rlout[] = $attr;
+                                    App::$repeat_files_rlout[] = $attr;
                                 }
                             }
                         }
@@ -216,7 +217,7 @@ Class Curl {
 			if(!empty($file)){
 				
 				$this->deploy_upload($file);
-				$this->repeat_files_rlout[] = $file;
+				App::$repeat_files_rlout[] = $file;
 			}
 		}
 		return $files;
@@ -255,7 +256,6 @@ Class Curl {
 				}
 			}
 		}
-
 		if(!empty($object->ID)){
 			
 			$url = get_permalink( $object );
@@ -323,7 +323,7 @@ Class Curl {
 
 			$replace_raiz = str_replace($uri, '', $url);
 			$replace_raiz = str_replace(site_url(), '', $replace_raiz);
-			$dir_base = $dir_base . $replace_raiz;
+			$dir_base = realpath($dir_base) . $replace_raiz;
 
 			$verify_files_point = explode('.',$replace_raiz);
 
@@ -333,6 +333,7 @@ Class Curl {
 			if(count($verify_files_point)>1){
 				$file_default = '';
 				$json_default = '';
+
 				if($verify_files_point[1]=='xml'){
 
 					$htt = str_replace('https:', '', site_url());
@@ -360,9 +361,9 @@ Class Curl {
 				}
 			}
 
-			$file = fopen( realpath($dir_base) . $file_default,"w");
+			$file = fopen($dir_base . $file_default,"w");
 			
-			$file_json = fopen( realpath($dir_base) . $json_default,"w");
+			$file_json = fopen($dir_base . $json_default,"w");
 			
 			$replace_uploads = get_option('uploads_rlout');
 			
@@ -385,12 +386,13 @@ Class Curl {
 
 			$ignore_files_rlout = explode(',', get_option("ignore_files_rlout"));
 			if(empty(in_array($url, $ignore_files_rlout))){
-			
+
 				fwrite($file, $response);
 			
 				//$this->ftp_upload_file($dir_base . $file_default);
 				$this->s3->upload_file($dir_base . $file_default, false);
 			}
+
 
 			if(term_exists($object->term_id)){
 				$this->object_term($object);
@@ -399,14 +401,13 @@ Class Curl {
 			}
 			
 			if($json_default!=''){
-				$response_json = Helpers::replace_reponse(get_option("uri_rlout"), json_encode($object));
 				
+				$response_json = Helpers::replace_reponse(get_option("uri_rlout"), json_encode($object));
 
 				$ignore_json_rlout = explode(',' ,get_option("ignore_json_rlout"));
 				if(empty(in_array($url, $ignore_json_rlout))){
 
 					fwrite($file_json,  $response_json);
-				
 				
 					//$this->ftp->upload_file($dir_base . $json_default);
 				

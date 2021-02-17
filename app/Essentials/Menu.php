@@ -1,8 +1,10 @@
 <?php
 
-namespace WpRloutHtml;
+namespace WpRloutHtml\Essentials;
 
-Class Menu extends App {
+use WpRloutHtml\App;
+
+Class Menu {
 
     public function __construct(){
 
@@ -138,21 +140,21 @@ Class Menu extends App {
         if(in_array('administrator', $user->roles)){
             
             add_menu_page(
-                $this->name_plugin,
-                $this->name_plugin,
+                App::$name_plugin,
+                App::$name_plugin,
                 'manage_options', 
-                sanitize_title($this->name_plugin), 
+                sanitize_title(App::$name_plugin), 
                 array($this,'reloutputhtml_home'), 
                 '', //URL ICON
                 93.1110 // Ordem menu
             );
             
             add_submenu_page( 
-                sanitize_title($this->name_plugin), 
+                sanitize_title(App::$name_plugin), 
                 'Configurações', 
                 'Configurações', 
                 'manage_options', 
-                sanitize_title($this->name_plugin).'-config', 
+                sanitize_title(App::$name_plugin).'-config', 
                 array($this,'reloutputhtml_settings')
             );
         }

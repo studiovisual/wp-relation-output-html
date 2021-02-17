@@ -3,8 +3,9 @@
 namespace WpRloutHtml;
 
 // Essentials
-use WpRloutHtml\Enqueue;
-use WpRloutHtml\Menu;
+use WpRloutHtml\Essentials\Enqueue;
+use WpRloutHtml\Essentials\Menu;
+use WpRloutHtml\Essentials\WpAjax;
 
 // Apps
 use WpRloutHtml\Posts;
@@ -19,6 +20,7 @@ Class App {
 
         $this->enqueue = new Enqueue;
         $this->menu = new Menu;
+        $this->wpajax = new WpAjax;
 
         $this->posts = new Posts;
     }

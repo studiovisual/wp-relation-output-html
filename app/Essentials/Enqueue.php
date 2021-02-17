@@ -1,8 +1,8 @@
 <?php
 
-namespace WpRloutHtml;
+namespace WpRloutHtml\Essentials;
 
-Class Enqueue extends App {
+Class Enqueue {
 
     public function __construct(){
             
@@ -27,14 +27,21 @@ Class Enqueue extends App {
             
             $post_types = explode(',', get_option('post_types_rlout'));
 
-            $post_type = $_GET['post_type'];
+            $post_type = null;
+            if(!empty($_GET['post_type'])){
+                $post_type = $_GET['post_type'];
+            }
+            
             if(empty($post_type)){
                 $post_type = $post->post_type;
             }
             
             $taxonomies = explode(',', get_option('taxonomies_rlout'));
-            $taxonomy = $_GET['taxonomy'];
-            
+            $taxonomy = null;
+            if(!empty($_GET['taxonomy'])){
+                $taxonomy = $_GET['taxonomy'];
+            }
+
             if(in_array($taxonomy, $taxonomies) || in_array($post_type, $post_types)){
                 
                 wp_enqueue_script('my_custom_script_relation_output', site_url() . '/wp-content/plugins/wp-relation-output-html/resources/inc/js/myscript.js');

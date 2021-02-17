@@ -1,11 +1,19 @@
 <?php
 
-namespace WpRloutHtml;
+namespace WpRloutHtml\Essentials;
 
-Class WpAjax Extends App {
+use WpRloutHtml\Essentials\Curl;
+use WpRloutHtml\Terms;
+use WpRloutHtml\Posts;
+
+Class WpAjax {
     
     public function __construct() {
         
+        $this->curl = new Curl;
+        $this->posts = new Posts;
+        $this->terms = new Terms;
+
         // deploy
         add_action('wp_ajax_static_output_deploy', array($this, 'deploy') );
         
@@ -22,16 +30,14 @@ Class WpAjax Extends App {
     public function deploy(){
         $file = $_GET['file_url'];
         if(!empty($file) && filter_var($file, FILTER_VALIDATE_URL)){
-            $rlout = new RelOutputHtml;
-            $response = $rlout->curl_generate($file);
+            $response = $this->curl->generate($file);
             die($response);
         }
     }
     
     public function deploy_json(){
-        $rlout = new RelOutputHtml;
-        $terms = $rlout->api_terms(true);
-        $posts = $rlout->api_posts(true);
+        $terms = $this->terms->api(true);
+        $posts = $this->posts->api(true);
         
         $urls = array_merge($terms, $posts);
         die(json_encode($urls));
@@ -39,7 +45,6 @@ Class WpAjax Extends App {
     
     public function files(){
         
-        $rlout = new RelOutputHtml;
         $taxonomy = $_GET['taxonomy'];
         $post_type = $_GET['post_type'];
         $urls = array();

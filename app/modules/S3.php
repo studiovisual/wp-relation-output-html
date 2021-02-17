@@ -22,8 +22,6 @@ Class S3 {
             // echo $secret_key;
             if(!empty($secret_key)){
                 
-                session_start();
-                
                 // creates a client object, informing AWS credentials
                 $clientS3 = S3Client::factory(array(
                     'key'    => $access_key,

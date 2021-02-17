@@ -2,12 +2,14 @@
 
 namespace WpRloutHtml;
 
+use WpRloutHtml\Helpers;
+use WpRloutHtml\Modules\S3;
+
 Class Terms Extends App {
 
 	public function __construct(){
 
-        //modules
-        $this->curl = new Curl;
+		$this->s3 = new S3;
 
 		// verifica alterações de terms
 		add_action( 'create_term', array($this, 'create_folder'), 10, 3);
@@ -30,7 +32,7 @@ Class Terms Extends App {
 			unset($object->parent);
 			unset($object->filter);
 			
-			$object = $this->url_json_obj($object);
+			$object = Helpers::url_json_obj($object);
 			
 			$args_posts = array();
 			$args_posts['post_type'] = explode(",", get_option('post_types_rlout'));
@@ -199,8 +201,8 @@ Class Terms Extends App {
                 
                 fwrite($file, $response);
                 
-                $this->ftp_upload_file($file_raiz);
-                $this->s3_upload_file($file_raiz, false);
+                // $this->ftp_upload_file($file_raiz);
+                $this->s3->upload_file($file_raiz, false);
                 
                 $urls[] = str_replace($dir_base,$rpl,$file_raiz);
                 
