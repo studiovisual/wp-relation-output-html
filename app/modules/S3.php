@@ -7,11 +7,7 @@ use WpRloutHtml\Modules\Cloudfront;
 
 Class S3 {
 
-    public function __construct(){
-        $this->cloudfront = new Cloudfront;
-    }
-
-    public function upload_file($file_dir, $ignore_cloud=true){
+    static function upload_file($file_dir, $ignore_cloud=true){
 
         if($file_dir){
             
@@ -48,7 +44,7 @@ Class S3 {
 
                     if($response && $ignore_cloud==false){
                         $key_file_s3 = str_replace('index.html', '', $key_file_s3);
-                        $this->cloudfront->invalid('/'.$key_file_s3);
+                        Cloudfront::invalid('/'.$key_file_s3);
                     }
                 }
                 
@@ -56,7 +52,7 @@ Class S3 {
         }
     }
 
-    public function remove_file($file_dir){
+    static function remove_file($file_dir){
 			
         $access_key = get_option('s3_key_rlout');
         $secret_key = get_option('s3_secret_rlout');
@@ -85,7 +81,7 @@ Class S3 {
                 
                 if($response){
                     $key_file_s3 = str_replace('index.html', '', $key_file_s3);
-                    $this->cloudfront->invalid('/'.$key_file_s3);
+                    Cloudfront::invalid('/'.$key_file_s3);
                 }
                 
                 return $response;

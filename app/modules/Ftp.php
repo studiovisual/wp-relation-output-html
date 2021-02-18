@@ -2,9 +2,9 @@
 
 namespace WpRloutHtml\Modules;
 
-Class FtpRlout {
+Class Ftp {
     
-    public function upload_file($file_dir){
+    static function upload_file($file_dir){
         
         //serverip
         $ftp_server = get_option('ftp_host_rlout');
@@ -32,7 +32,7 @@ Class FtpRlout {
         }
     }
     
-    public function remove_file($file_dir){
+    static function remove_file($file_dir){
         
         //serverip
         $ftp_server = get_option('ftp_host_rlout');

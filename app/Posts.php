@@ -5,17 +5,13 @@ namespace WpRloutHtml;
 use WpRloutHtml\App;
 use WpRloutHtml\Essentials\Curl;
 use WpRloutHtml\Modules\S3;
+use WpRloutHtml\Modules\Ftp;
 use WpRloutHtml\Helpers;
 use WpRloutHtml\Terms;
 
 Class Posts {
 
     public function __construct(){
-
-        //apps
-        $this->curl = new Curl;
-        $this->terms = new Terms;
-        $this->s3 = new S3;
 
         // verifica alterações de posts
         $post_types = explode(',', get_option('post_types_rlout'));
@@ -39,7 +35,7 @@ Class Posts {
 					foreach ($post_types as $key => $pt) {
 						$link = get_post_type_archive_link($pt);
 						if($link){
-							$this->curl->generate(get_post_type_archive_link($pt));
+							Curl::generate(get_post_type_archive_link($pt));
 						}
 					}
 					sleep(0.5);
@@ -48,10 +44,10 @@ Class Posts {
 						
 						$objects = get_posts(array('post_type'=>$post_types, 'posts_per_page'=>-1));
 						
-						$this->curl->list_deploy($objects);
+						Curl::list_deploy($objects);
 						foreach ($taxonomies as $key => $tax) {
 							$objects = get_terms( array('taxonomy' => $tax, 'hide_empty' => false) );
-							$this->curl->list_deploy($objects);
+							Curl::list_deploy($objects);
 						}
 						
 					}else{
@@ -71,16 +67,14 @@ Class Posts {
 								$objects[] = $term;
 							}
 							
-							$this->curl->list_deploy($objects);
+							Curl::list_deploy($objects);
 						}
 					}
 
 					sleep(0.5);
-					
-					// $this->git_upload_file('Atualização de object');
 
-					$this->api(true);
-					$this->terms->api(true);
+					Posts::api(true);
+					Terms::api(true);
 				}
 			},10,3);
 		}
@@ -116,14 +110,14 @@ Class Posts {
 				unlink($dir_base . 'index.html');
 				rmdir($dir_base);
 				
-				$this->ftp_remove_file($dir_base . 'index.html');
-				$this->s3_remove_file($dir_base . 'index.html');
+				Ftp::remove_file($dir_base . 'index.html');
+				S3::remove_file($dir_base . 'index.html');
 			}
 			
 		}
 
-		$this->api_posts(true);
-		$this->api_terms(true);
+		Posts::api(true);
+		Terms::api(true);
 	}
 
     static function object_post($object, $show_terms=true){
@@ -188,7 +182,7 @@ Class Posts {
 		
 	}
     
-    public function api($generate){
+    static function api($generate){
         
         header( "Content-type: application/json");
         $post_types = explode(",", get_option('post_types_rlout'));
@@ -199,7 +193,7 @@ Class Posts {
         }
         foreach ($post_types as $key => $post_type) {
             
-            $posts_arr = $this->get_post_json($post_type);
+            $posts_arr = Posts::get_post_json($post_type);
             
             $response = json_encode($posts_arr , JSON_UNESCAPED_SLASHES);
             
@@ -232,9 +226,6 @@ Class Posts {
                 $file = fopen($file_raiz, "w");
                 
                 fwrite($file, $response);
-                
-                // $this->ftp_upload_file($file_raiz);
-                $this->s3->upload_file($file_raiz, false);
                 
                 $urls[] = str_replace($dir_base,$rpl,$file_raiz);
             }else{

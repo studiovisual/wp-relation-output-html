@@ -6,16 +6,20 @@ Class Enqueue {
 
     public function __construct(){
             
-        //removendo Infos Header
+        // Removendo algumas Informações default do wordpress no header
         remove_action('wp_head', 'print_emoji_detection_script', 7);
         remove_action('wp_print_styles', 'print_emoji_styles');
         remove_action('wp_head', 'rsd_link');
         remove_action('wp_head', 'wlwmanifest_link');
         remove_action('wp_head', 'wp_generator');
         
+        // Action para incorporar via wp enquee o resources/js/myscript.js
         add_action('admin_enqueue_scripts', array($this, 'my_enqueue') );
+
+        // Action para incorporar via wp enquee a lib de js resources/js/lib/select2
         add_action( 'admin_enqueue_scripts', array($this,'rudr_select2_enqueue') );
 
+        // Action que incorpora funções inline no footer de HTML/CSS/JS
 		add_filter( 'update_footer', array($this, 'config_admin_var') );
     }
 

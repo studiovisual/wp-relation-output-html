@@ -6,6 +6,7 @@ use Aws\CloudFront\CloudFrontClient;
 
 Class Cloudfront {
 
+	// Verifica se recebeu atalho para limpar cloudfront em /*
 	public function __construct(){
 		if(isset($_GET['cloudfront_rlout'])){
 			
@@ -17,7 +18,7 @@ Class Cloudfront {
 		}
 	}
 
-    public function invalid($response){
+    static function invalid($response){
         
         $DistributionId = get_option('s3_distributionid_rlout');
 

@@ -3,6 +3,8 @@
 namespace WpRloutHtml;
 
 use WpRloutHtml\Essentials\Curl;
+use WpRloutHtml\Modules\S3;
+use WpRloutHtml\Modules\Ftp;
 
 Class Helpers {
 
@@ -16,15 +18,11 @@ Class Helpers {
 			
 			if(!empty($file)){
 				
-				$curl->deploy_upload($file);
+				Curl::deploy_upload($file);
 				App::$repeat_files_rlout[] = $file;
 			}
 		}
 		return $files;
-	}
-
-	static function custom_excerpt_more( $more ) {
-		return '';
 	}
 
     static function blog_public(){
@@ -65,9 +63,9 @@ Class Helpers {
 			
 			if( is_dir($dir_base) === true ){
 				
-				// rmdir($dir_base);
-				$this->ftp_remove_file($dir_base);
-				$this->s3_remove_file($dir_base);
+				rmdir($dir_base);
+				Ftp::remove_file($dir_base);
+				S3::remove_file($dir_base);
 			}
 			
 			$this->post_auto_deploy();
@@ -75,8 +73,6 @@ Class Helpers {
 	}
 
     static function importantfiles_generate(){
-
-		$curl = new Curl;
 		
 		// Generate FILE 1
 		$files = explode(',', get_option("pages_important_rlout"));
@@ -85,7 +81,7 @@ Class Helpers {
 			
 			if(!empty($file)){
 				
-				$curl->generate($file);
+				Curl::generate($file);
 				App::$repeat_files_rlout[] = $file;
 			}
 		}
@@ -129,7 +125,7 @@ Class Helpers {
             if(!empty($item)){
 
                 App::$repeat_files_rlout[] = $item;
-                $curl->deploy_upload($item, $media);
+                Curl::deploy_upload($item, $media);
             }
         }
         

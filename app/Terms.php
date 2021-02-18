@@ -5,24 +5,86 @@ namespace WpRloutHtml;
 use WpRloutHtml\Helpers;
 use WpRloutHtml\Posts;
 use WpRloutHtml\Modules\S3;
+use WpRloutHtml\Modules\Ftp;
 
 Class Terms Extends App {
 
 	public function __construct(){
 
-		$this->s3 = new S3;
-
 		// verifica alterações de terms
 		add_action( 'create_term', array($this, 'create_folder'), 10, 3);
 		add_action( 'edit_term', array($this, 'create_folder'), 10, 3);
 		add_action( 'delete_term', array($this, 'delete_folder'), 10, 3);
-
-		add_action('wp_ajax_terms', array($this, 'api') );
-		// Definindo action para acesso público
-		add_action('wp_ajax_nopriv_terms', array($this, 'api') );
 	}
+    
+    public function delete_folder($term_id, $tt_id, $taxonomy, $deleted_term=null){
+		
+		$term = get_term($term_id);
+		
+		$taxonomies = explode(',', get_option('taxonomies_rlout'));
+		
+		if(in_array($term->taxonomy, $taxonomies)){
+			
+			$slug_old = $term->slug;
+			$slug_new = $_POST['slug'];
+			
+			$url = str_replace(site_url(), '', get_term_link($term));
+			
+			if($slug_old!=$slug_new){
+				
+				$term->slug = $slug_new;
+			}
+			
+			$dir_base = get_option("path_rlout") . $url;
+			
+			unlink($dir_base . '/index.html');
+			rmdir($dir_base);
+			
+			Ftp::remove_file($dir_base . '/index.html');
+			S3::remove_file($dir_base . '/index.html');
+			
+			if(empty($deleted_term)){
+				
+				$objects = array($term);
+				
+				$this->deploy($objects);
+			}
+		}
+		Posts::api(true);
+		Terms::api(true);
+	}
+    
+    public function create_folder($term_id, $tt_id, $taxonomy, $deleted_term=null){
+        
+        if($_POST['static_output_html']){
+            $term = get_term($term_id);
+            
+            $taxonomies = explode(',', get_option('taxonomies_rlout'));
+            
+            if(in_array($term->taxonomy, $taxonomies)){
+                
+                $slug_old = $term->slug;
+                $slug_new = $_POST['slug'];
+                
+                $url = str_replace(site_url(), '', get_term_link($term));
+                
+                if($slug_old!=$slug_new){
+                    
+                    $term->slug = $slug_new;
+                }
+                
+                $dir_base = get_option("path_rlout") . $url;
+                
+                $objects = array($term);
+                
+                $this->deploy($objects);
+            }
+            Posts::api(true);
+            Terms::api(true);
+        }
+    }
 
-    static function object_term($object, $show_posts=true){
+	static function object_term($object, $show_posts=true){
 		
 		$url = get_term_link($object);
 		$ignore_json_rlout = explode(',' ,get_option("ignore_json_rlout"));
@@ -81,77 +143,9 @@ Class Terms Extends App {
 		}
 	}
     
-    public function delete_folder($term_id, $tt_id, $taxonomy, $deleted_term=null){
-		
-		$term = get_term($term_id);
-		
-		$taxonomies = explode(',', get_option('taxonomies_rlout'));
-		
-		if(in_array($term->taxonomy, $taxonomies)){
-			
-			$slug_old = $term->slug;
-			$slug_new = $_POST['slug'];
-			
-			$url = str_replace(site_url(), '', get_term_link($term));
-			
-			if($slug_old!=$slug_new){
-				
-				$term->slug = $slug_new;
-			}
-			
-			$dir_base = get_option("path_rlout") . $url;
-			
-			unlink($dir_base . '/index.html');
-			rmdir($dir_base);
-			
-			$this->ftp_remove_file($dir_base . '/index.html');
-			$this->s3_remove_file($dir_base . '/index.html');
-			
-			if(empty($deleted_term)){
-				
-				$objects = array($term);
-				
-				$this->deploy($objects);
-			}
-		}
-		$this->api_posts(true);
-		$this->api_terms(true);
-	}
-    
-    public function create_folder($term_id, $tt_id, $taxonomy, $deleted_term=null){
-        
-        if($_POST['static_output_html']){
-            $term = get_term($term_id);
-            
-            $taxonomies = explode(',', get_option('taxonomies_rlout'));
-            
-            if(in_array($term->taxonomy, $taxonomies)){
-                
-                $slug_old = $term->slug;
-                $slug_new = $_POST['slug'];
-                
-                $url = str_replace(site_url(), '', get_term_link($term));
-                
-                if($slug_old!=$slug_new){
-                    
-                    $term->slug = $slug_new;
-                }
-                
-                $dir_base = get_option("path_rlout") . $url;
-                
-                $objects = array($term);
-                
-                $this->deploy($objects);
-            }
-            $this->posts->api(true);
-            $this->api(true);
-        }
-    }
-    
-    public function api($generate){
+    static function api($generate){
         
         header( "Content-type: application/json");
-        
         $taxonomies = explode(",", get_option('taxonomies_rlout'));
         $urls = array();
         
@@ -165,7 +159,7 @@ Class Terms Extends App {
             }
             
             foreach ($terms as $key => $term) {
-                $term = $this->object_term($term, false);
+                $term = Terms::object_term($term, false);
             }
             
             $response = json_encode($terms , JSON_UNESCAPED_SLASHES);
@@ -202,9 +196,6 @@ Class Terms Extends App {
                 
                 fwrite($file, $response);
                 
-                // $this->ftp_upload_file($file_raiz);
-                $this->s3->upload_file($file_raiz, false);
-                
                 $urls[] = str_replace($dir_base,$rpl,$file_raiz);
                 
             }else{
@@ -212,6 +203,7 @@ Class Terms Extends App {
                 die($response);
             }
         }
+		
         return $urls;
     }
 }

@@ -2,9 +2,10 @@
 
 namespace WpRloutHtml\Modules;
 
-Class GithubRlout {
+Class Git {
     
-    public function git_upload_file($commit){
+    // faz um commit via proc_open
+    static function upload_file($commit){
         
         $repository = get_option('git_repository_rlout');
         

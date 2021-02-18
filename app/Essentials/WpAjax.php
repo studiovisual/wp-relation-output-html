@@ -9,36 +9,31 @@ use WpRloutHtml\Posts;
 Class WpAjax {
     
     public function __construct() {
-        
-        $this->curl = new Curl;
-        $this->posts = new Posts;
-        $this->terms = new Terms;
 
-        // deploy
+        // Ajax de arquivos e páginas: /wp-admin/admin-ajax.php?action=static_output_deploy&file_url=
         add_action('wp_ajax_static_output_deploy', array($this, 'deploy') );
         
-        // deploy
+        // Ajax Gerador de JSON (postype, taxonomy): /wp-admin/admin-ajax.php?action=output_deploy_json
         add_action('wp_ajax_static_output_deploy_json', array($this, 'deploy_json') );
         
-        // get files
+        // Ajax que lista todas os posts e terms escolhidos individualmente
         add_action('wp_ajax_static_output_files', array($this, 'files') );
         
-        // get all posts and terms selecteds to search
+        // Ajax que lista todas os posts e terms disponiveis para estatização
         add_action('wp_ajax_all_search_posts', array($this, 'all_search_posts') );
     }
     
     public function deploy(){
         $file = $_GET['file_url'];
         if(!empty($file) && filter_var($file, FILTER_VALIDATE_URL)){
-            $response = $this->curl->generate($file);
+            $response = Curl::generate($file);
             die($response);
         }
     }
     
     public function deploy_json(){
-        $terms = $this->terms->api(true);
-        $posts = $this->posts->api(true);
-        
+        $terms = Terms::api(true);
+        $posts = Posts::api(true);
         $urls = array_merge($terms, $posts);
         die(json_encode($urls));
     }

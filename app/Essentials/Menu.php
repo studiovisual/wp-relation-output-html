@@ -3,18 +3,29 @@
 namespace WpRloutHtml\Essentials;
 
 use WpRloutHtml\App;
+
+use WpRloutHtml\Modules\Cloudfront;
 use WpRloutHtml\Helpers;
+use WpRloutHtml\Posts;
+use WpRloutHtml\Terms;
 
 Class Menu {
 
     public function __construct(){
-
+        
+        // Inserindo as opções no menu do wp-admin
         add_action( 'admin_menu', array( $this, 'add_admin_menu' ));
+
+        // Inserindo as opções de atalho no header toolbar do wp-admin
         add_action('admin_bar_menu', array($this, 'add_toolbar_items'), 100);
 
+        // Verificação do evitar mecanismo de pesquisa
 		add_action('init', array($this, 'blog_public') );
+
+        // Retirando o ver mais ou read more do excerpt padrão
 		add_filter('excerpt_more', array($this, 'custom_excerpt_more') );
 
+        // Incia a estatização de arquivos importantes
 		if(isset($_GET['importants_rlout'])){
 			
 			add_action('init', function(){
@@ -29,6 +40,7 @@ Class Menu {
 			});
 		}
 
+        // Incia a estatização de páginas essenciais
 		if(isset($_GET['essenciais_rlout'])){
 			
 			$response_essenciais = Helpers::subfiles_generate();
@@ -36,8 +48,8 @@ Class Menu {
 			if($response_essenciais){
 				
 				add_action('init', function(){
-					$this->posts->api(true);
-					$this->terms->api(true);
+					Posts::api(true);
+					Terms::api(true);
 				});
 				
 				echo '<script>alert("Arquivos Essenciais Atualizados!");</script>';
@@ -45,6 +57,10 @@ Class Menu {
 			}
 		}
     }
+
+    public function custom_excerpt_more( $more ) {
+		return '';
+	}
 
     public function blog_public(){
 		
@@ -107,12 +123,18 @@ Class Menu {
             $importants_link = $actual_link.'?importants_rlout=true';
         }
         
-        $admin_bar->add_menu( array(
-            'id'    => 'cloudfront-html-rlout',
-            'title' => 'Limpar Cloudfront',
-            'parent' => 'relation-output-html-rlout',
-            'href'  => $cloudfront_link
-        ));
+        $DistributionId = get_option('s3_distributionid_rlout');
+        if(!empty($DistributionId)){
+
+            $cloudfront = new Cloudfront;
+
+            $admin_bar->add_menu( array(
+                'id'    => 'cloudfront-html-rlout',
+                'title' => 'Limpar Cloudfront',
+                'parent' => 'relation-output-html-rlout',
+                'href'  => $cloudfront_link
+            ));
+        }
         
         $admin_bar->add_menu( array(
             'id'    => 'importants-html-rlout',
@@ -130,7 +152,8 @@ Class Menu {
     }
     
     public function add_admin_menu(){
-        
+
+        // é necessário get_home_path() para continuar
         if ( ! function_exists( 'get_home_path' ) || ! function_exists( 'wp_get_current_user' ) ) {
             include_once(ABSPATH . '/wp-admin/includes/file.php');
             include_once(ABSPATH . '/wp-includes/pluggable.php');
@@ -140,23 +163,25 @@ Class Menu {
         
         if(in_array('administrator', $user->roles)){
             
+            // Cria o item Home no menu
             add_menu_page(
                 App::$name_plugin,
                 App::$name_plugin,
                 'manage_options', 
                 sanitize_title(App::$name_plugin), 
-                array($this,'reloutputhtml_home'), 
+                array($this,'reloutputhtml_home'), // função que cria os campos HTML
                 '', //URL ICON
                 93.1110 // Ordem menu
             );
             
+            // Cria o item de Configurações no menu
             add_submenu_page( 
                 sanitize_title(App::$name_plugin), 
                 'Configurações', 
                 'Configurações', 
                 'manage_options', 
                 sanitize_title(App::$name_plugin).'-config', 
-                array($this,'reloutputhtml_settings')
+                array($this,'reloutputhtml_settings') // função que cria os campos HTML
             );
         }
     }
@@ -216,6 +241,8 @@ Class Menu {
         $fields['subfiles_rlout'] = array('type'=>'repeater','label'=>'Arquivos ignorados<br>
         <small>insira a URL de todos os arquivos que foram ignorados pelo sistema.</small>');
         
+        $fields['amp_rlout'] = array('type'=>'checkbox', 'label'=>"<small> Estatizar Páginas AMP");
+
         $fields['s3_rlout'] = array('type'=>'label','label'=>'Storage AWS S3');
         
         $fields['s3_distributionid_rlout'] = array('type'=>'text','label'=>'Distribution ID (Cloudfront)');
