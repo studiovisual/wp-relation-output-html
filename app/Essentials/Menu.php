@@ -3,6 +3,7 @@
 namespace WpRloutHtml\Essentials;
 
 use WpRloutHtml\App;
+use WpRloutHtml\Helpers;
 
 Class Menu {
 
@@ -18,7 +19,7 @@ Class Menu {
 			
 			add_action('init', function(){
 
-				$response_essenciais = $this->importantfiles_generate();
+				$response_essenciais = Helpers::importantfiles_generate();
 				
 				if($response_essenciais){
 					
@@ -30,7 +31,7 @@ Class Menu {
 
 		if(isset($_GET['essenciais_rlout'])){
 			
-			$response_essenciais = $this->helpers->subfiles_generate();
+			$response_essenciais = Helpers::subfiles_generate();
 			
 			if($response_essenciais){
 				
@@ -163,6 +164,8 @@ Class Menu {
     public function reloutputhtml_home(){
         
         $fields = array('primeira_config'=>'Primeira Configuração');
+        $this->name_plugin = App::$name_plugin;
+
         include WP_PLUGIN_DIR . "/wp-relation-output-html/resources/home.php";
     }
     
@@ -263,6 +266,7 @@ Class Menu {
         $fields['git_rlout'] = array('type'=>'label','label'=>'GITHUB PAGES');
         $fields['git_repository_rlout'] = array('type'=>'text', 'label'=>'URL Repository github');
         
+        $this->name_plugin = App::$name_plugin;
         include WP_PLUGIN_DIR . "/wp-relation-output-html/resources/configuracoes.php";
     }
 }

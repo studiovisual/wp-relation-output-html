@@ -7,6 +7,8 @@ use WpRloutHtml\Essentials\Curl;
 Class Helpers {
 
 	static function subfiles_generate(){
+
+		$curl = new Curl;
 		
 		$files = explode(',', get_option("subfiles_rlout"));
 		
@@ -14,7 +16,7 @@ Class Helpers {
 			
 			if(!empty($file)){
 				
-				$this->deploy_upload($file);
+				$curl->deploy_upload($file);
 				App::$repeat_files_rlout[] = $file;
 			}
 		}

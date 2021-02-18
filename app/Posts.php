@@ -162,7 +162,7 @@ Class Posts {
 				$terms = wp_get_post_terms($object->ID, explode(",", get_option('taxonomies_rlout')) );
 				$object->terms = array();
 				foreach ($terms as $keyterm => $term) {
-					$object->terms[] = $this->object_term($term, false);
+					$object->terms[] = Terms::object_term($term, false);
 				}
 			}
 			

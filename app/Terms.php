@@ -3,6 +3,7 @@
 namespace WpRloutHtml;
 
 use WpRloutHtml\Helpers;
+use WpRloutHtml\Posts;
 use WpRloutHtml\Modules\S3;
 
 Class Terms Extends App {
@@ -21,7 +22,7 @@ Class Terms Extends App {
 		add_action('wp_ajax_nopriv_terms', array($this, 'api') );
 	}
 
-    public function object_term($object, $show_posts=true){
+    static function object_term($object, $show_posts=true){
 		
 		$url = get_term_link($object);
 		$ignore_json_rlout = explode(',' ,get_option("ignore_json_rlout"));
@@ -47,7 +48,7 @@ Class Terms Extends App {
 				$object->posts = array();
 				foreach ($posts as $key_p => $post) {
 					
-					$post = $this->object_post($post);
+					$post = Posts::object_post($post);
 					$size_thumb = get_option('size_thumbnail_rlout');
 					$object->posts[$key_p]['ID'] = $post->ID;
 					$object->posts[$key_p]['post_title'] = $post->post_title;

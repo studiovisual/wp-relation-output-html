@@ -4,6 +4,7 @@ namespace WpRloutHtml\Essentials;
 
 use WpRloutHtml\App;
 use WpRloutHtml\Posts;
+use WpRloutHtml\Terms;
 use WpRloutHtml\Helpers;
 use WpRloutHtml\Modules\S3;
 
@@ -395,7 +396,7 @@ Class Curl {
 
 
 			if(term_exists($object->term_id)){
-				$this->object_term($object);
+				Terms::object_term($object);
 			}else{
 				Posts::object_post($object);
 			}

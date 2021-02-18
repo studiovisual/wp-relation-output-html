@@ -200,7 +200,7 @@
 						<td colspan="2">
 							<h3 style="margin-left: 40px;">Processamento de HTML e JSON</h3>
 							<span style="margin: 7px 0;display: block;">Total de (<b class="statics_page">0</b>) > (<b class="total_page">0</b>)</span>
-							<img src="<?php echo plugin_dir_url(''); ?>wp-relation-output-html/templates/loading.webp" style="position: absolute;width: 30px;margin-top: -70px;" />
+							<img src="<?php echo plugin_dir_url(''); ?>wp-relation-output-html/resources/loading.webp" style="position: absolute;width: 30px;margin-top: -70px;" />
 							<div id="results_static" style="padding: 15px; border: 1px #ddd solid; height: 200px; max-width: 800px; background: #fff; overflow-x:auto; overflow-y: scroll;"></div>
 						</td>
 					</tr>

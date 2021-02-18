@@ -9,7 +9,7 @@ Class Cloudfront {
 	public function __construct(){
 		if(isset($_GET['cloudfront_rlout'])){
 			
-			$response_cloudfront = $this->invalidfileaws('/*');
+			$response_cloudfront = $this->invalid('/*');
 			if($response_cloudfront){
 				echo '<script>alert("Cloudfront Atualizados!");</script>';
 				echo '<script>window.location = document.URL.replace("&cloudfront_rlout=true","").replace("?cloudfront_rlout=true","");</script>';
