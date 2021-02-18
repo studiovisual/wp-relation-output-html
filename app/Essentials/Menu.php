@@ -56,6 +56,25 @@ Class Menu {
 				echo '<script>window.location = document.URL.replace("&essenciais_rlout=true","").replace("?essenciais_rlout=true","");</script>';
 			}
 		}
+
+        if(!empty($_POST['salvar_rlout'])){
+			
+			unset($_POST['salvar_rlout']);
+			$key_fields = explode(',', $_POST['keys_fields']);
+			foreach ($key_fields as $key_field) {
+				$value_field = $_POST[$key_field];
+				if(is_array($value_field)){
+					update_option( $key_field, implode(',', $value_field) );
+				}else{
+					update_option( $key_field, $value_field );
+				}
+			}
+			
+			$redirect_param = sanitize_title(App::$name_plugin) . '-config';
+			
+			header('Location:'.admin_url('admin.php?page='.$redirect_param));
+			exit;
+		}
     }
 
     public function custom_excerpt_more( $more ) {
@@ -266,7 +285,6 @@ Class Menu {
         $fields['s3_region_rlout']['options'][] = 'eu-west-1';
         $fields['s3_region_rlout']['options'][] = 'eu-west-2';
         $fields['s3_region_rlout']['options'][] = 'sa-east-1';
-        
         
         $fields['s3_acl_rlout'] = array('type'=>'select', 'label'=>'S3 ACL');
         $fields['s3_acl_rlout']['options'][] = 'private';

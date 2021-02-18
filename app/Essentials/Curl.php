@@ -28,7 +28,7 @@ Class Curl {
 
 	// Recebe o Objeto (post ou term) e descobre a Url para enviar a função deploy_upload();
     static function generate($object, $home=null){
-		
+
 		update_option('robots_rlout', '0');
 		update_option('blog_public', '1');
 		$text_post = get_post(url_to_postid($object));
@@ -73,34 +73,11 @@ Class Curl {
 			return $url.' - URL COM ERRO DE SINTAX';
 		}
 
-		$curl = curl_init();
-		
-		curl_setopt_array($curl, array(
-			CURLOPT_URL => $url,
-			CURLOPT_RETURNTRANSFER => true,
-			CURLOPT_ENCODING => "",
-			CURLOPT_MAXREDIRS => 10,
-			CURLOPT_TIMEOUT => 120,
-			CURLOPT_FOLLOWLOCATION => true,
-			CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-			CURLOPT_CUSTOMREQUEST => "GET",
-			CURLOPT_HTTPHEADER => array(
-				"cache-control: no-cache",
-				"Authorization: Basic ".base64_encode(get_option('userpwd_rlout').":".get_option('passpwd_rlout'))
-			),
-		));
-		
-		$response = curl_exec($curl);
+		$response = Curl::get($url);
 
 		$original_response = $response;
-
-		$err = curl_error($curl);
 		
-		curl_close($curl);
-		
-		if ($err) {
-			return "cURL Error #:" . $err;
-		} else {
+		if ($response) {
 			
 			$response = Helpers::replace_json($response);
 			
@@ -182,6 +159,11 @@ Class Curl {
 				Git::upload_file('Atualização de object');
 				Ftp::upload_file($dir_base . $file_default);
 				S3::upload_file($dir_base . $file_default, false);
+
+				$amp = get_option('amp_rlout');
+				if(!empty($amp)){
+					Curl::deploy_upload($url.'/amp/');
+				}
 			}
 
 
@@ -213,10 +195,8 @@ Class Curl {
 
 	// Recebe a URl da página ou media e gera o HTML, em seguida faz upload no S3 e FTP
     static function deploy_upload($url, $media=null){
-			
+		
         if(empty(in_array($url, App::$repeat_files_rlout)) && !empty($url)){
-            
-            $curl = curl_init();
             
             $url = explode('?', $url);
             
@@ -230,29 +210,9 @@ Class Curl {
             
             $url = implode(".", $url_point);
             
-            curl_setopt_array($curl, array(
-                CURLOPT_URL => $url,
-                CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_ENCODING => "",
-                CURLOPT_MAXREDIRS => 10,
-                CURLOPT_TIMEOUT => 120,
-                CURLOPT_FOLLOWLOCATION => true,
-                CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-                CURLOPT_CUSTOMREQUEST => "GET",
-                CURLOPT_HTTPHEADER => array(
-                    "cache-control: no-cache",
-                    "Authorization: Basic ".base64_encode(get_option('userpwd_rlout').":".get_option('passpwd_rlout'))
-                ),
-            ));
+            $response = Curl::get($url);
             
-            $response = curl_exec($curl);
-            $err = curl_error($curl);
-            
-            curl_close($curl);
-            
-            if ($err) {
-                echo "cURL Error #:" . $err;
-            } else {
+            if ($response) {
                 
                 $response = Helpers::replace_json($response);
                 
@@ -343,4 +303,35 @@ Class Curl {
             }
         }
     }
+
+	static function get($url){
+
+		$curl = curl_init();
+
+		curl_setopt_array($curl, array(
+			CURLOPT_URL => $url,
+			CURLOPT_RETURNTRANSFER => true,
+			CURLOPT_ENCODING => "",
+			CURLOPT_MAXREDIRS => 10,
+			CURLOPT_TIMEOUT => 120,
+			CURLOPT_FOLLOWLOCATION => true,
+			CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+			CURLOPT_CUSTOMREQUEST => "GET",
+			CURLOPT_HTTPHEADER => array(
+				"cache-control: no-cache",
+				"Authorization: Basic ".base64_encode(get_option('userpwd_rlout').":".get_option('passpwd_rlout'))
+			),
+		));
+		
+		$response = curl_exec($curl);
+		$err = curl_error($curl);
+		
+		curl_close($curl);
+		
+		if ($err) {
+			return null;
+		} else {
+			return $response;
+		}
+	}
 }

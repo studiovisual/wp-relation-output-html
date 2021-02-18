@@ -10,25 +10,25 @@ use WpRloutHtml\Helpers;
 use WpRloutHtml\Terms;
 
 Class Posts {
-
-    public function __construct(){
-
-        // verifica alterações de posts
-        $post_types = explode(',', get_option('post_types_rlout'));
-        foreach ($post_types as $key => $post_type) {
-            add_action( 'publish_'.$post_type, array($this, 'create_folder'));
-            add_action( 'draft_'.$post_type, array($this, 'delete_folder'));
-            add_action( 'pre_'.$post_type.'_update', array($this, 'delete_folder'));
-            add_action( 'trash_'.$post_type,  array($this, 'delete_folder'));
-        }
-    }
-
-    public function create_folder($post_id=null){
-        
+	
+	public function __construct(){
+		
+		// verifica alterações de posts
+		$post_types = explode(',', get_option('post_types_rlout'));
+		foreach ($post_types as $key => $post_type) {
+			add_action( 'publish_'.$post_type, array($this, 'create_folder'));
+			add_action( 'draft_'.$post_type, array($this, 'delete_folder'));
+			add_action( 'pre_'.$post_type.'_update', array($this, 'delete_folder'));
+			add_action( 'trash_'.$post_type,  array($this, 'delete_folder'));
+		}
+	}
+	
+	public function create_folder($post_id=null){
+		
 		if($_POST['static_output_html']){
-
+			
 			add_action('updated_post_meta', function($meta_id, $post_id, $meta_key){
-
+				
 				if($meta_key=='_edit_lock'){
 					
 					$post_types = explode(',', get_option('post_types_rlout'));
@@ -70,17 +70,17 @@ Class Posts {
 							Curl::list_deploy($objects);
 						}
 					}
-
+					
 					sleep(0.5);
-
-					Posts::api(true);
+					
+					Posts::api(true, $post_id);
 					Terms::api(true);
 				}
 			},10,3);
 		}
-    }
-
-    public function delete_folder($post_id){
+	}
+	
+	public function delete_folder($post_id){
 		
 		$post = get_post($post_id);
 		
@@ -106,7 +106,7 @@ Class Posts {
 			if($url_delete){
 				$dir_base =  explode('__trashed', '', $url_delete);
 				$dir_base = get_option("path_rlout") . str_replace(site_url(), '', $dir_base);
-
+				
 				unlink($dir_base . 'index.html');
 				rmdir($dir_base);
 				
@@ -115,13 +115,12 @@ Class Posts {
 			}
 			
 		}
-
+		
 		Posts::api(true);
 		Terms::api(true);
 	}
-
-    static function object_post($object, $show_terms=true){
-		
+	
+	static function object_post($object, $show_terms=true){
 		$url = get_permalink($object);
 		$ignore_json_rlout = explode(',' ,get_option("ignore_json_rlout"));
 		if(empty(in_array($url, $ignore_json_rlout))){
@@ -181,125 +180,172 @@ Class Posts {
 		}
 		
 	}
-    
-    static function api($generate){
-        
-        header( "Content-type: application/json");
-        $post_types = explode(",", get_option('post_types_rlout'));
-        $urls = array();
-        $rpl = get_option('replace_url_rlout');
-        if(empty($rpl)){
-            $rpl = site_url().'/html';
-        }
-        foreach ($post_types as $key => $post_type) {
-            
-            $posts_arr = Posts::get_post_json($post_type);
-            
-            $response = json_encode($posts_arr , JSON_UNESCAPED_SLASHES);
-            
-            if($generate==true){
-                
-                sleep(0.5);
-                $replace_uploads = get_option('uploads_rlout');
-                
-                $uploads_url_rlout = get_option('uploads_url_rlout'); 
-                
-                if($replace_uploads){
-                    
-                    $upload_url = wp_upload_dir();						
-                    
-                    $response = str_replace($upload_url['baseurl'], $rpl.'/uploads', $response);
-                    if($uploads_url_rlout){
-                        sleep(0.5);
-                        $response = str_replace($uploads_url_rlout, $rpl.'/uploads', $response);
-                    }
-                    
-                }
-                
-                $dir_base =  get_option("path_rlout");
-                if( realpath($dir_base) === false ){
-                    mkdir($dir_base);
-                }
-                
-                $file_raiz = $dir_base . '/'.$post_type.'.json';
-                
-                $file = fopen($file_raiz, "w");
-                
-                fwrite($file, $response);
-                
-                $urls[] = str_replace($dir_base,$rpl,$file_raiz);
-            }else{
-                
-                die($response);
-            }
-        }
-        return $urls;
-    }
-    
-    static function get_post_json($post_type, $not_in=array()){
-        
-        $rpl = get_option('replace_url_rlout');
-        if(empty($rpl)){
-            $rpl = site_url().'/html';
-        }
-        
-        $posts = get_posts(array(
-            'post_type'=>$post_type,
-            'posts_per_page' => 25,
-            'order'=>'DESC',
-            'orderby'=>'date',
-            'post__not_in'=>$not_in
-            )
-        );
-        
-        $ignore_json_rlout = explode(',' ,get_option("ignore_json_rlout"));
-        foreach ($posts as $key => $post) {
-            
-            $url = get_permalink($post);
-            if(empty(in_array($url, $ignore_json_rlout))){
-                $not_in[] = $post->ID;
-                $posts_arr[$key]['ID'] = $post->ID;
-                $posts_arr[$key]['post_title'] = $post->post_title;
-                $posts_arr[$key]['post_date'] = $post->post_date;
-                $posts_arr[$key]['post_excerpt'] = get_the_excerpt($post);
-                $size_thumb = get_option('size_thumbnail_rlout');
-                
-                $thumbnail = get_the_post_thumbnail_url($post, $size_thumb);
-                if(empty($thumbnail)){
-                    $thumbnail = get_option("uri_rlout").'/img/default.jpg';
-                    $thumbnail = str_replace(get_option("uri_rlout"), $rpl, $thumbnail);
-                }
-                $posts_arr[$key]['thumbnail'] = $thumbnail;
-                $url = str_replace(site_url(),$rpl,get_permalink($post)).'index.json';
-                $posts_arr[$key]['post_json'] = $url;
-                
-                $taxonomies = explode(",", get_option('taxonomies_rlout'));
-                
-                if(!empty($taxonomies)){
-                    
-                    foreach($taxonomies as $taxonomy){
-                        $term = wp_get_post_terms($post->ID, array($taxonomy));
-                        
-                        if(!empty($term) && empty($term->errors)){
-                            foreach($term as $tm_k => $tm){
-                                $url = str_replace(site_url(),$rpl,get_term_link($tm)).'index.json';
-                                $posts_arr[$key][$taxonomy][$tm_k]['term_id'] = $tm->term_id;
-                                $posts_arr[$key][$taxonomy][$tm_k]['term_name'] = $tm->name;
-                                $posts_arr[$key][$taxonomy][$tm_k]['term_json'] = $url;
-                            }
-                        }
-                    }
-                }
-                $posts_arr[$key] = apply_filters('rel_output_custom_post', $post, $posts_arr[$key]);
-            }
-            
-        }
-        
-        if(count($posts)==25){
-            sleep(0.1);
-            $posts_arr = array_merge($posts_arr, Posts::get_post_json($post_type, $not_in));
-        }
-        
-        return $posts_arr;
-    }
+	
+	static function api($generate, $post_id=null){
+		
+		header( "Content-type: application/json");
+		$post_types = explode(",", get_option('post_types_rlout'));
+		$urls = array();
+		$rpl = get_option('replace_url_rlout');
+		if(empty($rpl)){
+			$rpl = site_url().'/html';
+		}
+		foreach ($post_types as $key => $post_type) {
+			
+			$posts_arr = Posts::get_post_json($post_type, array(), $post_id);
+			
+			$response = json_encode($posts_arr , JSON_UNESCAPED_SLASHES);
+			
+			if($generate==true){
+				
+				sleep(0.5);
+				$replace_uploads = get_option('uploads_rlout');
+				
+				$uploads_url_rlout = get_option('uploads_url_rlout'); 
+				
+				if($replace_uploads){
+					
+					$upload_url = wp_upload_dir();						
+					
+					$response = str_replace($upload_url['baseurl'], $rpl.'/uploads', $response);
+					if($uploads_url_rlout){
+						sleep(0.5);
+						$response = str_replace($uploads_url_rlout, $rpl.'/uploads', $response);
+					}
+					
+				}
+				
+				$dir_base =  get_option("path_rlout");
+				if( realpath($dir_base) === false ){
+					mkdir($dir_base);
+				}
+				
+				$file_raiz = $dir_base . '/'.$post_type.'.json';
+				
+				$file = fopen($file_raiz, "w");
+				
+				fwrite($file, $response);
+				
+				$urls[] = str_replace($dir_base,$rpl,$file_raiz);
+			}else{
+				
+				die($response);
+			}
+		}
+		return $urls;
+	}
+	
+	static function get_post_json($post_type, $not_in=array(), $post_id=null){
+		
+		$rpl = get_option('replace_url_rlout');
+		if(empty($rpl)){
+			$rpl = site_url().'/html';
+		}
+		
+		if($post_id){
+			
+			$json_exist = Curl::get($rpl.'/'.$post_type.'.json');
+			if($json_exist){
+				
+				$post = get_post($post_id);
+				$post_arr = json_decode($json_exist);
+				
+				$create_post = true;
+				
+				$new_post = Posts::new_params($post);
+				
+				foreach($post_arr as $arr_key => $arr){
+					if($arr->ID==$post->ID){
+						$create_post = false;
+						if($post->post_status=='publish'){
+							$post_arr[$arr_key] = $new_post;
+						}else{
+							unset($post_arr[$arr_key]);
+						}
+					}
+				}
+				
+				if($create_post==true){
+					$post_arr = array_unshift($post_arr, $new_post);
+				}
+				
+				return $post_arr;
+			}
+		}
+		
+		$posts = get_posts(array(
+			'post_type'=>$post_type,
+			'posts_per_page' => 25,
+			'order'=>'DESC',
+			'orderby'=>'date',
+			'post__not_in'=>$not_in
+			)
+		);
+		
+		$ignore_json_rlout = explode(',' ,get_option("ignore_json_rlout"));
+		foreach ($posts as $key => $post) {
+			
+			$url = get_permalink($post);
+			if(empty(in_array($url, $ignore_json_rlout))){
+				$not_in[] = $post->ID;
+
+				$posts_arr[$key] = Posts::new_params($post);
+			}
+			
+		}
+		
+		if(count($posts)==25){
+			sleep(0.1);
+			$posts_arr = array_merge($posts_arr, Posts::get_post_json($post_type, $not_in));
+		}
+		
+		return $posts_arr;
+	}
+	
+	static function new_params($post){
+
+		$rpl = get_option('replace_url_rlout');
+		if(empty($rpl)){
+			$rpl = site_url().'/html';
+		}
+
+		$new_post = array();
+		
+		$new_post['ID'] = $post->ID;
+		$new_post['post_title'] = $post->post_title;
+		$new_post['post_date'] = $post->post_date;
+		$new_post['post_excerpt'] = get_the_excerpt($post);
+		$size_thumb = get_option('size_thumbnail_rlout');
+		
+		$thumbnail = get_the_post_thumbnail_url($post, $size_thumb);
+		if(empty($thumbnail)){
+			$thumbnail = get_option("uri_rlout").'/img/default.jpg';
+			$thumbnail = str_replace(get_option("uri_rlout"), $rpl, $thumbnail);
+		}
+		$new_post['thumbnail'] = $thumbnail;
+		$url = str_replace(site_url(),$rpl,get_permalink($post)).'index.json';
+		$new_post['post_json'] = $url;
+		
+		$taxonomies = explode(",", get_option('taxonomies_rlout'));
+		
+		if(!empty($taxonomies)){
+			
+			foreach($taxonomies as $taxonomy){
+				$term = wp_get_post_terms($post->ID, array($taxonomy));
+				
+				if(!empty($term) && empty($term->errors)){
+					foreach($term as $tm_k => $tm){
+						$url = str_replace(site_url(),$rpl,get_term_link($tm)).'index.json';
+						$new_post[$taxonomy][$tm_k]['term_id'] = $tm->term_id;
+						$new_post[$taxonomy][$tm_k]['term_name'] = $tm->name;
+						$new_post[$taxonomy][$tm_k]['term_json'] = $url;
+					}
+				}
+			}
+		}
+
+		$new_post = apply_filters('rel_output_custom_post', $post, $new_post);
+		
+		return $new_post;
+	}
 }

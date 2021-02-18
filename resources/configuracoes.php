@@ -154,7 +154,7 @@
 					<tr>
 						<td>
 							<p class="submit">
-								<input type="submit" name="salvar" id="salvar" class="button button-primary" value="Salvar alterações">
+								<input type="submit" name="salvar_rlout" id="salvar" class="button button-primary" value="Salvar alterações">
 							</p>
 						</td>
 					</tr>
