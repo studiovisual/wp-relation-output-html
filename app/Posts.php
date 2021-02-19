@@ -105,92 +105,40 @@ Class Posts {
 		Terms::api();
 	}
 	
-	static function object_post($object, $show_terms=true){
-		$url = get_permalink($object);
-		$ignore_json_rlout = explode(',' ,get_option("ignore_json_rlout"));
-		if(empty(in_array($url, $ignore_json_rlout))){
-			unset($object->post_author);
-			unset($object->comment_status);
-			unset($object->ping_status);
-			unset($object->post_password);
-			unset($object->to_ping);
-			unset($object->pinged);
-			unset($object->post_content_filtered);
-			unset($object->post_parent);
-			unset($object->guid);
-			unset($object->post_mime_type);
-			unset($object->comment_count);
-			unset($object->filter);
-			
-			$object = Helpers::url_json_obj($object);
-			
-			$object->post_type = $object->post_type;
-			
-			$object->thumbnails = array();
-			$sizes = get_intermediate_image_sizes();
-			foreach($sizes as $size){
-				$object->thumbnails[$size] = get_the_post_thumbnail_url($object, $size);
-				if(empty($object->thumbnails[$size])){
-					$object->thumbnails[$size] = get_option("uri_rlout").'/img/default.jpg';
-				}
-			}
-			$object->thumbnails['full'] = get_the_post_thumbnail_url($object, 'full');
-			
-			if($show_terms){
-				$terms = wp_get_post_terms($object->ID, explode(",", get_option('taxonomies_rlout')) );
-				$object->terms = array();
-				foreach ($terms as $keyterm => $term) {
-					$object->terms[] = Terms::object_term($term, false);
-				}
-			}
-			
-			$metas =  get_post_meta($object->ID);
-			
-			$metas_arr = array();
-			foreach ($metas as $key_mm => $meta) {
-				$thumb = wp_get_attachment_image_src($meta[0], 'full');
-				if(!empty($thumb)){
-					$sizes = get_intermediate_image_sizes();
-					foreach ($sizes as $key_sz => $size) {
-						$metas_arr[$key_mm][] = wp_get_attachment_image_src($meta[0], $size);
-					}
-				}else{
-					$metas_arr[$key_mm] = $meta;
-				}
-			}
-			
-			$object->metas = $metas_arr;
-			
-			return $object;
-		}
-		
-	}
-	
 	static function api($post=null){
 		
 		header( "Content-type: application/json");
 		
 		$post_types = explode(",", get_option('post_types_rlout'));
-		
-		$urls = array();
-		
-		$replace_url = get_option('replace_url_rlout');
-		if(empty($replace_url)){
-			$replace_url = site_url().'/html';
+
+		$gerenate_all = false;
+
+		if(empty($post)){
+			$gerenate_all = true;
 		}
-		
-		$posts_arr = Posts::get_post_json($post, array());
-		
-		$response = json_encode($posts_arr , JSON_UNESCAPED_SLASHES);
-		
-		if($generate==true){
+
+		$urls = array();
+
+		foreach($post_types as $post_type){
 			
-			sleep(0.5);
+			if($gerenate_all==true){
+				$post->post_type = $post_type;
+			}
+			
+			$replace_url = get_option('replace_url_rlout');
+			if(empty($replace_url)){
+				$replace_url = site_url().'/html';
+			}
+			
+			$posts_arr = Posts::get_post_json($post, array());
+
+			$response = json_encode($posts_arr , JSON_UNESCAPED_SLASHES);
+			
 			$replace_uploads = get_option('uploads_rlout');
 			
-			$uploads_url_rlout = get_option('uploads_url_rlout'); 
-			
 			if($replace_uploads){
+
+				$uploads_url_rlout = get_option('uploads_url_rlout'); 
 				
 				$upload_url = wp_upload_dir();						
 				
@@ -207,16 +155,13 @@ Class Posts {
 				mkdir($dir_base);
 			}
 			
-			$file_raiz = $dir_base . '/'.$post_type.'.json';
+			$file_raiz = $dir_base . '/'.$post->post_type.'.json';
 			
 			$file = fopen($file_raiz, "w");
 			
 			fwrite($file, $response);
 			
-			$urls[] = str_replace($dir_base,$rpl,$file_raiz);
-		}else{
-			
-			die($response);
+			$urls[] = str_replace($dir_base,$replace_url,$file_raiz);
 		}
 		
 		return $urls;
@@ -232,13 +177,12 @@ Class Posts {
 		if(!empty($post)){
 			
 			$json_exist = Curl::get($replace_url.'/'.$post->post_type.'.json');
-			if($json_exist){
-				
-				$post_arr = json_decode($json_exist);
-				
+			$post_arr = json_decode($json_exist);
+			if(is_array($post_arr) && !empty($post->ID)){
+
 				$create_post = true;
 				
-				$new_post = Posts::new_params($post);
+				$new_post = Posts::new_params($post, true);
 				
 				foreach($post_arr as $arr_key => $arr){
 					if($arr->ID==$post->ID){
@@ -266,7 +210,9 @@ Class Posts {
 				'post__not_in'=>$not_in
 				)
 			);
-			
+
+			$posts_arr = array();
+
 			$ignore_json_rlout = explode(',' ,get_option("ignore_json_rlout"));
 			foreach ($posts as $key => $post) {
 				
@@ -274,21 +220,23 @@ Class Posts {
 				if(empty(in_array($url, $ignore_json_rlout))){
 					$not_in[] = $post->ID;
 					
-					$posts_arr[$key] = Posts::new_params($post);
+					$posts_arr[$key] = Posts::new_params($post, true);
 				}
 				
 			}
 			
 			if(count($posts)==25){
 				sleep(0.1);
-				$posts_arr = array_merge($posts_arr, Posts::get_post_json($post, $not_in));
+				$object = null;
+				$object->post_type = $post->post_type;
+				$posts_arr = array_merge($posts_arr, Posts::get_post_json($object, $not_in));
 			}
 			
 			return $posts_arr;
 		}
 	}
 	
-	static function new_params($post){
+	static function new_params($post, $show_terms=false){
 		
 		$rpl = get_option('replace_url_rlout');
 		if(empty($rpl)){
@@ -313,8 +261,7 @@ Class Posts {
 		$new_post['post_json'] = $url;
 		
 		$taxonomies = explode(",", get_option('taxonomies_rlout'));
-		
-		if(!empty($taxonomies)){
+		if(!empty($taxonomies) && $show_terms==true){
 			
 			foreach($taxonomies as $taxonomy){
 				$term = wp_get_post_terms($post->ID, array($taxonomy));

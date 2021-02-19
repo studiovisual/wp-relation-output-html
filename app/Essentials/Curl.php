@@ -46,6 +46,7 @@ Class Curl {
 				}
 			}
 		}
+
 		if(!empty($object->ID)){
 			
 			$url = get_permalink( $object );
@@ -119,7 +120,6 @@ Class Curl {
 					$response=$original_response;
 				}
 			}
-			
 			$explode_raiz = explode("/", $dir_base);
 			foreach ($explode_raiz as $keyp => $raiz) {
 				$wp_raiz = $wp_raiz . $raiz . '/';
@@ -166,15 +166,13 @@ Class Curl {
 				}
 			}
 
-
-			if(term_exists($object->term_id)){
-				Terms::object_term($object);
-			}else{
-				Posts::object_post($object);
-			}
-			
 			if($json_default!=''){
-				
+
+				if(term_exists($object->term_id)){
+					$object = Terms::object_term($object, true);
+				}else if($object->ID){
+					$object = Posts::new_params($object, true);
+				}
 				$response_json = Helpers::replace_reponse(get_option("uri_rlout"), json_encode($object));
 
 				$ignore_json_rlout = explode(',' ,get_option("ignore_json_rlout"));

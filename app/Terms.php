@@ -13,33 +13,34 @@ Class Terms Extends App {
 	public function __construct(){
 		
 		// verifica alterações de terms
-		add_action( 'create_term', array($this, 'create_folder'), 10, 1);
-		add_action( 'edit_term', array($this, 'create_folder'), 10, 1);
-		add_action( 'delete_term', array($this, 'delete_folder'), 10, 1);
+		add_action( 'create_term', array($this, 'create_folder'), 1, 1);
+		add_action( 'edit_term', array($this, 'create_folder'), 1, 1);
+		add_action( 'delete_term', array($this, 'delete_folder'), 1, 1);
 	}
 	
 	public function create_folder($term_id){
 		
 		if($_POST['static_output_html']){
+
+			$term = get_term($term_id);
 			
 			$taxonomies = explode(',', get_option('taxonomies_rlout'));
 			
 			if(in_array($term->taxonomy, $taxonomies)){
 				
-				add_action('updated_term_meta', function($meta_id, $term_id, $meta_key){
-					
-					if($meta_key=='_edit_lock'){
-						
-						$term = get_term($term_id);
-						
-						Curl::generate($term);
-						
-						Terms::api();
-					}
-					
-				});
+				$slug_old = $term->slug;
+				$slug_new = $_POST['slug'];
 				
+				if($slug_old!=$slug_new){
+					
+					$term->slug = $slug_new;
+				}
+
+				Curl::generate($term);
+
+				Terms::api($term);
 			}
+
 		}
 	}
 	
@@ -75,11 +76,12 @@ Class Terms Extends App {
 				
 				$this->deploy($objects);
 			}
+
+			Terms::api($term);
 		}
-		Terms::api();
 	}
 	
-	static function api(){
+	static function api($term=null){
 		
 		header( "Content-type: application/json");
 		
@@ -159,20 +161,11 @@ Class Terms Extends App {
 			
 			if($show_posts){
 				$posts = get_posts($args_posts);
-				$object->posts = array();
 				foreach ($posts as $key_p => $post) {
 					
-					$post = Posts::object_post($post);
-					$size_thumb = get_option('size_thumbnail_rlout');
-					$object->posts[$key_p]['ID'] = $post->ID;
-					$object->posts[$key_p]['post_title'] = $post->post_title;
-					$object->posts[$key_p]['post_date'] = $post->post_date;
-					$object->posts[$key_p]['post_excerpt'] = get_the_excerpt($post);
-					$object->posts[$key_p]['thumbnail'] = $post->thumbnails[$size_thumb];
-					$object->posts[$key_p]['post_json'] = $post->post_json;
-					$object->posts[$key_p] = apply_filters('rel_output_custom_post', $post, $object->posts[$key_p]);
-					
+					$post = Posts::new_params($post);
 				}
+				$object->posts = $posts;
 			}
 			
 			$metas = get_term_meta($object->term_id);

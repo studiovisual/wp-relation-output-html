@@ -8,8 +8,6 @@ use WpRloutHtml\Modules\Ftp;
 
 Class Helpers {
 
-	private static $options = array();
-
 	static function subfiles_generate(){
 
 		$curl = new Curl;
@@ -169,9 +167,4 @@ Class Helpers {
         
         return $response;
     }
-
-	public static function getOption($option) {
-        return !isset(self::$options[$option]) ? self::$options[$option] = get_option($option) : self::$options[$option];
-    }
-
 }
