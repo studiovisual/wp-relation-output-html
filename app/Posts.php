@@ -32,49 +32,34 @@ Class Posts {
 				if($meta_key=='_edit_lock'){
 					
 					$post_types = explode(',', get_option('post_types_rlout'));
-					foreach ($post_types as $key => $pt) {
-						$link = get_post_type_archive_link($pt);
-						if($link){
-							Curl::generate(get_post_type_archive_link($pt));
-						}
-					}
-					sleep(0.5);
 					
-					if(empty($post_id)){
+					$post =  get_post($post_id);
+					if(in_array($post->post_type, $post_types)){
 						
-						$objects = get_posts(array('post_type'=>$post_types, 'posts_per_page'=>-1));
+						// Gerador da archive do post estatizado
+						$link_archive = get_post_type_archive_link($post->post_type);
+						if($link_archive){
+							Curl::generate($link_archive);
+						}
+						
+						// Verificando os terms do post de todas as taxonomies selecionadas
+						$taxonomies = explode(",", get_option('taxonomies_rlout'));
+						$terms = wp_get_post_terms($post->ID, $taxonomies);
+						
+						$objects = array();
+						
+						$objects[] = $post;
+						
+						// categorias relacionadas
+						foreach ($terms as $key => $term) {
+							$objects[] = $term;
+						}
 						
 						Curl::list_deploy($objects);
-						foreach ($taxonomies as $key => $tax) {
-							$objects = get_terms( array('taxonomy' => $tax, 'hide_empty' => false) );
-							Curl::list_deploy($objects);
-						}
-						
-					}else{
-						
-						$post =  get_post($post_id);
-						
-						if(in_array($post->post_type, $post_types)){
-							
-							$terms = wp_get_post_terms($post->ID, $taxonomies);
-							
-							$objects = array();
-							
-							$objects[] = $post;
-							
-							// categorias relacionadas
-							foreach ($terms as $key => $term) {
-								$objects[] = $term;
-							}
-							
-							Curl::list_deploy($objects);
-						}
 					}
 					
-					sleep(0.5);
-					
-					Posts::api(true, $post_id);
-					Terms::api(true);
+					Posts::api($post);
+					Terms::api();
 				}
 			},10,3);
 		}
@@ -116,8 +101,8 @@ Class Posts {
 			
 		}
 		
-		Posts::api(true);
-		Terms::api(true);
+		Posts::api($post);
+		Terms::api();
 	}
 	
 	static function object_post($object, $show_terms=true){
@@ -181,73 +166,74 @@ Class Posts {
 		
 	}
 	
-	static function api($generate, $post_id=null){
+	static function api($post=null){
 		
 		header( "Content-type: application/json");
+		
 		$post_types = explode(",", get_option('post_types_rlout'));
+		
 		$urls = array();
-		$rpl = get_option('replace_url_rlout');
-		if(empty($rpl)){
-			$rpl = site_url().'/html';
+		
+		$replace_url = get_option('replace_url_rlout');
+		if(empty($replace_url)){
+			$replace_url = site_url().'/html';
 		}
-		foreach ($post_types as $key => $post_type) {
+		
+		$posts_arr = Posts::get_post_json($post, array());
+		
+		$response = json_encode($posts_arr , JSON_UNESCAPED_SLASHES);
+		
+		if($generate==true){
 			
-			$posts_arr = Posts::get_post_json($post_type, array(), $post_id);
+			sleep(0.5);
+			$replace_uploads = get_option('uploads_rlout');
 			
-			$response = json_encode($posts_arr , JSON_UNESCAPED_SLASHES);
+			$uploads_url_rlout = get_option('uploads_url_rlout'); 
 			
-			if($generate==true){
+			if($replace_uploads){
 				
-				sleep(0.5);
-				$replace_uploads = get_option('uploads_rlout');
+				$upload_url = wp_upload_dir();						
 				
-				$uploads_url_rlout = get_option('uploads_url_rlout'); 
-				
-				if($replace_uploads){
-					
-					$upload_url = wp_upload_dir();						
-					
-					$response = str_replace($upload_url['baseurl'], $rpl.'/uploads', $response);
-					if($uploads_url_rlout){
-						sleep(0.5);
-						$response = str_replace($uploads_url_rlout, $rpl.'/uploads', $response);
-					}
-					
+				$response = str_replace($upload_url['baseurl'], $replace_url.'/uploads', $response);
+				if($uploads_url_rlout){
+					sleep(0.5);
+					$response = str_replace($uploads_url_rlout, $replace_url.'/uploads', $response);
 				}
 				
-				$dir_base =  get_option("path_rlout");
-				if( realpath($dir_base) === false ){
-					mkdir($dir_base);
-				}
-				
-				$file_raiz = $dir_base . '/'.$post_type.'.json';
-				
-				$file = fopen($file_raiz, "w");
-				
-				fwrite($file, $response);
-				
-				$urls[] = str_replace($dir_base,$rpl,$file_raiz);
-			}else{
-				
-				die($response);
 			}
+			
+			$dir_base =  get_option("path_rlout");
+			if( realpath($dir_base) === false ){
+				mkdir($dir_base);
+			}
+			
+			$file_raiz = $dir_base . '/'.$post_type.'.json';
+			
+			$file = fopen($file_raiz, "w");
+			
+			fwrite($file, $response);
+			
+			$urls[] = str_replace($dir_base,$rpl,$file_raiz);
+		}else{
+			
+			die($response);
 		}
+		
 		return $urls;
 	}
 	
-	static function get_post_json($post_type, $not_in=array(), $post_id=null){
+	static function get_post_json($post=null, $not_in=array()){
 		
-		$rpl = get_option('replace_url_rlout');
-		if(empty($rpl)){
-			$rpl = site_url().'/html';
+		$replace_url = get_option('replace_url_rlout');
+		if(empty($replace_url)){
+			$replace_url = site_url().'/html';
 		}
 		
-		if($post_id){
+		if(!empty($post)){
 			
-			$json_exist = Curl::get($rpl.'/'.$post_type.'.json');
+			$json_exist = Curl::get($replace_url.'/'.$post->post_type.'.json');
 			if($json_exist){
 				
-				$post = get_post($post_id);
 				$post_arr = json_decode($json_exist);
 				
 				$create_post = true;
@@ -271,44 +257,44 @@ Class Posts {
 				
 				return $post_arr;
 			}
-		}
-		
-		$posts = get_posts(array(
-			'post_type'=>$post_type,
-			'posts_per_page' => 25,
-			'order'=>'DESC',
-			'orderby'=>'date',
-			'post__not_in'=>$not_in
-			)
-		);
-		
-		$ignore_json_rlout = explode(',' ,get_option("ignore_json_rlout"));
-		foreach ($posts as $key => $post) {
 			
-			$url = get_permalink($post);
-			if(empty(in_array($url, $ignore_json_rlout))){
-				$not_in[] = $post->ID;
-
-				$posts_arr[$key] = Posts::new_params($post);
+			$posts = get_posts(array(
+				'post_type'=>$post->post_type,
+				'posts_per_page' => 25,
+				'order'=>'DESC',
+				'orderby'=>'date',
+				'post__not_in'=>$not_in
+				)
+			);
+			
+			$ignore_json_rlout = explode(',' ,get_option("ignore_json_rlout"));
+			foreach ($posts as $key => $post) {
+				
+				$url = get_permalink($post);
+				if(empty(in_array($url, $ignore_json_rlout))){
+					$not_in[] = $post->ID;
+					
+					$posts_arr[$key] = Posts::new_params($post);
+				}
+				
 			}
 			
+			if(count($posts)==25){
+				sleep(0.1);
+				$posts_arr = array_merge($posts_arr, Posts::get_post_json($post, $not_in));
+			}
+			
+			return $posts_arr;
 		}
-		
-		if(count($posts)==25){
-			sleep(0.1);
-			$posts_arr = array_merge($posts_arr, Posts::get_post_json($post_type, $not_in));
-		}
-		
-		return $posts_arr;
 	}
 	
 	static function new_params($post){
-
+		
 		$rpl = get_option('replace_url_rlout');
 		if(empty($rpl)){
 			$rpl = site_url().'/html';
 		}
-
+		
 		$new_post = array();
 		
 		$new_post['ID'] = $post->ID;
@@ -343,7 +329,7 @@ Class Posts {
 				}
 			}
 		}
-
+		
 		$new_post = apply_filters('rel_output_custom_post', $post, $new_post);
 		
 		return $new_post;

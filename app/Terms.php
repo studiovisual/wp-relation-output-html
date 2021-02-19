@@ -6,18 +6,44 @@ use WpRloutHtml\Helpers;
 use WpRloutHtml\Posts;
 use WpRloutHtml\Modules\S3;
 use WpRloutHtml\Modules\Ftp;
+use WpRloutHtml\Essentials\Curl;
 
 Class Terms Extends App {
-
+	
 	public function __construct(){
-
+		
 		// verifica alterações de terms
-		add_action( 'create_term', array($this, 'create_folder'), 10, 3);
-		add_action( 'edit_term', array($this, 'create_folder'), 10, 3);
-		add_action( 'delete_term', array($this, 'delete_folder'), 10, 3);
+		add_action( 'create_term', array($this, 'create_folder'), 10, 1);
+		add_action( 'edit_term', array($this, 'create_folder'), 10, 1);
+		add_action( 'delete_term', array($this, 'delete_folder'), 10, 1);
 	}
-    
-    public function delete_folder($term_id, $tt_id, $taxonomy, $deleted_term=null){
+	
+	public function create_folder($term_id){
+		
+		if($_POST['static_output_html']){
+			
+			$taxonomies = explode(',', get_option('taxonomies_rlout'));
+			
+			if(in_array($term->taxonomy, $taxonomies)){
+				
+				add_action('updated_term_meta', function($meta_id, $term_id, $meta_key){
+					
+					if($meta_key=='_edit_lock'){
+						
+						$term = get_term($term_id);
+						
+						Curl::generate($term);
+						
+						Terms::api();
+					}
+					
+				});
+				
+			}
+		}
+	}
+	
+	public function delete_folder($term_id){
 		
 		$term = get_term($term_id);
 		
@@ -50,46 +76,72 @@ Class Terms Extends App {
 				$this->deploy($objects);
 			}
 		}
-		Posts::api(true);
-		Terms::api(true);
+		Terms::api();
 	}
-    
-    public function create_folder($term_id, $tt_id, $taxonomy, $deleted_term=null){
-        
-        if($_POST['static_output_html']){
-            $term = get_term($term_id);
-            
-            $taxonomies = explode(',', get_option('taxonomies_rlout'));
-            
-            if(in_array($term->taxonomy, $taxonomies)){
-                
-                $slug_old = $term->slug;
-                $slug_new = $_POST['slug'];
-                
-                $url = str_replace(site_url(), '', get_term_link($term));
-                
-                if($slug_old!=$slug_new){
-                    
-                    $term->slug = $slug_new;
-                }
-                
-                $dir_base = get_option("path_rlout") . $url;
-                
-                $objects = array($term);
-                
-                $this->deploy($objects);
-            }
-            Posts::api(true);
-            Terms::api(true);
-        }
-    }
+	
+	static function api(){
+		
+		header( "Content-type: application/json");
+		
+		$taxonomies = explode(",", get_option('taxonomies_rlout'));
+		
+		$urls = array();
+		
+		foreach($taxonomies as $tax){
+			
+			$terms = get_terms(array("taxonomy"=>$tax, 'hide_empty' => false));
+			
+			$replace_url = get_option('replace_url_rlout');
+			if(empty($replace_url)){
+				$replace_url = site_url().'/html';
+			}
+			
+			foreach ($terms as $key => $term) {
+				$term = Terms::object_term($term, false);
+			}
+			
+			$response = json_encode($terms , JSON_UNESCAPED_SLASHES);
+			
+			$replace_uploads = get_option('uploads_rlout');
+			
+			$uploads_url_rlout = get_option('uploads_url_rlout'); 
+			
+			if($replace_uploads){
+				
+				$upload_url = wp_upload_dir();						
+				
+				$response = str_replace($upload_url['baseurl'], $replace_url.'/uploads', $response);
+				
+				sleep(0.5);
+				
+				if($uploads_url_rlout){
+					$response = str_replace($uploads_url_rlout, $replace_url.'/uploads', $response);
+				}
+			}
+			
+			$dir_base =  get_option("path_rlout");
+			if( realpath($dir_base) === false ){
+				mkdir($dir_base);
+			}
+			
+			$file_raiz = $dir_base . '/'.$tax.'.json';
+			
+			$file = fopen($file_raiz, "w");
+			
+			fwrite($file, $response);
+			
+			$urls[] = str_replace($dir_base,$replace_url,$file_raiz);
+		}
+		
+		return $urls;
+	}
 
 	static function object_term($object, $show_posts=true){
 		
 		$url = get_term_link($object);
 		$ignore_json_rlout = explode(',' ,get_option("ignore_json_rlout"));
 		if(empty(in_array($url, $ignore_json_rlout))){
-
+			
 			unset($object->term_group);
 			unset($object->term_taxonomy_id);
 			unset($object->parent);
@@ -142,68 +194,4 @@ Class Terms Extends App {
 			return $object;
 		}
 	}
-    
-    static function api($generate){
-        
-        header( "Content-type: application/json");
-        $taxonomies = explode(",", get_option('taxonomies_rlout'));
-        $urls = array();
-        
-        foreach($taxonomies as $tax){
-            
-            $terms = get_terms(array("taxonomy"=>$tax, 'hide_empty' => false));
-            
-            $rpl = get_option('replace_url_rlout');
-            if(empty($rpl)){
-                $rpl = site_url().'/html';
-            }
-            
-            foreach ($terms as $key => $term) {
-                $term = Terms::object_term($term, false);
-            }
-            
-            $response = json_encode($terms , JSON_UNESCAPED_SLASHES);
-            
-            if($generate==true){
-                
-                sleep(0.5);
-                
-                $replace_uploads = get_option('uploads_rlout');
-                
-                $uploads_url_rlout = get_option('uploads_url_rlout'); 
-                
-                if($replace_uploads){
-                    
-                    $upload_url = wp_upload_dir();						
-                    
-                    $response = str_replace($upload_url['baseurl'], $rpl.'/uploads', $response);
-                    
-                    sleep(0.5);
-                    
-                    if($uploads_url_rlout){
-                        $response = str_replace($uploads_url_rlout, $rpl.'/uploads', $response);
-                    }
-                }
-                
-                $dir_base =  get_option("path_rlout");
-                if( realpath($dir_base) === false ){
-                    mkdir($dir_base);
-                }
-                
-                $file_raiz = $dir_base . '/'.$tax.'.json';
-                
-                $file = fopen($file_raiz, "w");
-                
-                fwrite($file, $response);
-                
-                $urls[] = str_replace($dir_base,$rpl,$file_raiz);
-                
-            }else{
-                
-                die($response);
-            }
-        }
-		
-        return $urls;
-    }
 }

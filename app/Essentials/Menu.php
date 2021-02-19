@@ -48,8 +48,8 @@ Class Menu {
 			if($response_essenciais){
 				
 				add_action('init', function(){
-					Posts::api(true);
-					Terms::api(true);
+					Posts::api();
+					Terms::api();
 				});
 				
 				echo '<script>alert("Arquivos Essenciais Atualizados!");</script>';

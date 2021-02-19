@@ -32,8 +32,8 @@ Class WpAjax {
     }
     
     public function deploy_json(){
-        $terms = Terms::api(true);
-        $posts = Posts::api(true);
+        $terms = Terms::api();
+        $posts = Posts::api();
         $urls = array_merge($terms, $posts);
         die(json_encode($urls));
     }
