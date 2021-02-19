@@ -482,7 +482,7 @@ Class RelOutputHtml {
 			
 			$dir_base =  get_option("path_rlout");
 			
-			if( is_dir($dir_base) === true ){
+			if( realpath($dir_base) === true ){
 				
 				// rmdir($dir_base);
 				$this->ftp_remove_file($dir_base);
@@ -650,7 +650,7 @@ Class RelOutputHtml {
 				} else {
 					
 					$dir_base =  get_option("path_rlout");
-					if( is_dir($dir_base) === false ){
+					if( realpath($dir_base) === false ){
 						mkdir($dir_base);
 					}
 					
@@ -761,10 +761,11 @@ Class RelOutputHtml {
 		if ($err) {
 			return "cURL Error #:" . $err;
 		} else {
+			
 			$response = $this->replace_json($response);
 			
 			$dir_base =  get_option("path_rlout");
-			if( is_dir($dir_base) === false ){
+			if( realpath($dir_base) === false ){
 				mkdir($dir_base);
 			}
 
@@ -782,8 +783,8 @@ Class RelOutputHtml {
 			if(count($verify_files_point)>1){
 				$file_default = '';
 				$json_default = '';
+				
 				if($verify_files_point[1]=='xml'){
-
 					$htt = str_replace('https:', '', site_url());
 					$htt = str_replace('http:', '', $htt);
 					$original_response = str_replace(site_url(), get_option("replace_url_rlout"), $original_response);
@@ -797,6 +798,7 @@ Class RelOutputHtml {
 							}
 						}
 					}
+
 					$response=$original_response;
 				}
 			}
@@ -809,9 +811,9 @@ Class RelOutputHtml {
 				}
 			}
 
-			$file = fopen( realpath($dir_base) . $file_default,"w");
+			$file = fopen( $dir_base . $file_default,"w");
 			
-			$file_json = fopen( realpath($dir_base) . $json_default,"w");
+			$file_json = fopen( $dir_base . $json_default,"w");
 			
 			$replace_uploads = get_option('uploads_rlout');
 			
@@ -1110,7 +1112,7 @@ Class RelOutputHtml {
 					}
 					
 					$dir_base =  get_option("path_rlout");
-					if( realpath($dir_base) === false ){
+					if( $dir_base === false ){
 						mkdir($dir_base);
 					}
 					
@@ -1176,7 +1178,7 @@ Class RelOutputHtml {
 					}
 					
 					$dir_base =  get_option("path_rlout");
-					if( realpath($dir_base) === false ){
+					if( $dir_base === false ){
 						mkdir($dir_base);
 					}
 					
@@ -1286,13 +1288,13 @@ Class RelOutputHtml {
 					$response = $this->replace_json($response);
 					
 					$dir_base =  get_option("path_rlout");
-					if( is_dir($dir_base) === false ){
+					if( realpath($dir_base) === false ){
 						mkdir($dir_base);
 					}
 					
 					if($media){
 						$dir_base =  get_option("path_rlout") . $media;
-						if( is_dir($dir_base) === false ){
+						if( realpath($dir_base) === false ){
 							mkdir($dir_base);
 						}
 					}
@@ -1316,7 +1318,7 @@ Class RelOutputHtml {
 					foreach ($folders as $key => $folder) {
 						if($key+1<count($folders)){
 							$dir_base = $dir_base . '/' . $folder;
-							if( is_dir($dir_base) === false ){
+							if( realpath($dir_base) === false ){
 								mkdir($dir_base);
 							}
 						}
@@ -1363,7 +1365,7 @@ Class RelOutputHtml {
 					
 					$folders = implode(".", $folders_point);
 					
-					$file = fopen( realpath($dir_base) . '/' . $folders,"w");
+					$file = fopen( $dir_base . '/' . $folders,"w");
 					
 					fwrite($file, $response);
 					
@@ -1390,6 +1392,7 @@ Class RelOutputHtml {
 		}
 		
 		public function s3_upload_file($file_dir, $ignore_cloud=true){
+			
 			if($file_dir){
 				
 				$access_key = get_option('s3_key_rlout');
@@ -1433,6 +1436,7 @@ Class RelOutputHtml {
 					
 				}
 			}
+			
 		}
 		
 		public function s3_remove_file($file_dir){
