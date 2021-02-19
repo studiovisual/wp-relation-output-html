@@ -1112,7 +1112,7 @@ Class RelOutputHtml {
 					}
 					
 					$dir_base =  get_option("path_rlout");
-					if( $dir_base === false ){
+					if( realpath($dir_base) === false ){
 						mkdir($dir_base);
 					}
 					
@@ -1178,7 +1178,7 @@ Class RelOutputHtml {
 					}
 					
 					$dir_base =  get_option("path_rlout");
-					if( $dir_base === false ){
+					if( realpath($dir_base) === false ){
 						mkdir($dir_base);
 					}
 					
