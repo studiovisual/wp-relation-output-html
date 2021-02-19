@@ -8,7 +8,6 @@ use WpRloutHtml\Modules\Cloudfront;
 Class S3 {
 
     static function upload_file($file_dir, $ignore_cloud=true){
-
         if($file_dir){
             
             $access_key = get_option('s3_key_rlout');
@@ -17,12 +16,24 @@ Class S3 {
             
             // echo $secret_key;
             if(!empty($secret_key)){
+
+                // var_dump($access_key);
+                // var_dump($secret_key);
+                // var_dump(get_option('s3_region_rlout'));
                 
                 // creates a client object, informing AWS credentials
-                $clientS3 = S3Client::factory(array(
-                    'key'    => $access_key,
-                    'secret' => $secret_key
-                ));
+                    $clientS3 = new S3Client([
+                        // 'key'    => $access_key,
+                        // 'secret' => $secret_key,
+                        'credentials' => [
+                            'key'    => $access_key,
+                            'secret' => $secret_key,
+                        ],
+                        'version' => 'latest',
+                        'region' => 'us-east-1',
+                    ]);
+            
+
                 // putObject method sends data to the chosen bucket (in our case, teste-marcelo)
                 
                 $file_dir = str_replace("//", "/", $file_dir);
@@ -44,6 +55,7 @@ Class S3 {
 
                     if($response && $ignore_cloud==false){
                         $key_file_s3 = str_replace('index.html', '', $key_file_s3);
+                        
                         Cloudfront::invalid('/'.$key_file_s3);
                     }
                 }

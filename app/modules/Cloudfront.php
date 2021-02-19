@@ -20,7 +20,7 @@ Class Cloudfront {
 	}
 
     static function invalid($response){
-        
+        // debug_print_backtrace();
         $DistributionId = get_option('s3_distributionid_rlout');
 
 		if(!empty($DistributionId)){
@@ -32,31 +32,39 @@ Class Cloudfront {
 			$acl_key = get_option('s3_acl_rlout');
 			$region = get_option('s3_region_rlout');
 			
-			$cloudFrontClient = CloudFrontClient::factory(array(
-				'region' => $region,
-				'version' => '2016-01-28',
-		
-				'credentials' => [
-					'key'    => $access_key,
-					'secret' => $secret_key,
-				]
-			));
+			try{
+				$cloudFrontClient = new CloudFrontClient([
+					'region' => 'us-east-1',
+					'version' => 'latest',
+					'credentials' => [
+						'key'    => $access_key,
+						'secret' => $secret_key,
+					]
+				]);
+
+				$args = [
+					'DistributionId' => $DistributionId,
+					'InvalidationBatch' => [
+						'CallerReference' => $CallerReference,
+						'Paths' => [
+							'Items' => [$raiz],
+							'Quantity' => 1,
+						],
+					]
+				];
+				
+				$result = $cloudFrontClient->createInvalidation($args);
+			}
+			catch(\Aws\CloudFront\Exception\CloudFrontException $e) {
+				die($e);
+			}
+			
 
 			// $result = $cloudFrontClient->listDistributions([]);
 			// die(var_dump($result));
 			// $result = $cloudFrontClient->listInvalidations(['DistributionId'=>$DistributionId]);
 
-			$args = [
-				'DistributionId' => $DistributionId,
-				'CallerReference' => $CallerReference,
-				'Paths' => [
-					'Quantity' => 1,
-					'Items' => [$raiz],
-				],
-			];
 			
-			$result = $cloudFrontClient->createInvalidation($args);
-
 			return $result;
 		}
     }
