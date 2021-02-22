@@ -6,6 +6,7 @@ use WpRloutHtml\Helpers;
 use WpRloutHtml\Posts;
 use WpRloutHtml\Modules\S3;
 use WpRloutHtml\Modules\Ftp;
+use WpRloutHtml\Modules\Git;
 use WpRloutHtml\Essentials\Curl;
 
 Class Terms Extends App {
@@ -24,7 +25,7 @@ Class Terms Extends App {
 
 			$term = get_term($term_id);
 			
-			$taxonomies = explode(',', Helpers::getOption('taxonomies_rlout'));
+			$taxonomies = explode(',', get_option('taxonomies_rlout'));
 			
 			if(in_array($term->taxonomy, $taxonomies)){
 				
@@ -48,7 +49,7 @@ Class Terms Extends App {
 		
 		$term = get_term($term_id);
 		
-		$taxonomies = explode(',', Helpers::getOption('taxonomies_rlout'));
+		$taxonomies = explode(',', get_option('taxonomies_rlout'));
 		
 		if(in_array($term->taxonomy, $taxonomies)){
 			
@@ -62,7 +63,7 @@ Class Terms Extends App {
 				$term->slug = $slug_new;
 			}
 			
-			$dir_base = Helpers::getOption('path_rlout') . $url;
+			$dir_base = get_option("path_rlout") . $url;
 			
 			unlink($dir_base . '/index.html');
 			rmdir($dir_base);
@@ -80,33 +81,64 @@ Class Terms Extends App {
 			Terms::api($term);
 		}
 	}
-	
-	static function api($term=null){
+
+	static function api($term_update=null){
 		
-		header( "Content-type: application/json");
-		
-		$taxonomies = explode(",", Helpers::getOption('taxonomies_rlout'));
+		$taxonomies = explode(",", get_option('taxonomies_rlout'));
 		
 		$urls = array();
 		
 		foreach($taxonomies as $tax){
 			
 			$terms = get_terms(array("taxonomy"=>$tax, 'hide_empty' => false));
+
+			$dir_base = get_option("path_rlout");
 			
-			$replace_url = Helpers::getOption('replace_url_rlout');
+			$replace_url = get_option('replace_url_rlout');
 			if(empty($replace_url)){
 				$replace_url = site_url().'/html';
 			}
 			
 			foreach ($terms as $key => $term) {
-				$term = Terms::object_term($term, false);
+
+				if(empty($term_update) || $term->term_id==$term_update->term_id)
+
+				$term_link = get_term_link($term);
+
+				$urls[] = $term_link;
+				
+				$term = Terms::object_term($term, true);
+				$term_link = str_replace(site_url(), $dir_base, $term_link);
+
+				$new_folder = str_replace($dir_base, '', $term_link);
+				$new_folder_explode = explode('/', $new_folder);
+				$folder_create = '';
+				foreach($new_folder_explode as $new_folder){
+					$folder_create = $folder_create.'/'.$new_folder;
+					if(realpath($dir_base . $folder_create) === false){
+						mkdir($dir_base . $folder_create);
+					}
+				}
+
+				$file_raiz = $term_link.'index.json';
+				$file = fopen($file_raiz, "w");
+				
+				$response = json_encode($term , JSON_UNESCAPED_SLASHES);
+
+				fwrite($file, $response);
+
+				Git::upload_file('Atualização de object');
+				Ftp::upload_file($file_raiz);
+				S3::upload_file($file_raiz, true);
+
+				unset($term->posts);
 			}
 			
 			$response = json_encode($terms , JSON_UNESCAPED_SLASHES);
 			
-			$replace_uploads = Helpers::getOption('uploads_rlout');
+			$replace_uploads = get_option('uploads_rlout');
 			
-			$uploads_url_rlout = Helpers::getOption('uploads_url_rlout'); 
+			$uploads_url_rlout = get_option('uploads_url_rlout'); 
 			
 			if($replace_uploads){
 				
@@ -121,7 +153,6 @@ Class Terms Extends App {
 				}
 			}
 			
-			$dir_base =  Helpers::getOption('path_rlout');
 			if( realpath($dir_base) === false ){
 				mkdir($dir_base);
 			}
@@ -131,6 +162,10 @@ Class Terms Extends App {
 			$file = fopen($file_raiz, "w");
 			
 			fwrite($file, $response);
+
+			Git::upload_file('Atualização de object');
+			Ftp::upload_file($file_raiz);
+			S3::upload_file($file_raiz, true);
 			
 			$urls[] = str_replace($dir_base,$replace_url,$file_raiz);
 		}
@@ -141,7 +176,7 @@ Class Terms Extends App {
 	static function object_term($object, $show_posts=true){
 		
 		$url = get_term_link($object);
-		$ignore_json_rlout = explode(',' , Helpers::getOption('ignore_json_rlout'));
+		$ignore_json_rlout = explode(',' ,get_option("ignore_json_rlout"));
 		if(empty(in_array($url, $ignore_json_rlout))){
 			
 			unset($object->term_group);
@@ -152,7 +187,7 @@ Class Terms Extends App {
 			$object = Helpers::url_json_obj($object);
 			
 			$args_posts = array();
-			$args_posts['post_type'] = explode(",", Helpers::getOption('post_types_rlout'));
+			$args_posts['post_type'] = explode(",", get_option('post_types_rlout'));
 			$args_posts['posts_per_page'] = -1;
 			$args_posts['order'] = 'DESC';
 			$args_posts['orderby'] = 'date';
@@ -163,7 +198,7 @@ Class Terms Extends App {
 				$posts = get_posts($args_posts);
 				foreach ($posts as $key_p => $post) {
 					
-					$post = Posts::new_params($post);
+					$posts[$key_p] = Posts::new_params($post);
 				}
 				$object->posts = $posts;
 			}
