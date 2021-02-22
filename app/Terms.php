@@ -25,7 +25,7 @@ Class Terms Extends App {
 
 			$term = get_term($term_id);
 			
-			$taxonomies = explode(',', get_option('taxonomies_rlout'));
+			$taxonomies = explode(',', Helpers::getOption('taxonomies_rlout'));
 			
 			if(in_array($term->taxonomy, $taxonomies)){
 				
@@ -49,7 +49,7 @@ Class Terms Extends App {
 		
 		$term = get_term($term_id);
 		
-		$taxonomies = explode(',', get_option('taxonomies_rlout'));
+		$taxonomies = explode(',', Helpers::getOption('taxonomies_rlout'));
 		
 		if(in_array($term->taxonomy, $taxonomies)){
 			
@@ -63,7 +63,7 @@ Class Terms Extends App {
 				$term->slug = $slug_new;
 			}
 			
-			$dir_base = get_option("path_rlout") . $url;
+			$dir_base = Helpers::getOption('path_rlout') . $url;
 			
 			unlink($dir_base . '/index.html');
 			rmdir($dir_base);
@@ -84,7 +84,7 @@ Class Terms Extends App {
 
 	static function api($term_update=null){
 		
-		$taxonomies = explode(",", get_option('taxonomies_rlout'));
+		$taxonomies = explode(",", Helpers::getOption('taxonomies_rlout'));
 		
 		$urls = array();
 		
@@ -92,9 +92,9 @@ Class Terms Extends App {
 			
 			$terms = get_terms(array("taxonomy"=>$tax, 'hide_empty' => false));
 
-			$dir_base = get_option("path_rlout");
+			$dir_base = Helpers::getOption('path_rlout');
 			
-			$replace_url = get_option('replace_url_rlout');
+			$replace_url = Helpers::getOption('replace_url_rlout');
 			if(empty($replace_url)){
 				$replace_url = site_url().'/html';
 			}
@@ -136,9 +136,9 @@ Class Terms Extends App {
 			
 			$response = json_encode($terms , JSON_UNESCAPED_SLASHES);
 			
-			$replace_uploads = get_option('uploads_rlout');
+			$replace_uploads = Helpers::getOption('uploads_rlout');
 			
-			$uploads_url_rlout = get_option('uploads_url_rlout'); 
+			$uploads_url_rlout = Helpers::getOption('uploads_url_rlout'); 
 			
 			if($replace_uploads){
 				
@@ -176,7 +176,7 @@ Class Terms Extends App {
 	static function object_term($object, $show_posts=true){
 		
 		$url = get_term_link($object);
-		$ignore_json_rlout = explode(',' ,get_option("ignore_json_rlout"));
+		$ignore_json_rlout = explode(',', Helpers::getOption('ignore_json_rlout'));
 		if(empty(in_array($url, $ignore_json_rlout))){
 			
 			unset($object->term_group);
@@ -187,7 +187,7 @@ Class Terms Extends App {
 			$object = Helpers::url_json_obj($object);
 			
 			$args_posts = array();
-			$args_posts['post_type'] = explode(",", get_option('post_types_rlout'));
+			$args_posts['post_type'] = explode(",", Helpers::getOption('post_types_rlout'));
 			$args_posts['posts_per_page'] = -1;
 			$args_posts['order'] = 'DESC';
 			$args_posts['orderby'] = 'date';

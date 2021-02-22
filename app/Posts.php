@@ -15,7 +15,7 @@ Class Posts {
 	public function __construct(){
 		
 		// verifica alterações de posts
-		$post_types = explode(',', get_option('post_types_rlout'));
+		$post_types = explode(',', Helpers::getOption('post_types_rlout'));
 		foreach ($post_types as $key => $post_type) {
 			add_action( 'publish_'.$post_type, array($this, 'create_folder'));
 			add_action( 'draft_'.$post_type, array($this, 'delete_folder'));
@@ -32,7 +32,7 @@ Class Posts {
 				
 				if($meta_key=='_edit_lock'){
 					
-					$post_types = explode(',', get_option('post_types_rlout'));
+					$post_types = explode(',', Helpers::getOption('post_types_rlout'));
 					
 					$post =  get_post($post_id);
 					if(in_array($post->post_type, $post_types)){
@@ -44,7 +44,7 @@ Class Posts {
 						}
 						
 						// Verificando os terms do post de todas as taxonomies selecionadas
-						$taxonomies = explode(",", get_option('taxonomies_rlout'));
+						$taxonomies = explode(",", Helpers::getOption('taxonomies_rlout'));
 						$terms = wp_get_post_terms($post->ID, $taxonomies);
 						
 						$objects = array();
@@ -70,7 +70,7 @@ Class Posts {
 		
 		$post = get_post($post_id);
 		
-		$post_types = explode(',', get_option('post_types_rlout'));
+		$post_types = explode(',', Helpers::getOption('post_types_rlout'));
 		
 		if(in_array($post->post_type, $post_types)){
 			if($post->post_status=='publish' && $_POST['post_status']=='publish'){
@@ -91,7 +91,7 @@ Class Posts {
 			$url_delete = $url_del;
 			if($url_delete){
 				$dir_base =  explode('__trashed', '', $url_delete);
-				$dir_base = get_option("path_rlout") . str_replace(site_url(), '', $dir_base);
+				$dir_base = Helpers::getOption('path_rlout') . str_replace(site_url(), '', $dir_base);
 				
 				unlink($dir_base . 'index.html');
 				rmdir($dir_base);
@@ -108,7 +108,7 @@ Class Posts {
 	
 	static function api($post=null){
 		
-		$post_types = explode(",", get_option('post_types_rlout'));
+		$post_types = explode(",", Helpers::getOption('post_types_rlout'));
 
 		$gerenate_all = false;
 
@@ -124,7 +124,7 @@ Class Posts {
 				$post->post_type = $post_type;
 			}
 			
-			$replace_url = get_option('replace_url_rlout');
+			$replace_url = Helpers::getOption('replace_url_rlout');
 			if(empty($replace_url)){
 				$replace_url = site_url().'/html';
 			}
@@ -133,11 +133,11 @@ Class Posts {
 
 			$response = json_encode($posts_arr , JSON_UNESCAPED_SLASHES);
 			
-			$replace_uploads = get_option('uploads_rlout');
+			$replace_uploads = Helpers::getOption('uploads_rlout');
 			
 			if($replace_uploads){
 
-				$uploads_url_rlout = get_option('uploads_url_rlout'); 
+				$uploads_url_rlout = Helpers::getOption('uploads_url_rlout'); 
 				
 				$upload_url = wp_upload_dir();						
 				
@@ -149,7 +149,7 @@ Class Posts {
 				
 			}
 			
-			$dir_base =  get_option("path_rlout");
+			$dir_base =  Helpers::getOption('path_rlout');
 			if( realpath($dir_base) === false ){
 				mkdir($dir_base);
 			}
@@ -173,7 +173,7 @@ Class Posts {
 	
 	static function get_post_json($post=null, $not_in=array()){
 		
-		$replace_url = get_option('replace_url_rlout');
+		$replace_url = Helpers::getOption('replace_url_rlout');
 		if(empty($replace_url)){
 			$replace_url = site_url().'/html';
 		}
@@ -217,7 +217,7 @@ Class Posts {
 
 			$posts_arr = array();
 
-			$ignore_json_rlout = explode(',' ,get_option("ignore_json_rlout"));
+			$ignore_json_rlout = explode(',' , Helpers::getOption('ignore_json_rlout'));
 			foreach ($posts as $key => $post) {
 				
 				$url = get_permalink($post);
@@ -242,7 +242,7 @@ Class Posts {
 	
 	static function new_params($post, $show_terms=false){
 		
-		$rpl = get_option('replace_url_rlout');
+		$rpl = Helpers::getOption('replace_url_rlout');
 		if(empty($rpl)){
 			$rpl = site_url().'/html';
 		}
@@ -253,18 +253,18 @@ Class Posts {
 		$new_post['post_title'] = $post->post_title;
 		$new_post['post_date'] = $post->post_date;
 		$new_post['post_excerpt'] = get_the_excerpt($post);
-		$size_thumb = get_option('size_thumbnail_rlout');
+		$size_thumb = Helpers::getOption('size_thumbnail_rlout');
 		
 		$thumbnail = get_the_post_thumbnail_url($post, $size_thumb);
 		if(empty($thumbnail)){
-			$thumbnail = get_option("uri_rlout").'/img/default.jpg';
-			$thumbnail = str_replace(get_option("uri_rlout"), $rpl, $thumbnail);
+			$thumbnail = Helpers::getOption('uri_rlout').'/img/default.jpg';
+			$thumbnail = str_replace(Helpers::getOption('uri_rlout'), $rpl, $thumbnail);
 		}
 		$new_post['thumbnail'] = $thumbnail;
 		$url = str_replace(site_url(),$rpl,get_permalink($post)).'index.json';
 		$new_post['post_json'] = $url;
 		
-		$taxonomies = explode(",", get_option('taxonomies_rlout'));
+		$taxonomies = explode(",", Helpers::getOption('taxonomies_rlout'));
 		if(!empty($taxonomies) && $show_terms==true){
 			
 			foreach($taxonomies as $taxonomy){

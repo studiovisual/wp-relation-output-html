@@ -3,6 +3,7 @@
 namespace WpRloutHtml\Essentials;
 
 use WpRloutHtml\Essentials\Curl;
+use WpRloutHtml\Helpers;
 use WpRloutHtml\Terms;
 use WpRloutHtml\Posts;
 
@@ -48,7 +49,7 @@ Class WpAjax {
         $urls = array();
         
         // Subfiles
-        $files = explode(',', get_option("subfiles_rlout"));
+        $files = explode(',', Helpers::getOption('subfiles_rlout'));
         
         foreach ($files as $key => $file) {
             
@@ -59,13 +60,13 @@ Class WpAjax {
         
         // Taxonomy
         if($taxonomy=='all'){
-            $taxonomy = explode(",", get_option('taxonomies_rlout'));
+            $taxonomy = explode(",", Helpers::getOption('taxonomies_rlout'));
         }else if(!empty($taxonomy)){
             $taxonomy = array($taxonomy);
         }
         foreach($taxonomy as $tax){
             $terms = get_terms(array("taxonomy"=>$tax, 'hide_empty' => false));
-            $ignore_json_rlout = explode(',' ,get_option("ignore_json_rlout"));
+            $ignore_json_rlout = explode(',', Helpers::getOption('ignore_json_rlout'));
             foreach ($terms as $key => $term) {
                 $url = get_term_link($term);
                 if(array_search($url, $ignore_json_rlout)!='NULL'){
@@ -76,7 +77,7 @@ Class WpAjax {
         // Post_type
         $args_posts = array();
         if($post_type=='all'){
-            $post_type = explode(",", get_option('post_types_rlout'));
+            $post_type = explode(",", Helpers::getOption('post_types_rlout'));
         }else if(!empty($post_type)){
             $post_type = array($post_type);
         }
@@ -102,7 +103,7 @@ Class WpAjax {
         $args_posts['post__not_in'] = $not_in;
         
         $posts = get_posts($args_posts);
-        $ignore_json_rlout = explode(',' ,get_option("ignore_json_rlout"));
+        $ignore_json_rlout = explode(',', Helpers::getOption('ignore_json_rlout'));
         foreach($posts as $post){
             $url = get_permalink($post);
             if(array_search($url, $ignore_json_rlout)!='NULL'){
@@ -130,7 +131,7 @@ Class WpAjax {
         
         $array_search = array();
         
-        $post_types = explode(",", get_option('post_types_rlout'));
+        $post_types = explode(",", Helpers::getOption('post_types_rlout'));
         $args_posts = array();
         $args_posts['post_type'] = $post_types;
         $args_posts['posts_per_page'] = 25;
@@ -153,7 +154,7 @@ Class WpAjax {
             $key_all++;
         }
         
-        $taxonomies = explode(",", get_option('taxonomies_rlout'));
+        $taxonomies = explode(",", Helpers::getOption('taxonomies_rlout'));
         foreach($taxonomies as $tax){
             $terms = get_terms(array("name__like"=>$_GET['search'],"taxonomy"=>$tax, 'hide_empty' => false));
             foreach ($terms as $key_t => $term) {
