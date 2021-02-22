@@ -8,34 +8,28 @@ use WpRloutHtml\Modules\Cloudfront;
 Class S3 {
 
     static function upload_file($file_dir, $ignore_cloud=true){
+        
         if($file_dir){
             
             $access_key = get_option('s3_key_rlout');
             $secret_key = get_option('s3_secret_rlout');
             $acl_key = get_option('s3_acl_rlout');
+            $region = get_option('s3_region_rlout');
             
-            // echo $secret_key;
             if(!empty($secret_key)){
 
-                // var_dump($access_key);
-                // var_dump($secret_key);
-                // var_dump(get_option('s3_region_rlout'));
-                
                 // creates a client object, informing AWS credentials
-                    $clientS3 = new S3Client([
-                        // 'key'    => $access_key,
-                        // 'secret' => $secret_key,
-                        'credentials' => [
-                            'key'    => $access_key,
-                            'secret' => $secret_key,
-                        ],
-                        'version' => 'latest',
-                        'region' => 'us-east-1',
-                    ]);
+                $clientS3 = new S3Client([
+                    'credentials' => [  
+                        'key'    => $access_key,
+                        'secret' => $secret_key,
+                    ],
+                    'version' => 'latest',
+                    'region' => $region,
+                ]);
             
 
-                // putObject method sends data to the chosen bucket (in our case, teste-marcelo)
-                
+                // putObject method sends data to the chosen bucket
                 $file_dir = str_replace("//", "/", $file_dir);
                 $file_dir = str_replace("./", "/", $file_dir);
                 
@@ -45,7 +39,7 @@ Class S3 {
                 $directory_empty = explode('/', $key_file_s3);
                 
                 if(!empty($key_file_s3) && !empty(end($directory_empty)) ){
-                    
+
                     $response = $clientS3->putObject(array(
                         'Bucket' => get_option('s3_bucket_rlout'),
                         'Key'    => $key_file_s3,
