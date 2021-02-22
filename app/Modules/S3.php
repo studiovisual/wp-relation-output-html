@@ -4,6 +4,7 @@ namespace WpRloutHtml\Modules;
 
 use Aws\S3\S3Client;
 use WpRloutHtml\Modules\Cloudfront;
+use WpRloutHtml\Helpers;
 
 Class S3 {
 
@@ -11,10 +12,10 @@ Class S3 {
         
         if($file_dir){
             
-            $access_key = get_option('s3_key_rlout');
-            $secret_key = get_option('s3_secret_rlout');
-            $acl_key = get_option('s3_acl_rlout');
-            $region = get_option('s3_region_rlout');
+            $access_key = Helpers::getOption('s3_key_rlout');
+            $secret_key = Helpers::getOption('s3_secret_rlout');
+            $acl_key = Helpers::getOption('s3_acl_rlout');
+            $region = Helpers::getOption('s3_region_rlout');
             
             if(!empty($secret_key)){
 
@@ -33,15 +34,15 @@ Class S3 {
                 $file_dir = str_replace("//", "/", $file_dir);
                 $file_dir = str_replace("./", "/", $file_dir);
                 
-                $key_file_s3 = str_replace(get_option("path_rlout").'/','', $file_dir);
-                $key_file_s3 = str_replace(get_option("path_rlout"),'', $key_file_s3);
+                $key_file_s3 = str_replace(Helpers::getOption('path_rlout').'/','', $file_dir);
+                $key_file_s3 = str_replace(Helpers::getOption('path_rlout'),'', $key_file_s3);
                 
                 $directory_empty = explode('/', $key_file_s3);
                 
                 if(!empty($key_file_s3) && !empty(end($directory_empty)) ){
 
                     $response = $clientS3->putObject(array(
-                        'Bucket' => get_option('s3_bucket_rlout'),
+                        'Bucket' => Helpers::getOption('s3_bucket_rlout'),
                         'Key'    => $key_file_s3,
                         'SourceFile' => $file_dir,
                         'ACL'    => $acl_key
@@ -60,8 +61,8 @@ Class S3 {
 
     static function remove_file($file_dir){
 			
-        $access_key = get_option('s3_key_rlout');
-        $secret_key = get_option('s3_secret_rlout');
+        $access_key = Helpers::getOption('s3_key_rlout');
+        $secret_key = Helpers::getOption('s3_secret_rlout');
         
         if(!empty($secret_key)){
             
@@ -73,15 +74,15 @@ Class S3 {
                 'secret' => $secret_key
             ));
             
-            $key_file_s3 = str_replace(get_option("path_rlout").'/','', $file_dir);
-            $key_file_s3 = str_replace(get_option("path_rlout"),'', $key_file_s3);
+            $key_file_s3 = str_replace(Helpers::getOption('path_rlout').'/','', $file_dir);
+            $key_file_s3 = str_replace(Helpers::getOption('path_rlout'),'', $key_file_s3);
             
             $directory_empty = explode('/', $key_file_s3);
 
             if(!empty($key_file_s3) && !empty(end($directory_empty)) ){
 
                 $response = $clientS3->deleteObject(array(
-                    'Bucket' => get_option('s3_bucket_rlout'),
+                    'Bucket' => Helpers::getOption('s3_bucket_rlout'),
                     'Key' => $key_file_s3
                 ));
                 

@@ -83,7 +83,7 @@ Class Menu {
 
     public function blog_public(){
 		
-		$robots = get_option('robots_rlout');
+		$robots = Helpers::getOption('robots_rlout');
 		
 		if($robots){
 			
@@ -103,7 +103,7 @@ Class Menu {
 			update_option('path_rlout', PATH_RLOUT);
 		}
 		
-		$uri = get_option("uri_rlout");
+		$uri = Helpers::getOption('uri_rlout');
 		if(empty($uri)){
 			update_option('uri_rlout', get_template_directory_uri());
 		}
@@ -142,7 +142,7 @@ Class Menu {
             $importants_link = $actual_link.'?importants_rlout=true';
         }
         
-        $DistributionId = get_option('s3_distributionid_rlout');
+        $DistributionId = Helpers::getOption('s3_distributionid_rlout');
         if(!empty($DistributionId)){
 
             $cloudfront = new Cloudfront;

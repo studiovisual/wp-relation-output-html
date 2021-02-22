@@ -35,7 +35,7 @@ Class Curl {
 		if(!empty($text_post)){
 			$object = $text_post;
 		}else{
-			$taxonomy = explode(",", get_option('taxonomies_rlout'));
+			$taxonomy = explode(",", Helpers::getOption('taxonomies_rlout'));
 			foreach($taxonomy as $tax){
 				$slug_term = explode("/",$object);
 				foreach($slug_term as $key_b => $barra){
@@ -82,12 +82,12 @@ Class Curl {
 			
 			$response = Helpers::replace_json($response);
 			
-			$dir_base =  get_option("path_rlout");
+			$dir_base = Helpers::getOption('path_rlout');
 			if( is_dir($dir_base) === false ){
 				mkdir($dir_base);
 			}
 
-			$uri = get_option("uri_rlout");
+			$uri = Helpers::getOption('uri_rlout');
 
 			$replace_raiz = str_replace($uri, '', $url);
 			$replace_raiz = str_replace(site_url(), '', $replace_raiz);
@@ -106,8 +106,8 @@ Class Curl {
 
 					$htt = str_replace('https:', '', site_url());
 					$htt = str_replace('http:', '', $htt);
-					$original_response = str_replace(site_url(), get_option("replace_url_rlout"), $original_response);
-					$original_response = str_replace('href="'.$htt, 'href="'.get_option("replace_url_rlout"), $original_response);
+					$original_response = str_replace(site_url(), Helpers::getOption('replace_url_rlout'), $original_response);
+					$original_response = str_replace('href="'.$htt, 'href="'. Helpers::getOption('replace_url_rlout'), $original_response);
 					$xml = simplexml_load_string($response);
 					foreach($xml->sitemap as $sitemap){
 						if(isset($sitemap->loc)){
@@ -132,9 +132,9 @@ Class Curl {
 			
 			$file_json = fopen($dir_base . $json_default,"w");
 			
-			$replace_uploads = get_option('uploads_rlout');
+			$replace_uploads = Helpers::getOption('uploads_rlout');
 			
-			$uploads_url_rlout = get_option('uploads_url_rlout'); 
+			$uploads_url_rlout = Helpers::getOption('uploads_url_rlout'); 
 			
 			if($replace_uploads){
 				$upload_url = wp_upload_dir();
@@ -147,11 +147,11 @@ Class Curl {
 				
 			}
 			
-			$response = Helpers::replace_reponse(get_option("uri_rlout"), $response);
+			$response = Helpers::replace_reponse(Helpers::getOption('uri_rlout'), $response);
 			
 			$jsons = array();
 
-			$ignore_files_rlout = explode(',', get_option("ignore_files_rlout"));
+			$ignore_files_rlout = explode(',', Helpers::getOption('ignore_files_rlout'));
 			if(empty(in_array($url, $ignore_files_rlout))){
 
 				fwrite($file, $response);
@@ -160,7 +160,7 @@ Class Curl {
 				Ftp::upload_file($dir_base . $file_default);
 				S3::upload_file($dir_base . $file_default, false);
 
-				$amp = get_option('amp_rlout');
+				$amp = Helpers::getOption('amp_rlout');
 				if(!empty($amp)){
 					Curl::deploy_upload($url.'/amp/');
 				}
@@ -173,9 +173,9 @@ Class Curl {
 				}else if($object->ID){
 					$object = Posts::new_params($object, true);
 				}
-				$response_json = Helpers::replace_reponse(get_option("uri_rlout"), json_encode($object));
+				$response_json = Helpers::replace_reponse(Helpers::getOption('uri_rlout'), json_encode($object));
 
-				$ignore_json_rlout = explode(',' ,get_option("ignore_json_rlout"));
+				$ignore_json_rlout = explode(',' , Helpers::getOption('ignore_json_rlout'));
 				if(empty(in_array($url, $ignore_json_rlout))){
 
 					fwrite($file_json,  $response_json);
@@ -214,13 +214,13 @@ Class Curl {
                 
                 $response = Helpers::replace_json($response);
                 
-                $dir_base =  get_option("path_rlout");
+                $dir_base = Helpers::getOption('path_rlout');
                 if( is_dir($dir_base) === false ){
                     mkdir($dir_base);
                 }
                 
                 if($media){
-                    $dir_base =  get_option("path_rlout") . $media;
+                    $dir_base = Helpers::getOption('path_rlout') . $media;
                     if( is_dir($dir_base) === false ){
                         mkdir($dir_base);
                     }
@@ -230,14 +230,14 @@ Class Curl {
                 
                 if($media){
                     $upload_url = wp_upload_dir();
-                    $uploads_url_rlout = get_option('uploads_url_rlout'); 
+                    $uploads_url_rlout = Helpers::getOption('uploads_url_rlout'); 
                     $file_name = str_replace($upload_url['baseurl'], '', $url);
                     
                     if($uploads_url_rlout){
                         $file_name = str_replace($uploads_url_rlout, '', $file_name);
                     }
                 }else{
-                    $file_name = str_replace(get_option("uri_rlout"), '', $url);
+                    $file_name = str_replace(Helpers::getOption('uri_rlout'), '', $url);
                     $file_name = str_replace(site_url(), '', $file_name);
                 }
                 
@@ -269,9 +269,9 @@ Class Curl {
                                 
                                 $attr = $dir_base  . '/' . $attr;
                                 
-                                $attr = str_replace(get_option("path_rlout"), '', $attr);
+                                $attr = str_replace(Helpers::getOption('path_rlout'), '', $attr);
                                 
-                                $attr = get_option("uri_rlout") . $attr;
+                                $attr = Helpers::getOption('uri_rlout') . $attr;
                                 
                                 $svg = explode("data:image", $attr);
                                 
@@ -317,7 +317,7 @@ Class Curl {
 			CURLOPT_CUSTOMREQUEST => "GET",
 			CURLOPT_HTTPHEADER => array(
 				"cache-control: no-cache",
-				"Authorization: Basic ".base64_encode(get_option('userpwd_rlout').":".get_option('passpwd_rlout'))
+				"Authorization: Basic ".base64_encode(Helpers::getOption('userpwd_rlout') . ":" . Helpers::getOption('passpwd_rlout'))
 			),
 		));
 		

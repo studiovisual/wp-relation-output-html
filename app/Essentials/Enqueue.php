@@ -2,6 +2,8 @@
 
 namespace WpRloutHtml\Essentials;
 
+use WpRloutHtml\Helpers;
+
 Class Enqueue {
 
     public function __construct(){
@@ -29,7 +31,7 @@ Class Enqueue {
             
             global $post;
             
-            $post_types = explode(',', get_option('post_types_rlout'));
+            $post_types = explode(',', Helpers::getOption('post_types_rlout'));
 
             $post_type = null;
             if(!empty($_GET['post_type'])){
@@ -40,7 +42,7 @@ Class Enqueue {
                 $post_type = $post->post_type;
             }
             
-            $taxonomies = explode(',', get_option('taxonomies_rlout'));
+            $taxonomies = explode(',', Helpers::getOption('taxonomies_rlout'));
             $taxonomy = null;
             if(!empty($_GET['taxonomy'])){
                 $taxonomy = $_GET['taxonomy'];

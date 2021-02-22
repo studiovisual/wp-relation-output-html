@@ -2,27 +2,29 @@
 
 namespace WpRloutHtml\Modules;
 
+use WpRloutHtml\Helpers;
+
 Class Ftp {
     
     static function upload_file($file_dir){
         
         //serverip
-        $ftp_server = get_option('ftp_host_rlout');
+        $ftp_server = Helpers::getOption('ftp_host_rlout');
         
         if(!empty($ftp_server)){
             
             $conn_id = ftp_connect($ftp_server);
             
             // login with username and password
-            $user = get_option('ftp_user_rlout');
+            $user = Helpers::getOption('ftp_user_rlout');
             
-            $passwd = get_option('ftp_passwd_rlout');
+            $passwd = Helpers::getOption('ftp_passwd_rlout');
             
-            $folder = get_option('ftp_folder_rlout');
+            $folder = Helpers::getOption('ftp_folder_rlout');
             
             $login_result = ftp_login($conn_id, $user, $passwd);
             
-            $destination_file = $folder . str_replace(get_option("path_rlout"), '', $file_dir);
+            $destination_file = $folder . str_replace(Helpers::getOption('path_rlout'), '', $file_dir);
             
             // upload the file
             $upload = ftp_put($conn_id, $destination_file, $file_dir, FTP_BINARY);
@@ -35,22 +37,22 @@ Class Ftp {
     static function remove_file($file_dir){
         
         //serverip
-        $ftp_server = get_option('ftp_host_rlout');
+        $ftp_server = Helpers::getOption('ftp_host_rlout');
         
         if(!empty($ftp_server)){
             
             $conn_id = ftp_connect($ftp_server);
             
             // login with username and password
-            $user = get_option('ftp_user_rlout');
+            $user = Helpers::getOption('ftp_user_rlout');
             
-            $passwd = get_option('ftp_passwd_rlout');
+            $passwd = Helpers::getOption('ftp_passwd_rlout');
             
-            $folder = get_option('ftp_folder_rlout');
+            $folder = Helpers::getOption('ftp_folder_rlout');
             
             $login_result = ftp_login($conn_id, $user, $passwd);
             
-            $destination_file = $folder . str_replace(get_option("path_rlout"), '', $file_dir);
+            $destination_file = $folder . str_replace(Helpers::getOption('path_rlout'), '', $file_dir);
             
             // upload the file
             $delete = ftp_delete($conn_id, $destination_file);

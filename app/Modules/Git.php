@@ -2,18 +2,20 @@
 
 namespace WpRloutHtml\Modules;
 
+use WpRloutHtml\Helpers;
+
 Class Git {
     
     // faz um commit via proc_open
     static function upload_file($commit){
         
-        $repository = get_option('git_repository_rlout');
+        $repository = Helpers::getOption('git_repository_rlout');
         
         if(!empty($repository)){
             
             $commands = array();
             
-            $commands[] = 'cd ' . get_option("path_rlout");
+            $commands[] = 'cd ' . Helpers::getOption('path_rlout');
             
             $commands[] = 'git init';
             

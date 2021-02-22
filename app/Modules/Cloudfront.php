@@ -3,6 +3,7 @@
 namespace WpRloutHtml\Modules;
 
 use Aws\CloudFront\CloudFrontClient;
+use WpRloutHtml\Helpers;
 
 Class Cloudfront {
 
@@ -21,20 +22,20 @@ Class Cloudfront {
 
     static function invalid($response){
         // debug_print_backtrace();
-        $DistributionId = get_option('s3_distributionid_rlout');
+        $DistributionId = Helpers::getOption('s3_distributionid_rlout');
 
 		if(!empty($DistributionId)){
 			$CallerReference = (string) rand(100000,9999999).strtotime(date('Y-m-dH:i:s'));
 			$raiz = str_replace(site_url(), '', $response);
 			
-			$access_key = get_option('s3_key_rlout');
-			$secret_key = get_option('s3_secret_rlout');
-			$acl_key = get_option('s3_acl_rlout');
-			$region = get_option('s3_region_rlout');
+			$access_key = Helpers::getOption('s3_key_rlout');
+			$secret_key = Helpers::getOption('s3_secret_rlout');
+			$acl_key = Helpers::getOption('s3_acl_rlout');
+			$region = Helpers::getOption('s3_region_rlout');
 			
 			try{
 				$cloudFrontClient = new CloudFrontClient([
-					'region' => 'us-east-1',
+					'region' => $region,
 					'version' => 'latest',
 					'credentials' => [
 						'key'    => $access_key,
@@ -58,13 +59,7 @@ Class Cloudfront {
 			catch(\Aws\CloudFront\Exception\CloudFrontException $e) {
 				die($e);
 			}
-			
 
-			// $result = $cloudFrontClient->listDistributions([]);
-			// die(var_dump($result));
-			// $result = $cloudFrontClient->listInvalidations(['DistributionId'=>$DistributionId]);
-
-			
 			return $result;
 		}
     }

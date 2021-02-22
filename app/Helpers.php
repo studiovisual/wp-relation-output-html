@@ -8,11 +8,13 @@ use WpRloutHtml\Modules\Ftp;
 
 Class Helpers {
 
+	private static $options = array();
+
 	static function subfiles_generate(){
 
 		$curl = new Curl;
 		
-		$files = explode(',', get_option("subfiles_rlout"));
+		$files = explode(',', self::getOption('subfiles_rlout'));
 		
 		foreach ($files as $key => $file) {
 			
@@ -27,7 +29,7 @@ Class Helpers {
 
     static function blog_public(){
 		
-		$robots = get_option('robots_rlout');
+		$robots = self::getOption('robots_rlout');
 		
 		if($robots){
 			
@@ -47,7 +49,7 @@ Class Helpers {
 			update_option('path_rlout', PATH_RLOUT);
 		}
 		
-		$uri = get_option("uri_rlout");
+		$uri = self::getOption('uri_rlout');
 		if(empty($uri)){
 			update_option('uri_rlout', get_template_directory_uri());
 		}
@@ -55,11 +57,11 @@ Class Helpers {
 
     static function gen_html_cron_function() {
 		
-		$hora_marcada = strtotime(get_option('horario_cron_rlout'));
+		$hora_marcada = strtotime(self::getOption('horario_cron_rlout'));
 		
 		if($hora_marcada==strtotime(date('H:i'))){
 			
-			$dir_base =  get_option("path_rlout");
+			$dir_base =  self::getOption('path_rlout');
 			
 			if( is_dir($dir_base) === true ){
 				
@@ -75,7 +77,7 @@ Class Helpers {
     static function importantfiles_generate(){
 		
 		// Generate FILE 1
-		$files = explode(',', get_option("pages_important_rlout"));
+		$files = explode(',', self::getOption('pages_important_rlout'));
 		
 		foreach ($files as $key => $file) {
 			
@@ -90,8 +92,8 @@ Class Helpers {
 
     static function url_json_obj($object){
 		
-		$dir_base =  get_option("path_rlout");
-		$rpl = get_option('replace_url_rlout');
+		$dir_base =  self::getOption('path_rlout');
+		$rpl = self::getOption('replace_url_rlout');
 		if(empty($rpl)){
 			$rpl = site_url().'/html';
 		}
@@ -131,7 +133,7 @@ Class Helpers {
         
         
         //replace url
-        $rpl = get_option('replace_url_rlout');
+        $rpl = self::getOption('replace_url_rlout');
         if(empty($rpl)){
             $rpl = site_url().'/html';
         }
@@ -154,17 +156,22 @@ Class Helpers {
     
     static function replace_json($response){
 
-        $jsons = explode(",", get_option("api_1_rlout"));
+        $jsons = explode(",", self::getOption('api_1_rlout'));
         
         foreach ($jsons as $key => $json) {
             
             $json_name = explode("action=", $json);
             $json_name = explode("&", $json_name[1]);
-            $json_name = get_option("path_rlout") . $json_name[0] . '.json';
+            $json_name = self::getOption('path_rlout') . $json_name[0] . '.json';
             
             $response = str_replace($json, $json_name, $response);
         }
         
         return $response;
     }
+
+	public static function getOption($option) {
+        return !isset(self::$options[$option]) ? self::$options[$option] = get_option($option) : self::$options[$option];
+    }
+
 }

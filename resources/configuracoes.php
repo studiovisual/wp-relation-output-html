@@ -1,4 +1,11 @@
-<?php $user = wp_get_current_user(); ?> 
+
+<?php 
+
+use WpRloutHtml\Helpers;
+
+$user = wp_get_current_user(); 
+
+?> 
 <div class="wrap">
 
 	<?php if(!empty($_GET['loading_deploy'])): ?>
@@ -28,7 +35,7 @@
 								<label for="<?php echo $key_field; ?>"><?php echo $field['label']; ?></label>
 							</th>
 							<td>
-								<input name="<?php echo $key_field; ?>" <?php if(!empty($field['disabled'])){echo 'disabled="'.$field['disabled'].'"';} ?> type="text" id="<?php echo $key_field; ?>" value="<?php echo get_option($key_field); ?>" class="regular-text">
+								<input name="<?php echo $key_field; ?>" <?php if(!empty($field['disabled'])){echo 'disabled="'.$field['disabled'].'"';} ?> type="text" id="<?php echo $key_field; ?>" value="<?php echo Helpers::getOption($key_field); ?>" class="regular-text">
 							</td>
 						</tr>
 					<?php endif; ?>
@@ -41,14 +48,14 @@
 							</td>
 						</tr>
 
-						<?php $values_r = explode(",", get_option($key_field)); ?>
+						<?php $values_r = explode(",", Helpers::getOption($key_field)); ?>
 						<?php if(empty($values_r)): ?>
 							<tr>
 								<th scope="row">
 									<label for="<?php echo $key_field; ?>"><?php echo $field['label']; ?></label>
 								</th>
 								<td>
-									<input name="<?php echo $key_field; ?>[]" type="text" id="<?php echo $key_field; ?>" value="<?php echo get_option($key_field); ?>" class="regular-text">
+									<input name="<?php echo $key_field; ?>[]" type="text" id="<?php echo $key_field; ?>" value="<?php echo Helpers::getOption($key_field); ?>" class="regular-text">
 								</td>
 							</tr>
 							<?php else: ?>
@@ -72,7 +79,7 @@
 									<label for="<?php echo $key_field; ?>"><?php echo $field['label']; ?></label>
 								</th>
 								<td>
-									<input name="<?php echo $key_field; ?>" type="checkbox" id="<?php echo $key_field; ?>" value="true" class="regular-text" <?php if(!empty(get_option($key_field))){echo'checked';} ?>> 
+									<input name="<?php echo $key_field; ?>" type="checkbox" id="<?php echo $key_field; ?>" value="true" class="regular-text" <?php if(!empty(Helpers::getOption($key_field))){echo'checked';} ?>> 
 								</td>
 							</tr>
 						<?php endif; ?>
@@ -84,7 +91,7 @@
 									<small>Horário do servidor: <span style="color: #f00;"><?php echo date('H:i'); ?></span></small>
 								</th>
 								<td>
-									<input name="<?php echo $key_field; ?>" type="time" id="<?php echo $key_field; ?>" value="<?php echo get_option($key_field); ?>" class="regular-text">
+									<input name="<?php echo $key_field; ?>" type="time" id="<?php echo $key_field; ?>" value="<?php echo Helpers::getOption($key_field); ?>" class="regular-text">
 								</td>
 							</tr>
 						<?php endif; ?>
@@ -97,7 +104,7 @@
 								<td>
 									<select name="<?php echo $key_field; ?><?php if($field['multiple']){echo'[]';} ?>" id="<?php echo $key_field; ?>" <?php if($field['multiple']){echo'multiple';} ?> >
 										<?php foreach($field['options'] as $option): ?>
-											<option value="<?php echo $option; ?>" <?php if(in_array($option, explode(',', get_option($key_field)))){echo'selected';} ?> ><?php echo $option; ?></option>
+											<option value="<?php echo $option; ?>" <?php if(in_array($option, explode(',', Helpers::getOption($key_field)))){echo'selected';} ?> ><?php echo $option; ?></option>
 										<?php endforeach; ?>
 									</select>
 								</td>
@@ -112,7 +119,7 @@
 								<td>
 									<select style="width:350px;" data-action_ajax="<?php echo $field['action_ajax']; ?>" name="<?php echo $key_field; ?><?php if($field['multiple']){echo'[]';} ?>" id="<?php echo $key_field; ?>" <?php if($field['multiple']){echo'multiple';} ?> >
 										<?php if(empty($field['options'])): ?>
-											<?php $values_select = explode(',',get_option($key_field)); ?>
+											<?php $values_select = explode(',', Helpers::getOption($key_field)); ?>
 											<?php foreach($values_select as $value_select2): ?>
 												<?php
 													$title = $value_select2;
@@ -126,7 +133,7 @@
 														if(empty(end($url_term))){
 															unset($url_term[count($url_term)-1]);
 														}
-														$taxonomies = explode(',',get_option('taxonomies_rlout'));
+														$taxonomies = explode(',', Helpers::getOption('taxonomies_rlout'));
 														foreach($taxonomies as $tax){
 															$term = get_term_by('slug', end($url_term), $tax);
 															if(!empty($term->term_id)){
@@ -141,7 +148,7 @@
 											<?php endforeach; ?>
 										<?php else: ?>
 											<?php foreach($field['options'] as $option): ?>
-												<option value="<?php echo $option; ?>" <?php if(in_array($option, explode(',', get_option($key_field)))){echo'selected';} ?> ><?php echo $option; ?></option>
+												<option value="<?php echo $option; ?>" <?php if(in_array($option, explode(',', Helpers::getOption($key_field)))){echo'selected';} ?> ><?php echo $option; ?></option>
 											<?php endforeach; ?>
 										<?php endif; ?>
 									</select>
@@ -277,7 +284,7 @@
 
 			jQuery.ajax(settings_url).done(function (response_url) {
 				var total = parseInt(jQuery('.statics_page').html());
-				var url_main = response_url.replace("<?php echo site_url(); ?>","<?php echo get_option('replace_url_rlout'); ?>");
+				var url_main = response_url.replace("<?php echo site_url(); ?>","<?php echo Helpers::getOption('replace_url_rlout'); ?>");
 				jQuery('.statics_page').html(total+1);
 				jQuery('#results_static').append('<p><a href="'+url_main+'" target="_blank">'+url_main+'</a> - OK</p>');
 				
@@ -291,7 +298,7 @@
 				}
 			}).fail(function(response_url){
 				var total = parseInt(jQuery('.statics_page').html());
-				var url_main = response_url.replace("<?php echo site_url(); ?>","<?php echo get_option('replace_url_rlout'); ?>");
+				var url_main = response_url.replace("<?php echo site_url(); ?>","<?php echo Helpers::getOption('replace_url_rlout'); ?>");
 				jQuery('.statics_page').html(total+1);
 				jQuery('#results_static').append('<p><a href="'+url_main+'" target="_blank">'+url_main+'</a> - FAIL </p>');
 				
