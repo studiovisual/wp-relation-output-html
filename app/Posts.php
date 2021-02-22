@@ -171,8 +171,7 @@ Class Posts {
 		return $urls;
 	}
 	
-	static function get_post_json($post=null, $not_in=array()){
-		
+	static function get_post_json($post=null, $not_in=array(), $term = null){
 		$replace_url = Helpers::getOption('replace_url_rlout');
 		if(empty($replace_url)){
 			$replace_url = site_url().'/html';
@@ -180,40 +179,50 @@ Class Posts {
 		
 		if(!empty($post)){
 			
-			$json_exist = Curl::get($replace_url.'/'.$post->post_type.'.json');
-			$post_arr = json_decode($json_exist);
-			if(is_array($post_arr) && !empty($post->ID)){
+			if(!is_array($post->post_type)):
+				$json_exist = Curl::get($replace_url.'/'.$post->post_type.'.json');
+				$post_arr = json_decode($json_exist);
+				if(is_array($post_arr) && !empty($post->ID)){
 
-				$create_post = true;
-				
-				$new_post = Posts::new_params($post, true);
-				
-				foreach($post_arr as $arr_key => $arr){
-					if($arr->ID==$post->ID){
-						$create_post = false;
-						if($post->post_status=='publish'){
-							$post_arr[$arr_key] = $new_post;
-						}else{
-							unset($post_arr[$arr_key]);
+					$create_post = true;
+					
+					$new_post = Posts::new_params($post, true);
+					
+					foreach($post_arr as $arr_key => $arr){
+						if($arr->ID==$post->ID){
+							$create_post = false;
+							if($post->post_status=='publish'){
+								$post_arr[$arr_key] = $new_post;
+							}else{
+								unset($post_arr[$arr_key]);
+							}
 						}
 					}
+					
+					if($create_post==true){
+						$post_arr = array_unshift($post_arr, $new_post);
+					}
+					
+					return $post_arr;
 				}
-				
-				if($create_post==true){
-					$post_arr = array_unshift($post_arr, $new_post);
-				}
-				
-				return $post_arr;
-			}
+			endif;
 			
-			$posts = get_posts(array(
+			$args = array(
 				'post_type'=>$post->post_type,
 				'posts_per_page' => 25,
 				'order'=>'DESC',
 				'orderby'=>'date',
 				'post__not_in'=>$not_in
-				)
 			);
+
+			if(!empty($term)):
+				$args['tax_query'][0]['taxonomy'] = $term->taxonomy;
+            	$args['tax_query'][0]['terms'] = array($term->term_id);
+			endif;
+			
+			$posts = get_posts($args);
+			// if(count($posts) > 2)
+			// 	die(var_dump($posts));
 
 			$posts_arr = array();
 
@@ -229,6 +238,7 @@ Class Posts {
 				
 			}
 			
+			return;
 			if(count($posts)==25){
 				sleep(0.1);
 				$object = null;
