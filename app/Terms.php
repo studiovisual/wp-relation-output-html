@@ -83,7 +83,7 @@ Class Terms Extends App {
 		}
 	}
 
-	static function api($term_update=null){
+	static function api($term_update=null, $upload=true){
 		
 		$taxonomies = explode(",", Helpers::getOption('taxonomies_rlout'));
 		
@@ -132,9 +132,11 @@ Class Terms Extends App {
 
 					fwrite($file, $response);
 
-					Git::upload_file('Atualização de object');
-					Ftp::upload_file($file_raiz);
-					S3::upload_file($file_raiz, true);
+					if($upload==true){
+						Git::upload_file('Atualização de object');
+						Ftp::upload_file($file_raiz);
+						S3::upload_file($file_raiz, true);
+					}
 
 					unset($term->posts);
 				}

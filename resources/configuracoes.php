@@ -238,9 +238,9 @@ $user = wp_get_current_user();
 			jQuery('.statics_page').html('0');
 
 			var settings_json = {
-				"url": "<?php echo site_url(); ?>/wp-admin/admin-ajax.php?action=static_output_deploy_json",
-				"method": "GET",
-				"timeout": 0,
+					"url": "<?php echo site_url(); ?>/wp-admin/admin-ajax.php?action=static_output_deploy_json",
+					"method": "GET",
+					"timeout": 0,
 				};
 
 			jQuery.ajax(settings_json).done(function (response_json) {
@@ -256,9 +256,9 @@ $user = wp_get_current_user();
 				var post_type = jQuery('select#post_type_static').val();
 				var taxonomy = jQuery('select#taxonomy_static').val();
 				var settings = {
-				"url": "<?php echo site_url(); ?>/wp-admin/admin-ajax.php?action=static_output_files&post_type="+post_type+"&taxonomy="+taxonomy,
-				"method": "GET",
-				"timeout": 0,
+					"url": "<?php echo site_url(); ?>/wp-admin/admin-ajax.php?action=static_output_files&post_type="+post_type+"&taxonomy="+taxonomy,
+					"method": "GET",
+					"timeout": 0,
 				};
 
 				jQuery.ajax(settings).done(function (response) {
@@ -289,6 +289,9 @@ $user = wp_get_current_user();
 				jQuery('#results_static').append('<p><a href="'+url_main+'" target="_blank">'+url_main+'</a> - OK</p>');
 				
 				if(jQuery('.statics_page').html()==jQuery('.total_page').html()){
+
+					upload_all();
+
 					jQuery('#loading_static img').hide();
 					jQuery("#post_type_static").removeAttr('disabled');
 					jQuery("#taxonomy_static").removeAttr('disabled');
@@ -303,6 +306,7 @@ $user = wp_get_current_user();
 				jQuery('#results_static').append('<p><a href="'+url_main+'" target="_blank">'+url_main+'</a> - FAIL </p>');
 				
 				if(jQuery('.statics_page').html()==jQuery('.total_page').html()){
+
 					jQuery('#loading_static img').hide();
 					jQuery("#post_type_static").removeAttr('disabled');
 					jQuery("#taxonomy_static").removeAttr('disabled');
@@ -310,6 +314,20 @@ $user = wp_get_current_user();
 				}else{
 					deploy(key_main+1, response[key_main]);
 				}
+			});
+		}
+
+		function upload_all(){
+			var settings = {
+				"url": "<?php echo site_url(); ?>/wp-admin/admin-ajax.php?action=static_output_upload",
+				"method": "GET",
+				"timeout": 0,
+			};
+
+			jQuery('#results_static').append('<p>Aguarde, estamos fazendo uploads disponiveis...</a>');
+
+			jQuery.ajax(settings).done(function (response) {
+				jQuery('#results_static').append('<p>'+response+'</a>');
 			});
 		}
 
@@ -325,10 +343,7 @@ $user = wp_get_current_user();
 
 				var $tr = jQuery(this).closest('tr').next();
 
-        			// Now the one above it
-        			// var $trAbove = $tr.prev('tr');
-        			// Now insert the clone
-        			$tr.clone().insertBefore($tr).find('input').attr('value','');
-        		});
+        		$tr.clone().insertBefore($tr).find('input').attr('value','');
+        	});
 		});
 	</script>

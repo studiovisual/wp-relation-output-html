@@ -26,7 +26,7 @@ Class Curl {
 	}
 
 	// Recebe o Objeto (post ou term) e descobre a Url para enviar a função deploy_upload();
-    static function generate($object, $home=null, $files=true){
+    static function generate($object, $home=null, $files=true, $upload=true){
 
 		update_option('robots_rlout', '0');
 		update_option('blog_public', '1');
@@ -75,7 +75,6 @@ Class Curl {
 		if ($response) {
 			
 			$response = Helpers::replace_json($response);
-			
 			$dir_base = Helpers::getOption('path_rlout');
 			if( is_dir($dir_base) === false ){
 				mkdir($dir_base);
@@ -85,12 +84,12 @@ Class Curl {
 
 			$replace_raiz = str_replace($uri, '', $url);
 			$replace_raiz = str_replace(site_url(), '', $replace_raiz);
-			$dir_base = realpath($dir_base) . $replace_raiz;
+			$dir_base = $dir_base . $replace_raiz;
 
 			$verify_files_point = explode('.',$replace_raiz);
 
-			$file_default = '/index.html';
-			$json_default = '/index.json';
+			$file_default = 'index.html';
+			$json_default = 'index.json';
 
 			if(count($verify_files_point)>1){
 				$file_default = '';
@@ -121,6 +120,7 @@ Class Curl {
 					mkdir($wp_raiz);
 				}
 			}
+			
 
 			$file = fopen($dir_base . $file_default,"w");
 			
@@ -153,10 +153,12 @@ Class Curl {
 			if(empty(in_array($url, $ignore_files_rlout))){
 
 				fwrite($file, $response);
-
-				Git::upload_file('Atualização de object');
-				Ftp::upload_file($dir_base . $file_default);
-				S3::upload_file($dir_base . $file_default, false);
+				
+				if($upload==true){
+					Git::upload_file('Atualização de object');
+					Ftp::upload_file($dir_base . $file_default);
+					S3::upload_file($dir_base . $file_default, false);
+				}
 
 				$amp = Helpers::getOption('amp_rlout');
 				if(!empty($amp)){
@@ -180,10 +182,11 @@ Class Curl {
 				if(empty(in_array($url, $ignore_json_rlout))){
 
 					fwrite($file_json,  $response_json);
-				
-					Git::upload_file('Atualização de object');
-					Ftp::upload_file($dir_base . $json_default);
-					S3::upload_file($dir_base . $json_default, true);
+					if($upload==true){
+						Git::upload_file('Atualização de object');
+						Ftp::upload_file($dir_base . $json_default);
+						S3::upload_file($dir_base . $json_default, true);
+					}
 				}
 			}
 			
@@ -293,7 +296,7 @@ Class Curl {
                 
                 $folders = implode(".", $folders_point);
                 
-                $file = fopen( realpath($dir_base) . '/' . $folders,"w");
+                $file = fopen( $dir_base . '/' . $folders,"w");
                 
                 fwrite($file, $response);
                 
@@ -305,7 +308,6 @@ Class Curl {
     }
 
 	static function get($url){
-
 		$curl = curl_init();
 		curl_setopt_array($curl, array(
 			CURLOPT_URL => $url,

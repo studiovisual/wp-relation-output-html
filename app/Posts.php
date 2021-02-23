@@ -119,7 +119,7 @@ Class Posts {
 		Posts::api($post_new);
 	}
 	
-	static function api($post=null){
+	static function api($post=null, $upload=true){
 		
 		$post_types = explode(",", Helpers::getOption('post_types_rlout'));
 
@@ -172,9 +172,11 @@ Class Posts {
 			
 			fwrite($file, $response);
 
-			Git::upload_file('Atualização de object');
-			Ftp::upload_file($file_raiz);
-			S3::upload_file($file_raiz, true);
+			if($upload==true){
+				Git::upload_file('Atualização de object');
+				Ftp::upload_file($file_raiz);
+				S3::upload_file($file_raiz, true);
+			}
 			
 			$urls[] = str_replace($dir_base,$replace_url,$file_raiz);
 		}

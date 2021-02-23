@@ -6,10 +6,14 @@ use WpRloutHtml\Essentials\Curl;
 use WpRloutHtml\Helpers;
 use WpRloutHtml\Terms;
 use WpRloutHtml\Posts;
+use WpRloutHtml\Modules\S3;
 
 Class WpAjax {
     
     public function __construct() {
+
+        // Ajax de arquivos e páginas: /wp-admin/admin-ajax.php?action=static_output_deploy&file_url=
+        add_action('wp_ajax_static_output_upload', array($this, 'upload_all') );
 
         // Ajax de arquivos e páginas: /wp-admin/admin-ajax.php?action=static_output_deploy&file_url=
         add_action('wp_ajax_static_output_deploy', array($this, 'deploy') );
@@ -24,10 +28,17 @@ Class WpAjax {
         add_action('wp_ajax_all_search_posts', array($this, 'all_search_posts') );
     }
     
+    public function upload_all(){
+        $base_html = Helpers::getOption('path_rlout');
+        $response = S3::upload_file($base_html.'/');
+        die('Upload dos arquivos/categorias e páginas realizado com sucesso!');
+    }
+
     public function deploy(){
+
         $file = $_GET['file_url'];
         if(!empty($file) && filter_var($file, FILTER_VALIDATE_URL)){
-            $response = Curl::generate($file,false,false);
+            $response = Curl::generate($file,false,false,false);
             die($response);
         }
     }
@@ -36,8 +47,8 @@ Class WpAjax {
         
 		header( "Content-type: application/json");
 
-        $terms = Terms::api();
-        $posts = Posts::api();
+        $terms = Terms::api(null, false);
+        $posts = Posts::api(null, false);
         $urls = array_merge($terms, $posts);
         die(json_encode($urls));
     }
