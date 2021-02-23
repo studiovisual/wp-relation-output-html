@@ -17,7 +17,7 @@ Class Terms Extends App {
 		// verifica alterações de terms
 		add_action( 'create_term', array($this, 'create_folder'), 1, 1);
 		add_action( 'edit_term', array($this, 'create_folder'), 1, 1);
-		add_action( 'delete_term', array($this, 'delete_folder'), 1, 1);
+		add_action( 'pre_delete_term', array($this, 'delete_folder'), 1, 2);
 	}
 	
 	public function create_folder($term_id){
@@ -46,7 +46,7 @@ Class Terms Extends App {
 		}
 	}
 	
-	public function delete_folder($term_id){
+	public function delete_folder($term_id, $taxonomy){
 		
 		$term = get_term($term_id);
 		

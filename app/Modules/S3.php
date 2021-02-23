@@ -71,6 +71,9 @@ Class S3 {
     }
     
     static function remove_file($file_dir){
+
+        $file_dir = str_replace("//", "/", $file_dir);
+        $file_dir = str_replace("./", "/", $file_dir);
         
         $access_key = Helpers::getOption('s3_key_rlout');
         $secret_key = Helpers::getOption('s3_secret_rlout');
