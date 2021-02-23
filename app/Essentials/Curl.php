@@ -73,7 +73,7 @@ Class Curl {
 		$original_response = $response;
 		
 		if ($response) {
-			
+
 			$response = Helpers::replace_json($response);
 			$dir_base = Helpers::getOption('path_rlout');
 			if( is_dir($dir_base) === false ){
@@ -152,8 +152,10 @@ Class Curl {
 			$ignore_files_rlout = explode(',', Helpers::getOption('ignore_files_rlout'));
 			if(empty(in_array($url, $ignore_files_rlout))){
 
+
 				fwrite($file, $response);
-				
+				fclose($file);
+
 				if($upload==true){
 					Git::upload_file('Atualização de object');
 					Ftp::upload_file($dir_base . $file_default);
@@ -165,6 +167,7 @@ Class Curl {
 					Curl::deploy_upload($url.'/amp/');
 				}
 			}
+			
 
 			if($json_default!=''){
 
@@ -182,6 +185,8 @@ Class Curl {
 				if(empty(in_array($url, $ignore_json_rlout))){
 
 					fwrite($file_json,  $response_json);
+					fclose($file_json);
+					
 					if($upload==true){
 						Git::upload_file('Atualização de object');
 						Ftp::upload_file($dir_base . $json_default);
@@ -299,7 +304,8 @@ Class Curl {
                 $file = fopen( $dir_base . '/' . $folders,"w");
                 
                 fwrite($file, $response);
-                
+                fclose($file);
+
                 Ftp::upload_file($dir_base . '/' . $folders);
                 S3::upload_file($dir_base . '/' . $folders);
             }

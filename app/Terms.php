@@ -131,6 +131,7 @@ Class Terms Extends App {
 					$response = json_encode($term , JSON_UNESCAPED_SLASHES);
 
 					fwrite($file, $response);
+					fclose($file);
 
 					if($upload==true){
 						Git::upload_file('Atualização de object');
@@ -164,6 +165,7 @@ Class Terms Extends App {
 			$file = fopen($file_raiz, "w");
 			
 			fwrite($file, $response);
+			fclose($file);
 
 			Git::upload_file('Atualização de object');
 			Ftp::upload_file($file_raiz);

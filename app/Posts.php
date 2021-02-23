@@ -31,15 +31,17 @@ Class Posts {
 			add_action('updated_post_meta', function($meta_id, $post_id, $meta_key){
 				
 				if($meta_key=='_edit_lock'){
-					
+
 					$post_types = explode(',', Helpers::getOption('post_types_rlout'));
 					
 					$post =  get_post($post_id);
+
 					if(in_array($post->post_type, $post_types)){
+
 						
 						// Gerador da archive do post estatizado
 						$link_archive = get_post_type_archive_link($post->post_type);
-						if($link_archive){
+						if($link_archive && $link_archive!=site_url()){
 							Curl::generate($link_archive);
 						}
 						
@@ -50,17 +52,17 @@ Class Posts {
 						$objects = array();
 						
 						$objects[] = $post;
-						
+
 						// categorias relacionadas
 						foreach ($terms as $key => $term) {
 							$objects[] = $term;
+							Terms::api($term);
 						}
 						
 						Curl::list_deploy($objects);
+
+						Posts::api($post);
 					}
-					
-					Posts::api($post);
-					Terms::api();
 				}
 			},10,3);
 		}
@@ -85,6 +87,13 @@ Class Posts {
 				}
 			}
 			
+			$taxonomies = explode(",", Helpers::getOption('taxonomies_rlout'));
+			$terms = wp_get_post_terms($post->ID, $taxonomies);
+			foreach ($terms as $key => $term) {
+				$objects[] = $term;
+				Terms::api($term);
+			}
+			
 			$url_delete = get_sample_permalink($post);
 			$url_del = str_replace('%pagename%',$url_delete[1],$url_delete[0]);
 			$url_del = str_replace('%postname%',$url_delete[1],$url_del);
@@ -102,11 +111,12 @@ Class Posts {
 			
 		}
 		
-		Posts::api($post);
-		Terms::api();
+		$post_new = new \StdClass();
+		$post_new->post_type = $post->post_type;
+		Posts::api($post_new);
 	}
 	
-	static function api($post=null){
+	static function api($post=null, $upload=true){
 		
 		$post_types = explode(",", Helpers::getOption('post_types_rlout'));
 
@@ -130,7 +140,7 @@ Class Posts {
 			}
 			
 			$posts_arr = Posts::get_post_json($post, array());
-
+			
 			$response = json_encode($posts_arr , JSON_UNESCAPED_SLASHES);
 			
 			$replace_uploads = Helpers::getOption('uploads_rlout');
@@ -143,7 +153,6 @@ Class Posts {
 				
 				$response = str_replace($upload_url['baseurl'], $replace_url.'/uploads', $response);
 				if($uploads_url_rlout){
-					sleep(0.5);
 					$response = str_replace($uploads_url_rlout, $replace_url.'/uploads', $response);
 				}
 				
@@ -157,12 +166,14 @@ Class Posts {
 			$file_raiz = $dir_base . '/'.$post->post_type.'.json';
 			
 			$file = fopen($file_raiz, "w");
-			
 			fwrite($file, $response);
+			fclose($file);
 
-			Git::upload_file('Atualização de object');
-			Ftp::upload_file($file_raiz);
-			S3::upload_file($file_raiz, true);
+			if($upload==true){
+				Git::upload_file('Atualização de object');
+				Ftp::upload_file($file_raiz);
+				S3::upload_file($file_raiz, true);
+			}
 			
 			$urls[] = str_replace($dir_base,$replace_url,$file_raiz);
 		}
@@ -172,17 +183,17 @@ Class Posts {
 	}
 	
 	static function get_post_json($post=null, $not_in=array(), $term = null){
+		
 		$replace_url = Helpers::getOption('replace_url_rlout');
 		if(empty($replace_url)){
 			$replace_url = site_url().'/html';
 		}
 		
 		if(!empty($post)){
-			
-			if(!is_array($post->post_type)):
+			if(!is_array($post->post_type) && !empty($post->ID)){
 				$json_exist = Curl::get($replace_url.'/'.$post->post_type.'.json');
 				$post_arr = json_decode($json_exist);
-				if(is_array($post_arr) && !empty($post->ID)){
+				if(is_array($post_arr)){
 
 					$create_post = true;
 					
@@ -202,14 +213,17 @@ Class Posts {
 					if($create_post==true){
 						$post_arr = array_unshift($post_arr, $new_post);
 					}
-					
+
 					return $post_arr;
 				}
-			endif;
+			}
 			
+			$object = new \StdClass();
+			$object->post_type = $post->post_type;
+
 			$args = array(
 				'post_type'=>$post->post_type,
-				'posts_per_page' => 25,
+				'posts_per_page' => 100,
 				'order'=>'DESC',
 				'orderby'=>'date',
 				'post__not_in'=>$not_in
@@ -221,8 +235,6 @@ Class Posts {
 			endif;
 			
 			$posts = get_posts($args);
-			// if(count($posts) > 2)
-			// 	die(var_dump($posts));
 
 			$posts_arr = array();
 
@@ -238,12 +250,9 @@ Class Posts {
 				
 			}
 			
-			return;
-			if(count($posts)==25){
-				sleep(0.1);
-				$object = null;
-				$object->post_type = $post->post_type;
-				$posts_arr = array_merge($posts_arr, Posts::get_post_json($object, $not_in));
+			if(count($posts)==100){
+				sleep(0.5);
+				$posts_arr = array_merge($posts_arr, Posts::get_post_json($object, $not_in, $term));
 			}
 			
 			return $posts_arr;
