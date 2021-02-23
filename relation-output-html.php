@@ -46,7 +46,7 @@ Class RelOutputHtml {
 		// verifica alterações de TERMS
 		add_action( 'create_term', array($this, 'term_create_folder'), 10, 3);
 		add_action( 'edit_term', array($this, 'term_create_folder'), 10, 3);
-		add_action( 'delete_term', array($this, 'term_delete_folder'), 10, 3);
+		add_action( 'pre_delete_term', array($this, 'term_delete_folder'), 10, 2);
 		
 		add_action('wp_ajax_posts', array($this, 'api_posts') );
 		// Definindo action para acesso público
@@ -396,12 +396,10 @@ Class RelOutputHtml {
 		}
 	}
 	
-	public function term_delete_folder($term_id, $tt_id, $taxonomy, $deleted_term=null){
-		
+	public function term_delete_folder($term_id, $taxonomy){
 		$term = get_term($term_id);
-		
+
 		$taxonomies = explode(',', get_option('taxonomies_rlout'));
-		
 		if(in_array($term->taxonomy, $taxonomies)){
 			
 			$slug_old = $term->slug;
@@ -418,19 +416,11 @@ Class RelOutputHtml {
 			
 			unlink($dir_base . '/index.html');
 			rmdir($dir_base);
-			
+
+
 			$this->ftp_remove_file($dir_base . '/index.html');
 			$this->s3_remove_file($dir_base . '/index.html');
-			
-			if(empty($deleted_term)){
-				
-				$objects = array($term);
-				
-				$this->deploy($objects);
-			}
 		}
-		$this->api_posts(true);
-		$this->api_terms(true);
 	}
 	
 	public function post_delete_folder($post_id){
@@ -453,11 +443,12 @@ Class RelOutputHtml {
 			}
 			
 			$url_delete = get_sample_permalink($post);
+
 			$url_del = str_replace('%pagename%',$url_delete[1],$url_delete[0]);
 			$url_del = str_replace('%postname%',$url_delete[1],$url_del);
 			$url_delete = $url_del;
 			if($url_delete){
-				$dir_base =  explode('__trashed', '', $url_delete);
+				$dir_base =  str_replace('__trashed', '', $url_delete);
 				$dir_base = get_option("path_rlout") . str_replace(site_url(), '', $dir_base);
 
 				unlink($dir_base . 'index.html');
@@ -1460,7 +1451,7 @@ Class RelOutputHtml {
 				$directory_empty = explode('/', $key_file_s3);
 
 				if(!empty($key_file_s3) && !empty(end($directory_empty)) ){
-
+					$key_file_s3 = str_replace("//", "/", $key_file_s3);
 					$response = $clientS3->deleteObject(array(
 						'Bucket' => get_option('s3_bucket_rlout'),
 						'Key' => $key_file_s3
