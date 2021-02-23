@@ -152,8 +152,6 @@ Class Terms Extends App {
 				
 				$response = str_replace($upload_url['baseurl'], $replace_url.'/uploads', $response);
 				
-				sleep(0.5);
-				
 				if($uploads_url_rlout){
 					$response = str_replace($uploads_url_rlout, $replace_url.'/uploads', $response);
 				}

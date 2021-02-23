@@ -61,7 +61,7 @@ Class Posts {
 						}
 						
 						Curl::list_deploy($objects);
-						
+
 						$post_new = new \StdClass();
 						$post_new->post_type = $post->post_type;
 						Posts::api($post_new);
@@ -156,7 +156,6 @@ Class Posts {
 				
 				$response = str_replace($upload_url['baseurl'], $replace_url.'/uploads', $response);
 				if($uploads_url_rlout){
-					sleep(0.5);
 					$response = str_replace($uploads_url_rlout, $replace_url.'/uploads', $response);
 				}
 				

@@ -27,7 +27,7 @@ Class WpAjax {
     public function deploy(){
         $file = $_GET['file_url'];
         if(!empty($file) && filter_var($file, FILTER_VALIDATE_URL)){
-            $response = Curl::generate($file);
+            $response = Curl::generate($file,false,false);
             die($response);
         }
     }
@@ -98,7 +98,7 @@ Class WpAjax {
     public function recursive_post($post_type, $urls=array(), $not_in=array()){
         $args_posts = array();
         $args_posts['post_type'] = $post_type;
-        $args_posts['posts_per_page'] = 25;
+        $args_posts['posts_per_page'] = 100;
         $args_posts['post_status'] = 'publish';
         $args_posts['order'] = 'DESC';
         $args_posts['orderby'] = 'date';
@@ -113,7 +113,7 @@ Class WpAjax {
                 $urls[] = $url;
             }
         }
-        if(count($posts)==25){
+        if(count($posts)==100){
             sleep(0.5);
             $urls = array_unique(array_merge($urls, $this->recursive_post($post_type, $urls, $not_in)));
         }

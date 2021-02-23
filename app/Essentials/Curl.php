@@ -20,14 +20,13 @@ Class Curl {
 			foreach ($objs as $key => $obj) {
 				
 				Curl::generate($obj);
-				sleep(0.5);
 			}
 		}
 	
 	}
 
 	// Recebe o Objeto (post ou term) e descobre a Url para enviar a função deploy_upload();
-    static function generate($object, $home=null){
+    static function generate($object, $home=null, $files=true){
 
 		update_option('robots_rlout', '0');
 		update_option('blog_public', '1');
@@ -134,15 +133,19 @@ Class Curl {
 			if($replace_uploads){
 				$upload_url = wp_upload_dir();
 				
-				$response = Helpers::replace_reponse($upload_url['baseurl'], $response, '/uploads');
+				if($files==true){
+					$response = Helpers::replace_reponse($upload_url['baseurl'], $response, '/uploads');
 
-				if($uploads_url_rlout){
-					$response = Helpers::replace_reponse($uploads_url_rlout, $response, '/uploads');
+					if($uploads_url_rlout){
+						$response = Helpers::replace_reponse($uploads_url_rlout, $response, '/uploads');
+					}
 				}
 				
 			}
-			
-			$response = Helpers::replace_reponse(Helpers::getOption('uri_rlout'), $response);
+
+			if($files==true){
+				$response = Helpers::replace_reponse(Helpers::getOption('uri_rlout'), $response);
+			}
 			
 			$jsons = array();
 
@@ -168,8 +171,11 @@ Class Curl {
 				}else if($object->ID){
 					$object = Posts::new_params($object, true);
 				}
-				$response_json = Helpers::replace_reponse(Helpers::getOption('uri_rlout'), json_encode($object));
 
+				if($files==true){
+					$response_json = Helpers::replace_reponse(Helpers::getOption('uri_rlout'), json_encode($object));
+				}
+				
 				$ignore_json_rlout = explode(',' , Helpers::getOption('ignore_json_rlout'));
 				if(empty(in_array($url, $ignore_json_rlout))){
 
@@ -301,7 +307,6 @@ Class Curl {
 	static function get($url){
 
 		$curl = curl_init();
-
 		curl_setopt_array($curl, array(
 			CURLOPT_URL => $url,
 			CURLOPT_RETURNTRANSFER => true,
@@ -309,8 +314,10 @@ Class Curl {
 			CURLOPT_MAXREDIRS => 10,
 			CURLOPT_TIMEOUT => 120,
 			CURLOPT_FOLLOWLOCATION => true,
-			CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+			CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_3,
 			CURLOPT_CUSTOMREQUEST => "GET",
+			CURLOPT_TCP_FASTOPEN => 1,
+			CURLOPT_FRESH_CONNECT => false,
 			CURLOPT_HTTPHEADER => array(
 				"cache-control: no-cache",
 				"Authorization: Basic ".base64_encode(Helpers::getOption('userpwd_rlout') . ":" . Helpers::getOption('passpwd_rlout'))
