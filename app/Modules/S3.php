@@ -49,6 +49,7 @@ Class S3 {
                     ));
 
                     if($response && $ignore_cloud==false){
+                        
                         $key_file_s3 = str_replace('index.html', '', $key_file_s3);
                         
                         Cloudfront::invalid('/'.$key_file_s3);

@@ -21,12 +21,14 @@ Class Cloudfront {
 	}
 
     static function invalid($response){
+
         // debug_print_backtrace();
         $DistributionId = Helpers::getOption('s3_distributionid_rlout');
 
 		if(!empty($DistributionId)){
 			$CallerReference = (string) rand(100000,9999999).strtotime(date('Y-m-dH:i:s'));
 			$raiz = str_replace(site_url(), '', $response);
+			$raiz = str_replace(Helpers::getOption('path_rlout'), '', $raiz);
 			
 			$access_key = Helpers::getOption('s3_key_rlout');
 			$secret_key = Helpers::getOption('s3_secret_rlout');
@@ -57,7 +59,7 @@ Class Cloudfront {
 				$result = $cloudFrontClient->createInvalidation($args);
 			}
 			catch(\Aws\CloudFront\Exception\CloudFrontException $e) {
-				die($e);
+				// die($e);
 			}
 
 			return $result;

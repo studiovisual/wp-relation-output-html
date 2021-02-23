@@ -11,15 +11,12 @@ Class Helpers {
 	private static $options = array();
 
 	static function subfiles_generate(){
-
-		$curl = new Curl;
 		
 		$files = explode(',', self::getOption('subfiles_rlout'));
 		
 		foreach ($files as $key => $file) {
 			
 			if(!empty($file)){
-				
 				Curl::deploy_upload($file);
 				App::$repeat_files_rlout[] = $file;
 			}
@@ -82,7 +79,6 @@ Class Helpers {
 		foreach ($files as $key => $file) {
 			
 			if(!empty($file)){
-				
 				Curl::generate($file);
 				App::$repeat_files_rlout[] = $file;
 			}
@@ -110,13 +106,11 @@ Class Helpers {
 	}
 
     static function replace_reponse($url_replace, $response, $media=null, $debug=false){
-		
-		$curl = new Curl;
-
         // pegando itens 
         $itens_theme = explode($url_replace, $response);
         
         unset($itens_theme[0]);
+
         foreach($itens_theme as $keyj => $item){
             
             $item = explode('"', $item);
@@ -125,9 +119,8 @@ Class Helpers {
             $item = $url_replace . $item[0];
             
             if(!empty($item)){
-
-                App::$repeat_files_rlout[] = $item;
                 Curl::deploy_upload($item, $media);
+                App::$repeat_files_rlout[] = $item;
             }
         }
         

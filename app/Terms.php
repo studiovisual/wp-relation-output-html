@@ -109,7 +109,7 @@ Class Terms Extends App {
 
 				if(empty($term_update) || $term->term_id==$term_update->term_id) {
 					$term_link = get_term_link($term);
-
+					
 					$urls[] = $term_link;
 					
 					$term = Terms::object_term($term, true);
@@ -120,28 +120,25 @@ Class Terms Extends App {
 					$folder_create = '';
 					foreach($new_folder_explode as $new_folder){
 						$folder_create = $folder_create.'/'.$new_folder;
-						// if(realpath($dir_base . $folder_create) === false){
-							// mkdir($dir_base . $folder_create);
-							var_dump($dir_base . $folder_create);
-						// }
+						if(realpath($dir_base . $folder_create) === false){
+							mkdir($dir_base . $folder_create);
+						}
 					}
 
-					
 					$file_raiz = $term_link.'index.json';
-					// $file = fopen($file_raiz, "w");
+					$file = fopen($file_raiz, "w");
 					
-					// $response = json_encode($term , JSON_UNESCAPED_SLASHES);
+					$response = json_encode($term , JSON_UNESCAPED_SLASHES);
 
-					// fwrite($file, $response);
+					fwrite($file, $response);
 
-					// Git::upload_file('Atualização de object');
-					// Ftp::upload_file($file_raiz);
-					// S3::upload_file($file_raiz, true);
+					Git::upload_file('Atualização de object');
+					Ftp::upload_file($file_raiz);
+					S3::upload_file($file_raiz, true);
 
-					// unset($term->posts);
+					unset($term->posts);
 				}
 			}
-			die('sdfvsd');
 			
 			$response = json_encode($terms , JSON_UNESCAPED_SLASHES);
 			

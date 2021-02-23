@@ -50,7 +50,6 @@ Class WpAjax {
         
         // Subfiles
         $files = explode(',', Helpers::getOption('subfiles_rlout'));
-        
         foreach ($files as $key => $file) {
             
             if(!empty($file)){
@@ -81,14 +80,17 @@ Class WpAjax {
         }else if(!empty($post_type)){
             $post_type = array($post_type);
         }
-        foreach($post_type as $pt){
-            $url = get_post_type_archive_link($pt);
-            if($url){
-                $urls[] = $url;
+
+        if($post_type){
+            foreach($post_type as $pt){
+                $url = get_post_type_archive_link($pt);
+                if($url){
+                    $urls[] = $url;
+                }
             }
+            
+            $urls = $this->recursive_post($post_type, $urls);
         }
-        
-        $urls = $this->recursive_post($post_type, $urls);
         
         header("Content-type: application/json");
         die(json_encode($urls));
@@ -140,15 +142,13 @@ Class WpAjax {
         $args_posts['orderby'] = 'date';
         $args_posts['suppress_filters'] = false;
         $args_posts['search_prod_title'] = $_GET['search'];
-        
+
         add_filter( 'posts_where', array($this,'title_filter'), 10, 2 );
-        $posts = new WP_Query($args_posts);
-        
+        $posts = get_posts($args_posts);
         remove_filter( 'posts_where', array($this, 'title_filter'), 10, 2 );
         
         $key_all = 0;
-        
-        foreach($posts->posts as $key_post => $post){
+        foreach($posts as $key_post => $post){
             $array_search['results'][$key_all]['id'] = get_permalink($post);
             $array_search['results'][$key_all]['text'] = $post->post_title;
             $key_all++;

@@ -31,6 +31,7 @@ Class Curl {
 
 		update_option('robots_rlout', '0');
 		update_option('blog_public', '1');
+
 		$text_post = get_post(url_to_postid($object));
 		if(!empty($text_post)){
 			$object = $text_post;
@@ -51,13 +52,7 @@ Class Curl {
 			
 			$url = get_permalink( $object );
 			$slug = $object->post_name;
-			
-			$thumbnails = get_intermediate_image_sizes();
-			foreach ($thumbnails as $key => $t) {
-				$url_thumb = get_the_post_thumbnail_url($object, $t);
-				Curl::deploy_upload($url_thumb, '/uploads');
-			}
-		} else if(!empty($object->term_id)){
+		}else if(!empty($object->term_id)){
 			
 			$url = get_term_link( $object );
 			$slug = $object->slug;
@@ -155,7 +150,7 @@ Class Curl {
 			if(empty(in_array($url, $ignore_files_rlout))){
 
 				fwrite($file, $response);
-			
+
 				Git::upload_file('Atualização de object');
 				Ftp::upload_file($dir_base . $file_default);
 				S3::upload_file($dir_base . $file_default, false);
@@ -300,6 +295,7 @@ Class Curl {
                 S3::upload_file($dir_base . '/' . $folders);
             }
         }
+		return $url;
     }
 
 	static function get($url){

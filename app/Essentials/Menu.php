@@ -29,7 +29,7 @@ Class Menu {
 		if(isset($_GET['importants_rlout'])){
 			
 			add_action('init', function(){
-
+                
 				$response_essenciais = Helpers::importantfiles_generate();
 				
 				if($response_essenciais){
@@ -46,11 +46,6 @@ Class Menu {
 			$response_essenciais = Helpers::subfiles_generate();
 			
 			if($response_essenciais){
-				
-				add_action('init', function(){
-					Posts::api();
-					Terms::api();
-				});
 				
 				echo '<script>alert("Arquivos Essenciais Atualizados!");</script>';
 				echo '<script>window.location = document.URL.replace("&essenciais_rlout=true","").replace("?essenciais_rlout=true","");</script>';
