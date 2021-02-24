@@ -10,6 +10,24 @@ Class Helpers {
 
 	private static $options = array();
 
+	static function rrmdir($src) {
+		if (file_exists($src)) {
+			$dir = opendir($src);
+			while (false !== ($file = readdir($dir))) {
+				if (($file != '.') && ($file != '..')) {
+					$full = $src . '/' . $file;
+					if (is_dir($full)) {
+						Helpers::rrmdir($full);
+					} else {
+						unlink($full);
+					}
+				}
+			}
+			closedir($dir);
+			rmdir($src);
+		}
+	}
+
 	static function subfiles_generate(){
 		
 		$files = explode(',', self::getOption('subfiles_rlout'));

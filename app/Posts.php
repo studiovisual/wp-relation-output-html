@@ -18,9 +18,7 @@ Class Posts {
 		$post_types = explode(',', Helpers::getOption('post_types_rlout'));
 		foreach ($post_types as $key => $post_type) {
 			add_action( 'publish_'.$post_type, array($this, 'create_folder'));
-			add_action( 'draft_'.$post_type, array($this, 'delete_folder'));
 			add_action( 'pre_'.$post_type.'_update', array($this, 'delete_folder'));
-			add_action( 'trash_'.$post_type,  array($this, 'delete_folder'));
 		}
 	}
 	
@@ -37,7 +35,6 @@ Class Posts {
 					$post =  get_post($post_id);
 					
 					if(in_array($post->post_type, $post_types)){
-						
 						
 						// Gerador da archive do post estatizado
 						$link_archive = get_post_type_archive_link($post->post_type);
@@ -70,50 +67,53 @@ Class Posts {
 	
 	public function delete_folder($post_id){
 		
-		$post = get_post($post_id);
-		
-		$post_types = explode(',', Helpers::getOption('post_types_rlout'));
-		
-		if(in_array($post->post_type, $post_types)){
-			if($post->post_status=='publish' && $_POST['post_status']=='publish'){
-				
-				$slug_old = $post->post_name;
-				
-				$slug_new = $_POST['post_name'];
-				
-				if($slug_old==$slug_new){
+		if(empty($_POST) || $_POST['post_status']!='publish'){
+
+			$post = get_post($post_id);
+
+			$post_types = explode(',', Helpers::getOption('post_types_rlout'));
+			
+			if(in_array($post->post_type, $post_types)){
+
+				// rename vindo da funciona create
+				// if($post->post_status=='publish' && $_POST['post_status']=='publish'){
 					
-					return false;
+				// 	$slug_old = $post->post_name;
+					
+				// 	$slug_new = $_POST['post_name'];
+					
+				// 	if($slug_old==$slug_new){
+						
+				// 		return false;
+				// 	}
+				// }
+				
+				$taxonomies = explode(",", Helpers::getOption('taxonomies_rlout'));
+				$terms = wp_get_post_terms($post->ID, $taxonomies);
+				foreach ($terms as $key => $term) {
+					$objects[] = $term;
+					Terms::api($term);
 				}
-			}
-			
-			$taxonomies = explode(",", Helpers::getOption('taxonomies_rlout'));
-			$terms = wp_get_post_terms($post->ID, $taxonomies);
-			foreach ($terms as $key => $term) {
-				$objects[] = $term;
-				Terms::api($term);
-			}
-			
-			$url_delete = get_sample_permalink($post);
-			$url_del = str_replace('%pagename%',$url_delete[1],$url_delete[0]);
-			$url_del = str_replace('%postname%',$url_delete[1],$url_del);
-			$url_delete = $url_del;
-			if($url_delete){
-				$dir_base =  str_replace('__trashed', '', $url_delete);
-				$dir_base = Helpers::getOption('path_rlout') . str_replace(site_url(), '', $dir_base);
 				
-				unlink($dir_base . 'index.html');
-				rmdir($dir_base);
+				$url_delete = get_sample_permalink($post);
+				$url_del = str_replace('%pagename%',$url_delete[1],$url_delete[0]);
+				$url_del = str_replace('%postname%',$url_delete[1],$url_del);
+
+				$url_delete = $url_del;
+				if($url_delete){
+					$dir_base =  str_replace('__trashed', '', $url_delete);
+					$dir_base = Helpers::getOption('path_rlout') . str_replace(site_url(), '', $dir_base);
+					
+					Helpers::rrmdir($dir_base);
+					
+					Ftp::remove_file($dir_base . 'index.html');
+					S3::remove_file($dir_base . 'index.html');
+				}
 				
-				Ftp::remove_file($dir_base . 'index.html');
-				S3::remove_file($dir_base . 'index.html');
 			}
 			
+			Posts::api($post);
 		}
-		
-		$post_new = new \StdClass();
-		$post_new->post_type = $post->post_type;
-		Posts::api($post_new);
 	}
 	
 	static function api($post=null, $upload=true){
@@ -214,7 +214,7 @@ Class Posts {
 					foreach($post_arr as $arr_key => $arr){
 						if($arr->ID==$post->ID){
 							$create_post = false;
-							if($post->post_status=='publish'){
+							if($_POST['post_status']=='publish'){
 								$post_arr[$arr_key] = $new_post;
 							}else{
 								unset($post_arr[$arr_key]);
@@ -222,8 +222,9 @@ Class Posts {
 						}
 					}
 					
-					if($create_post==true){
-						$post_arr = array_unshift($post_arr, $new_post);
+					if($create_post==true && $post->post_status=='publish'){
+						
+						array_unshift($post_arr, $new_post);
 					}
 					
 					return $post_arr;

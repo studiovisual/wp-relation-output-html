@@ -59,6 +59,11 @@ Class Menu {
 			foreach ($key_fields as $key_field) {
 				$value_field = $_POST[$key_field];
 				if(is_array($value_field)){
+                    foreach($value_field as $value_key =>$value){
+                        if(empty($value)){
+                            unset($value_field[$value_key]);
+                        }
+                    }
 					update_option( $key_field, implode(',', $value_field) );
 				}else{
 					update_option( $key_field, $value_field );
@@ -66,7 +71,7 @@ Class Menu {
 			}
 			
 			$redirect_param = sanitize_title(App::$name_plugin) . '-config';
-			
+
 			header('Location:'.admin_url('admin.php?page='.$redirect_param));
 			exit;
 		}

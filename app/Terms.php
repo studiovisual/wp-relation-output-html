@@ -54,32 +54,14 @@ Class Terms Extends App {
 		
 		if(in_array($term->taxonomy, $taxonomies)){
 			
-			$slug_old = $term->slug;
-			$slug_new = $_POST['slug'];
-			
 			$url = str_replace(site_url(), '', get_term_link($term));
-			
-			if($slug_old!=$slug_new){
-				
-				$term->slug = $slug_new;
-			}
 			
 			$dir_base = Helpers::getOption('path_rlout') . $url;
 			
-			unlink($dir_base . '/index.html');
-			rmdir($dir_base);
+			Helpers::rrmdir($dir_base);
 			
 			Ftp::remove_file($dir_base . '/index.html');
 			S3::remove_file($dir_base . '/index.html');
-			
-			if(empty($deleted_term)){
-				
-				$objects = array($term);
-				
-				$this->deploy($objects);
-			}
-
-			Terms::api($term);
 		}
 	}
 
