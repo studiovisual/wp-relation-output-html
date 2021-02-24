@@ -159,7 +159,7 @@ Class Curl {
 
 				$amp = Helpers::getOption('amp_rlout');
 				if(!empty($amp) && !empty($file_default) && !$search_amp){
-					Curl::generate($url.'amp/', false, false, false);
+					Curl::generate($url.'amp/', false, false, true);
 				}
 			}
 			
