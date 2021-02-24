@@ -32,7 +32,7 @@ Class Curl {
 		update_option('blog_public', '1');
 
 		$text_post = get_post(url_to_postid($object));
-		if(!empty($text_post)){
+		if(!empty($text_post) && is_object($object)){
 			$object = $text_post;
 		}else{
 			$taxonomy = explode(",", Helpers::getOption('taxonomies_rlout'));
@@ -113,6 +113,7 @@ Class Curl {
 					$response=$original_response;
 				}
 			}
+
 			$explode_raiz = explode("/", $dir_base);
 			foreach ($explode_raiz as $keyp => $raiz) {
 				$wp_raiz = $wp_raiz . $raiz . '/';
@@ -120,17 +121,15 @@ Class Curl {
 					mkdir($wp_raiz);
 				}
 			}
-			
 
 			$file = fopen($dir_base . $file_default,"w");
-			
-			$file_json = fopen($dir_base . $json_default,"w");
-			
+						
 			$replace_uploads = Helpers::getOption('uploads_rlout');
 			
 			$uploads_url_rlout = Helpers::getOption('uploads_url_rlout'); 
 			
 			if($replace_uploads){
+				
 				$upload_url = wp_upload_dir();
 				
 				if($files==true){
@@ -152,7 +151,6 @@ Class Curl {
 			$ignore_files_rlout = explode(',', Helpers::getOption('ignore_files_rlout'));
 			if(empty(in_array($url, $ignore_files_rlout))){
 
-
 				fwrite($file, $response);
 				fclose($file);
 
@@ -163,13 +161,16 @@ Class Curl {
 				}
 
 				$amp = Helpers::getOption('amp_rlout');
-				if(!empty($amp) && !empty($file_default)){
-					Curl::deploy_upload($url.'/amp/');
+				$search_amp = strpos($url, '/amp/');
+				if(!empty($amp) && !empty($file_default) && $search_amp===false){
+					Curl::generate($url.'amp/');
 				}
 			}
 			
 
-			if($json_default!=''){
+			if($json_default!='' && is_object($object)){
+
+				$file_json = fopen($dir_base . $json_default,"w");
 
 				if(term_exists($object->term_id)){
 					$object = Terms::object_term($object, true);
