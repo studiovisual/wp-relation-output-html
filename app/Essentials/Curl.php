@@ -186,7 +186,7 @@ Class Curl {
 
 					fwrite($file_json,  $response_json);
 					fclose($file_json);
-					
+
 					if($upload==true){
 						Git::upload_file('Atualização de object');
 						Ftp::upload_file($dir_base . $json_default);
@@ -322,7 +322,7 @@ Class Curl {
 			CURLOPT_MAXREDIRS => 10,
 			CURLOPT_TIMEOUT => 120,
 			CURLOPT_FOLLOWLOCATION => true,
-			CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_3,
+			CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
 			CURLOPT_CUSTOMREQUEST => "GET",
 			CURLOPT_TCP_FASTOPEN => 1,
 			CURLOPT_FRESH_CONNECT => false,
