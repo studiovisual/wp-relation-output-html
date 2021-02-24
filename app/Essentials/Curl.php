@@ -16,9 +16,7 @@ Class Curl {
     static function list_deploy($objs=null){
 
 		if(!empty($objs)){
-			
 			foreach ($objs as $key => $obj) {
-				
 				Curl::generate($obj);
 			}
 		}
@@ -26,22 +24,25 @@ Class Curl {
 	}
 
 	// Recebe o Objeto (post ou term) e descobre a Url para enviar a função deploy_upload();
-    static function generate($object, $home=null, $files=true, $upload=true){
+    static function generate($object, $home=null, $items=true, $upload=true){
 
 		update_option('robots_rlout', '0');
 		update_option('blog_public', '1');
 
-		$text_post = get_post(url_to_postid($object));
-		if(!empty($text_post) && is_object($object)){
-			$object = $text_post;
-		}else{
-			$taxonomy = explode(",", Helpers::getOption('taxonomies_rlout'));
-			foreach($taxonomy as $tax){
-				$slug_term = explode("/",$object);
-				foreach($slug_term as $key_b => $barra){
-					$term_exist = get_term_by('slug',$slug_term[$key_b], $tax);
-					if($term_exist){
-						$object = $term_exist;
+		$url_post = url_to_postid($object);
+		$search_amp = strpos($object, '/amp/');
+		if($search_amp===false){
+			if(!empty($url_post)){
+				$object = get_post($url_post);
+			}else{
+				$taxonomy = explode(",", Helpers::getOption('taxonomies_rlout'));
+				foreach($taxonomy as $tax){
+					$slug_term = explode("/",$object);
+					foreach($slug_term as $key_b => $barra){
+						$term_exist = get_term_by('slug',$slug_term[$key_b], $tax);
+						if($term_exist){
+							$object = $term_exist;
+						}
 					}
 				}
 			}
@@ -131,29 +132,25 @@ Class Curl {
 			if($replace_uploads){
 				
 				$upload_url = wp_upload_dir();
-				
-				if($files==true){
-					$response = Helpers::replace_reponse($upload_url['baseurl'], $response, '/uploads');
+			
+				$response = Helpers::replace_reponse($upload_url['baseurl'], $response, '/uploads', $items);
 
-					if($uploads_url_rlout){
-						$response = Helpers::replace_reponse($uploads_url_rlout, $response, '/uploads');
-					}
+				if($uploads_url_rlout){
+					$response = Helpers::replace_reponse($uploads_url_rlout, $response, '/uploads', $items);
 				}
 				
 			}
 
-			if($files==true){
-				$response = Helpers::replace_reponse(Helpers::getOption('uri_rlout'), $response);
-			}
-			
+			$response = Helpers::replace_reponse(Helpers::getOption('uri_rlout'), $response, null, $items);
+
 			$jsons = array();
 
 			$ignore_files_rlout = explode(',', Helpers::getOption('ignore_files_rlout'));
 			if(empty(in_array($url, $ignore_files_rlout))){
-
+				
 				fwrite($file, $response);
 				fclose($file);
-
+				
 				if($upload==true){
 					Git::upload_file('Atualização de object');
 					Ftp::upload_file($dir_base . $file_default);
@@ -161,9 +158,8 @@ Class Curl {
 				}
 
 				$amp = Helpers::getOption('amp_rlout');
-				$search_amp = strpos($url, '/amp/');
-				if(!empty($amp) && !empty($file_default) && $search_amp===false){
-					Curl::generate($url.'amp/');
+				if(!empty($amp) && !empty($file_default) && !$search_amp){
+					Curl::generate($url.'amp/', false, false, false);
 				}
 			}
 			
@@ -178,9 +174,8 @@ Class Curl {
 					$object = Posts::new_params($object, true);
 				}
 
-				if($files==true){
-					$response_json = Helpers::replace_reponse(Helpers::getOption('uri_rlout'), json_encode($object));
-				}
+
+				$response_json = Helpers::replace_reponse(Helpers::getOption('uri_rlout'), json_encode($object), null, $items);
 				
 				$ignore_json_rlout = explode(',' , Helpers::getOption('ignore_json_rlout'));
 				if(empty(in_array($url, $ignore_json_rlout))){

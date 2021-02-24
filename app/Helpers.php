@@ -105,25 +105,27 @@ Class Helpers {
 		return $object;
 	}
 
-    static function replace_reponse($url_replace, $response, $media=null, $debug=false){
-        // pegando itens 
-        $itens_theme = explode($url_replace, $response);
+    static function replace_reponse($url_replace, $response, $media=null, $items=true){
         
-        unset($itens_theme[0]);
+		if($items==true){
+			// pegando itens 
+			$itens_theme = explode($url_replace, $response);
+			
+			unset($itens_theme[0]);
 
-        foreach($itens_theme as $keyj => $item){
-            
-            $item = explode('"', $item);
-            $item = explode("'", $item[0]);
-            $item = explode(")", $item[0]);
-            $item = $url_replace . $item[0];
-            
-            if(!empty($item)){
-                Curl::deploy_upload($item, $media);
-                App::$repeat_files_rlout[] = $item;
-            }
-        }
-        
+			foreach($itens_theme as $keyj => $item){
+				
+				$item = explode('"', $item);
+				$item = explode("'", $item[0]);
+				$item = explode(")", $item[0]);
+				$item = $url_replace . $item[0];
+				
+				if(!empty($item)){
+					Curl::deploy_upload($item, $media);
+					App::$repeat_files_rlout[] = $item;
+				}
+			}
+		}
         
         //replace url
         $rpl = self::getOption('replace_url_rlout');
@@ -133,7 +135,6 @@ Class Helpers {
         $rpl_original = $rpl;
         $rpl = $rpl . $media;
         if($rpl!=site_url() && $rpl!=$url_replace){
-            
             $response = str_replace($url_replace, $rpl, $response);
             if(!$media){
                 
@@ -144,6 +145,7 @@ Class Helpers {
         if(!empty($rpl_dir)){
             $response = str_replace($rpl_dir.$rpl_dir,$rpl_dir, $response);
         }
+		
         return $response;
     }
     

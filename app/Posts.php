@@ -60,7 +60,7 @@ Class Posts {
 						}
 						
 						Curl::list_deploy($objects);
-						
+
 						Posts::api($post);
 					}
 				}
