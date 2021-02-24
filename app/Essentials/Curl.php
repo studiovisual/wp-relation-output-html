@@ -163,7 +163,7 @@ Class Curl {
 				}
 
 				$amp = Helpers::getOption('amp_rlout');
-				if(!empty($amp)){
+				if(!empty($amp) && !empty($file_default)){
 					Curl::deploy_upload($url.'/amp/');
 				}
 			}
