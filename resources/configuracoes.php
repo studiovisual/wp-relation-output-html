@@ -44,7 +44,7 @@ $user = wp_get_current_user();
 
 						<tr>
 							<td>
-								<a href="javascript:;" style="position: absolute; margin-left: 720px; margin-top: 60px;" class="adicionar_api_rlout">Adicionar campo</a>
+								<a href="javascript:;" style="position: absolute; margin-left: 760px; margin-top: 60px;" class="adicionar_api_rlout">Adicionar campo</a>
 							</td>
 						</tr>
 
