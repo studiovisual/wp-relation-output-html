@@ -171,7 +171,7 @@ Class Terms Extends App {
 			Ftp::upload_file($file_raiz);
 			S3::upload_file($file_raiz, true);
 			
-			$urls[] = str_replace($dir_base,$replace_url,$file_raiz);
+			$urls[] = str_replace($dir_base,$replace_url,$file_raiz).'index.json';
 		}
 		
 		return $urls;
