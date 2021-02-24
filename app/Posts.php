@@ -31,13 +31,13 @@ Class Posts {
 			add_action('updated_post_meta', function($meta_id, $post_id, $meta_key){
 				
 				if($meta_key=='_edit_lock'){
-
+					
 					$post_types = explode(',', Helpers::getOption('post_types_rlout'));
 					
 					$post =  get_post($post_id);
-
+					
 					if(in_array($post->post_type, $post_types)){
-
+						
 						
 						// Gerador da archive do post estatizado
 						$link_archive = get_post_type_archive_link($post->post_type);
@@ -52,7 +52,7 @@ Class Posts {
 						$objects = array();
 						
 						$objects[] = $post;
-
+						
 						// categorias relacionadas
 						foreach ($terms as $key => $term) {
 							$objects[] = $term;
@@ -60,7 +60,7 @@ Class Posts {
 						}
 						
 						Curl::list_deploy($objects);
-
+						
 						Posts::api($post);
 					}
 				}
@@ -119,15 +119,14 @@ Class Posts {
 	static function api($post=null, $upload=true){
 		
 		$post_types = explode(",", Helpers::getOption('post_types_rlout'));
-
+		
 		$gerenate_all = false;
-
+		
 		if(empty($post)){
 			$gerenate_all = true;
 		}
-
+		
 		$urls = array();
-
 		foreach($post_types as $post_type){
 			
 			if($gerenate_all==true){
@@ -138,25 +137,8 @@ Class Posts {
 			if(empty($replace_url)){
 				$replace_url = site_url().'/html';
 			}
-			
-			$posts_arr = Posts::get_post_json($post, array());
-			
-			$response = json_encode($posts_arr , JSON_UNESCAPED_SLASHES);
-			
-			$replace_uploads = Helpers::getOption('uploads_rlout');
-			
-			if($replace_uploads){
 
-				$uploads_url_rlout = Helpers::getOption('uploads_url_rlout'); 
-				
-				$upload_url = wp_upload_dir();						
-				
-				$response = str_replace($upload_url['baseurl'], $replace_url.'/uploads', $response);
-				if($uploads_url_rlout){
-					$response = str_replace($uploads_url_rlout, $replace_url.'/uploads', $response);
-				}
-				
-			}
+			$posts_arr = Posts::get_post_json($post, array());
 			
 			$dir_base =  Helpers::getOption('path_rlout');
 			if( realpath($dir_base) === false ){
@@ -166,9 +148,39 @@ Class Posts {
 			$file_raiz = $dir_base . '/'.$post->post_type.'.json';
 			
 			$file = fopen($file_raiz, "w");
-			fwrite($file, $response);
-			fclose($file);
 
+			fwrite($file, '[');
+			
+			foreach($posts_arr as $key_arr => $post_arr){
+				
+				$response = json_encode($post_arr , JSON_UNESCAPED_SLASHES);
+				
+				$replace_uploads = Helpers::getOption('uploads_rlout');
+				
+				if($replace_uploads){
+					
+					$uploads_url_rlout = Helpers::getOption('uploads_url_rlout'); 
+					
+					$upload_url = wp_upload_dir();						
+					
+					$response = str_replace($upload_url['baseurl'], $replace_url.'/uploads', $response);
+					if($uploads_url_rlout){
+						$response = str_replace($uploads_url_rlout, $replace_url.'/uploads', $response);
+					}
+					
+				}
+				
+				if($key_arr+1!=count($posts_arr)){
+					$response = $response.',';
+				}
+
+				fwrite($file, $response);
+			}
+
+			fwrite($file, ']');
+			
+			fclose($file);
+			
 			if($upload==true){
 				Git::upload_file('Atualização de object');
 				Ftp::upload_file($file_raiz);
@@ -177,7 +189,7 @@ Class Posts {
 			
 			$urls[] = str_replace($dir_base,$replace_url,$file_raiz);
 		}
-
+		
 		
 		return $urls;
 	}
@@ -213,14 +225,14 @@ Class Posts {
 					if($create_post==true){
 						$post_arr = array_unshift($post_arr, $new_post);
 					}
-
+					
 					return $post_arr;
 				}
 			}
 			
 			$object = new \StdClass();
 			$object->post_type = $post->post_type;
-
+			
 			$args = array(
 				'post_type'=>$post->post_type,
 				'posts_per_page' => 100,
@@ -228,16 +240,16 @@ Class Posts {
 				'orderby'=>'date',
 				'post__not_in'=>$not_in
 			);
-
+			
 			if(!empty($term)):
 				$args['tax_query'][0]['taxonomy'] = $term->taxonomy;
-            	$args['tax_query'][0]['terms'] = array($term->term_id);
+				$args['tax_query'][0]['terms'] = array($term->term_id);
 			endif;
 			
 			$posts = get_posts($args);
-
+			
 			$posts_arr = array();
-
+			
 			$ignore_json_rlout = explode(',' , Helpers::getOption('ignore_json_rlout'));
 			foreach ($posts as $key => $post) {
 				
