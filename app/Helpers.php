@@ -9,6 +9,8 @@ use WpRloutHtml\Modules\Ftp;
 Class Helpers {
 
 	private static $options = array();
+	private static $postTypes = null;
+	private static $taxonomies = null;
 
 	static function subfiles_generate(){
 		
@@ -165,6 +167,14 @@ Class Helpers {
 
 	public static function getOption($option) {
         return !isset(self::$options[$option]) ? self::$options[$option] = get_option($option) : self::$options[$option];
+    }
+
+	public static function getPostTypes() {
+		return self::$postTypes == null ? self::$postTypes = explode(',', self::getOption('post_types_rlout')) : self::$postTypes;
+    }
+
+	public static function getTaxonomies() {
+		return self::$taxonomies == null ? self::$taxonomies = explode(',', self::getOption('taxonomies_rlout')) : self::$taxonomies;
     }
 
 }

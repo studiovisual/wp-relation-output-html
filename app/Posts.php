@@ -2,7 +2,6 @@
 
 namespace WpRloutHtml;
 
-use WpRloutHtml\App;
 use WpRloutHtml\Essentials\Curl;
 use WpRloutHtml\Modules\Git;
 use WpRloutHtml\Modules\S3;
@@ -12,60 +11,50 @@ use WpRloutHtml\Terms;
 
 Class Posts {
 	
-	public function __construct(){
-		
+	public function __construct() {
 		// verifica alterações de posts
-		$post_types = explode(',', Helpers::getOption('post_types_rlout'));
-		foreach ($post_types as $key => $post_type) {
-			add_action( 'publish_'.$post_type, array($this, 'create_folder'));
-			add_action( 'draft_'.$post_type, array($this, 'delete_folder'));
-			add_action( 'pre_'.$post_type.'_update', array($this, 'delete_folder'));
-			add_action( 'trash_'.$post_type,  array($this, 'delete_folder'));
-		}
+		foreach(Helpers::getPostTypes() as $post_type):
+			add_action("publish_$post_type", array($this, 'create_folder'));
+			add_action("draft_$post_type", array($this, 'delete_folder'));
+			add_action("pre_" . $post_type . "_update", array($this, 'delete_folder'));
+			add_action("trash_$post_type",  array($this, 'delete_folder'));
+		endforeach;
 	}
 	
-	public function create_folder($post_id=null){
-		
-		if($_POST['static_output_html']){
+	public function create_folder($post_id = null) {
+		if($_POST['static_output_html'])
+			return;
 			
-			add_action('updated_post_meta', function($meta_id, $post_id, $meta_key){
-				
-				if($meta_key=='_edit_lock'){
+		add_action('updated_post_meta', function($meta_id, $post_id, $meta_key) {
+			if($meta_key != '_edit_lock')
+				return;
+			
+			$post = get_post($post_id);
 
-					$post_types = explode(',', Helpers::getOption('post_types_rlout'));
-					
-					$post =  get_post($post_id);
+			if(!in_array($post->post_type, Helpers::getPostTypes()))
+				return;
 
-					if(in_array($post->post_type, $post_types)){
+			// Gerador da archive do post estatizado
+			$link_archive = get_post_type_archive_link($post->post_type);
 
-						
-						// Gerador da archive do post estatizado
-						$link_archive = get_post_type_archive_link($post->post_type);
-						if($link_archive && $link_archive!=site_url()){
-							Curl::generate($link_archive);
-						}
-						
-						// Verificando os terms do post de todas as taxonomies selecionadas
-						$taxonomies = explode(",", Helpers::getOption('taxonomies_rlout'));
-						$terms = wp_get_post_terms($post->ID, $taxonomies);
-						
-						$objects = array();
-						
-						$objects[] = $post;
+			if($link_archive && $link_archive != site_url())
+				Curl::generate($link_archive);
+			
+			// Verificando os terms do post de todas as taxonomies selecionadas
+			$terms = wp_get_post_terms($post->ID, Helpers::getTaxonomies());
+			
+			$objects = array();			
+			$objects[] = $post;
 
-						// categorias relacionadas
-						foreach ($terms as $key => $term) {
-							$objects[] = $term;
-							Terms::api($term);
-						}
-						
-						Curl::list_deploy($objects);
-
-						Posts::api($post);
-					}
-				}
-			},10,3);
-		}
+			// categorias relacionadas
+			foreach ($terms as $term):
+				$objects[] = $term;
+				Terms::api($term);
+			endforeach;
+			
+			Curl::list_deploy($objects);
+			Posts::api($post);
+		}, 10, 3);
 	}
 	
 	public function delete_folder($post_id){
