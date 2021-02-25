@@ -171,7 +171,7 @@ Class Posts {
 						
 					}
 					
-					if(($key_arr+1)!=count($posts_arr)){
+					if($post_arr!=end($posts_arr)){
 						$response = $response.',';
 					}
 				}
