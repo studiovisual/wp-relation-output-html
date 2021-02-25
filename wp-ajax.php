@@ -22,7 +22,7 @@ Class WpAjaxRelOutHtml {
         if(!empty($file) && filter_var($file, FILTER_VALIDATE_URL)){
             $rlout = new RelOutputHtml;
             $response = $rlout->curl_generate($file);
-            die(strip_tags($response));
+            die($response);
         }
     }
     

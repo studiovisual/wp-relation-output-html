@@ -798,13 +798,13 @@ Class RelOutputHtml {
 			foreach ($explode_raiz as $keyp => $raiz) {
 				$wp_raiz = $wp_raiz . $raiz . '/';
 				if( realpath($wp_raiz) === false && $keyp+1<count($explode_raiz)){
-					mkdir(realpath($wp_raiz));
+					mkdir($wp_raiz);
 				}
 			}
 
-			$file = fopen(realpath($dir_base . $file_default),"w");
+			$file = fopen( $dir_base . $file_default,"w");
 			
-			$file_json = fopen(realpath($dir_base . $json_default),"w");
+			$file_json = fopen( $dir_base . $json_default,"w");
 			
 			$replace_uploads = get_option('uploads_rlout');
 			
@@ -1310,7 +1310,7 @@ Class RelOutputHtml {
 						if($key+1<count($folders)){
 							$dir_base = $dir_base . '/' . $folder;
 							if( realpath($dir_base) === false ){
-								mkdir(realpath($dir_base));
+								mkdir($dir_base);
 							}
 						}
 					}
@@ -1356,7 +1356,7 @@ Class RelOutputHtml {
 					
 					$folders = implode(".", $folders_point);
 					
-					$file = fopen(realpath($dir_base . '/' . $folders), "w");
+					$file = fopen( $dir_base . '/' . $folders,"w");
 					
 					fwrite($file, $response);
 					
