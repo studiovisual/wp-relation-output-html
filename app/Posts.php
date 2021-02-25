@@ -155,23 +155,25 @@ Class Posts {
 				
 				$response = json_encode($post_arr , JSON_UNESCAPED_SLASHES);
 				
-				$replace_uploads = Helpers::getOption('uploads_rlout');
-				
-				if($replace_uploads){
+				if(!empty($response)){
+					$replace_uploads = Helpers::getOption('uploads_rlout');
 					
-					$uploads_url_rlout = Helpers::getOption('uploads_url_rlout'); 
-					
-					$upload_url = wp_upload_dir();						
-					
-					$response = str_replace($upload_url['baseurl'], $replace_url.'/uploads', $response);
-					if($uploads_url_rlout){
-						$response = str_replace($uploads_url_rlout, $replace_url.'/uploads', $response);
+					if($replace_uploads){
+						
+						$uploads_url_rlout = Helpers::getOption('uploads_url_rlout'); 
+						
+						$upload_url = wp_upload_dir();						
+						
+						$response = str_replace($upload_url['baseurl'], $replace_url.'/uploads', $response);
+						if($uploads_url_rlout){
+							$response = str_replace($uploads_url_rlout, $replace_url.'/uploads', $response);
+						}
+						
 					}
 					
-				}
-				
-				if($key_arr+1!=count($posts_arr)){
-					$response = $response.',';
+					if(($key_arr+1)!=count($posts_arr)){
+						$response = $response.',';
+					}
 				}
 
 				fwrite($file, $response);
@@ -239,6 +241,7 @@ Class Posts {
 				'posts_per_page' => 100,
 				'order'=>'DESC',
 				'orderby'=>'date',
+				'post_status' => 'publish',
 				'post__not_in'=>$not_in
 			);
 			

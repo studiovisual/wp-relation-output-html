@@ -12,7 +12,9 @@ Class WpAjax {
     
     public function __construct() {
 
-        // Ajax de arquivos e páginas: /wp-admin/admin-ajax.php?action=static_output_deploy&file_url=
+        // Ajax de arquivos e páginas: /wp-admin/admin-ajax.php?action=static_output_reset
+        add_action('wp_ajax_static_output_reset', array($this, 'delete_all') );
+        // Ajax de arquivos e páginas: /wp-admin/admin-ajax.php?action=static_output_upload
         add_action('wp_ajax_static_output_upload', array($this, 'upload_all') );
 
         // Ajax de arquivos e páginas: /wp-admin/admin-ajax.php?action=static_output_deploy&file_url=
@@ -28,8 +30,21 @@ Class WpAjax {
         add_action('wp_ajax_all_search_posts', array($this, 'all_search_posts') );
     }
     
-    public function upload_all(){
+    public function delete_all(){
+
         $base_html = Helpers::getOption('path_rlout');
+
+        $delete_static = Helpers::rrmdir($base_html.'/');
+        
+        if($delete_static==true){
+            die('Tudo pronto, estamos iniciando a estatização!');
+        }
+    }
+
+    public function upload_all(){
+
+        $base_html = Helpers::getOption('path_rlout');
+
         $response = S3::upload_file($base_html.'/');
         die('Upload dos arquivos/categorias e páginas realizado com sucesso!');
     }

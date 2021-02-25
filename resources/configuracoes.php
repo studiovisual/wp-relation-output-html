@@ -49,6 +49,7 @@ $user = wp_get_current_user();
 						</tr>
 
 						<?php $values_r = explode(",", Helpers::getOption($key_field)); ?>
+
 						<?php if(empty($values_r)): ?>
 							<tr>
 								<th scope="row">
@@ -228,7 +229,7 @@ $user = wp_get_current_user();
 				jQuery("#post_type_static").attr('disabled','disabled');
 				jQuery("#taxonomy_static").attr('disabled','disabled');
 				jQuery("#deploy_all_static").attr('disabled','disabled');
-				get_urls();
+				reset_all();
 			});
 		}
 
@@ -314,6 +315,22 @@ $user = wp_get_current_user();
 				}else{
 					deploy(key_main+1, response[key_main]);
 				}
+			});
+		}
+
+		function reset_all(){
+			var settings = {
+				"url": "<?php echo site_url(); ?>/wp-admin/admin-ajax.php?action=static_output_reset",
+				"method": "GET",
+				"timeout": 0,
+			};
+
+			jQuery('#results_static').append('<p>Aguarde, estamos limpando os arquivos anteriores...</a>');
+
+			jQuery.ajax(settings).done(function (response) {
+
+				jQuery('#results_static').append('<p>'+response+'</a>');
+				get_urls();
 			});
 		}
 

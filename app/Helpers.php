@@ -25,6 +25,9 @@ Class Helpers {
 			}
 			closedir($dir);
 			rmdir($src);
+			return true;
+		}else{
+			return true;
 		}
 	}
 

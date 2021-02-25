@@ -90,9 +90,8 @@ Class Terms Extends App {
 			foreach ($terms as $key => $term) {
 
 				if(empty($term_update) || $term->term_id==$term_update->term_id) {
-					$term_link = get_term_link($term);
 					
-					$urls[] = $term_link;
+					$term_link = get_term_link($term);
 					
 					$term = Terms::object_term($term, true);
 					$term_link = str_replace(site_url(), $dir_base, $term_link);
@@ -119,6 +118,10 @@ Class Terms Extends App {
 						Git::upload_file('Atualização de object');
 						Ftp::upload_file($file_raiz);
 						S3::upload_file($file_raiz, true);
+					}
+					
+					if($term){
+						$urls[] = str_replace($dir_base,$replace_url,$file_raiz);
 					}
 
 					unset($term->posts);
@@ -153,7 +156,7 @@ Class Terms Extends App {
 			Ftp::upload_file($file_raiz);
 			S3::upload_file($file_raiz, true);
 			
-			$urls[] = str_replace($dir_base,$replace_url,$file_raiz).'index.json';
+			$urls[] = str_replace($dir_base,$replace_url,$file_raiz);
 		}
 		
 		return $urls;

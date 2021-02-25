@@ -42,7 +42,7 @@ Class S3 {
                 $directory_empty = explode('/', $key_file_s3);
                 
                 if(!empty($key_file_s3) && !empty(end($directory_empty)) ){
-
+                    
                     $response = $clientS3->putObject(array(
                         'Bucket' => Helpers::getOption('s3_bucket_rlout'),
                         'Key'    => $key_file_s3,
@@ -57,12 +57,21 @@ Class S3 {
                         Cloudfront::invalid('/'.$key_file_s3);
                     }
                 }else if(empty(end($directory_empty))){
+                    
+                        $verify_files = scandir($file_dir);
 
-                  $S3Transfer = new Transfer($clientS3, $file_dir, 's3://'.Helpers::getOption('s3_bucket_rlout').'/'.$key_file_s3);
-                  $response = $S3Transfer->transfer();
-
-                  if($S3Transfer && $ignore_cloud==false){
-                        Cloudfront::invalid('/*');
+                        if(count($verify_files)!=0){
+                        
+                            $construct = array('concurrency'=>30);
+                            
+                            $S3Transfer = new Transfer($clientS3, $file_dir, 's3://'.Helpers::getOption('s3_bucket_rlout').'/'.$key_file_s3, $construct);
+                            $response = $S3Transfer->transfer();
+                            
+                            debug_print_backtrace();
+                            
+                            if($S3Transfer && $ignore_cloud==false){
+                                Cloudfront::invalid('/*');
+                            }
                     }
                 }
                 
@@ -71,7 +80,7 @@ Class S3 {
     }
     
     static function remove_file($file_dir){
-
+        
         $file_dir = str_replace("//", "/", $file_dir);
         $file_dir = str_replace("./", "/", $file_dir);
         
