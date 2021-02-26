@@ -313,6 +313,7 @@ $user = wp_get_current_user();
 					jQuery("#post_type_static").removeAttr('disabled');
 					jQuery("#taxonomy_static").removeAttr('disabled');
 					jQuery("#deploy_all_static").removeAttr('disabled');
+					upload_all();
 				}else{
 					deploy(key_main+1, response);
 				}

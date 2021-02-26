@@ -9,26 +9,27 @@ use WpRloutHtml\Helpers;
 use WpRloutHtml\Modules\S3;
 use WpRloutHtml\Modules\Ftp;
 use WpRloutHtml\Modules\Git;
+use WpRloutHtml\Modules\Amp;
 
 Class Curl {
-
+	
 	// Envia todos os objetos recebidos para o generate
-    static function list_deploy($objs=null){
-
+	static function list_deploy($objs=null){
+		
 		if(!empty($objs)){
 			foreach ($objs as $key => $obj) {
 				Curl::generate($obj);
 			}
 		}
-	
+		
 	}
-
+	
 	// Recebe o Objeto (post ou term) e descobre a Url para enviar a função deploy_upload();
-    static function generate($object, $home=null, $items=true, $upload=true){
-
+	static function generate($object, $home=null, $items=true, $upload=true){
+		
 		update_option('robots_rlout', '0');
 		update_option('blog_public', '1');
-
+		
 		$url_post = url_to_postid($object);
 		$search_amp = strpos($object, '/amp/');
 		if($search_amp===false){
@@ -47,7 +48,7 @@ Class Curl {
 				}
 			}
 		}
-
+		
 		if(!empty($object->ID)){
 			
 			$url = get_permalink( $object );
@@ -68,36 +69,36 @@ Class Curl {
 		if(filter_var($url, FILTER_VALIDATE_URL)==false){
 			return $url.' - URL COM ERRO DE SINTAX';
 		}
-
+		
 		$response = Curl::get($url);
-
+		
 		$original_response = $response;
 		
 		if ($response) {
-
+			
 			$response = Helpers::replace_json($response);
 			$dir_base = Helpers::getOption('path_rlout');
 			if( is_dir($dir_base) === false ){
 				mkdir($dir_base);
 			}
-
+			
 			$uri = Helpers::getOption('uri_rlout');
-
+			
 			$replace_raiz = str_replace($uri, '', $url);
 			$replace_raiz = str_replace(site_url(), '', $replace_raiz);
 			$dir_base = $dir_base . $replace_raiz;
-
+			
 			$verify_files_point = explode('.',$replace_raiz);
-
+			
 			$file_default = 'index.html';
 			$json_default = 'index.json';
-
+			
 			if(count($verify_files_point)>1){
 				$file_default = '';
 				$json_default = '';
-
+				
 				if($verify_files_point[1]=='xml'){
-
+					
 					$htt = str_replace('https:', '', site_url());
 					$htt = str_replace('http:', '', $htt);
 					$original_response = str_replace(site_url(), Helpers::getOption('replace_url_rlout'), $original_response);
@@ -114,7 +115,7 @@ Class Curl {
 					$response=$original_response;
 				}
 			}
-
+			
 			$explode_raiz = explode("/", $dir_base);
 			foreach ($explode_raiz as $keyp => $raiz) {
 				$wp_raiz = $wp_raiz . $raiz . '/';
@@ -122,9 +123,9 @@ Class Curl {
 					mkdir($wp_raiz);
 				}
 			}
-
+			
 			$file = fopen($dir_base . $file_default,"w");
-						
+			
 			$replace_uploads = Helpers::getOption('uploads_rlout');
 			
 			$uploads_url_rlout = Helpers::getOption('uploads_url_rlout'); 
@@ -132,19 +133,23 @@ Class Curl {
 			if($replace_uploads){
 				
 				$upload_url = wp_upload_dir();
-			
+				
 				$response = Helpers::replace_reponse($upload_url['baseurl'], $response, '/uploads', $items);
-
+				
 				if($uploads_url_rlout){
 					$response = Helpers::replace_reponse($uploads_url_rlout, $response, '/uploads', $items);
 				}
 				
 			}
-
+			
 			$response = Helpers::replace_reponse(Helpers::getOption('uri_rlout'), $response, null, $items);
-
+			$amp = Helpers::getOption('amp_rlout');
+			if(!empty($amp)){
+				$response = Amp::remove_pagination($response, $url);
+			}
+			
 			$jsons = array();
-
+			
 			$ignore_files_rlout = explode(',', Helpers::getOption('ignore_files_rlout'));
 			if(empty(in_array($url, $ignore_files_rlout))){
 				
@@ -156,33 +161,40 @@ Class Curl {
 					Ftp::upload_file($dir_base . $file_default);
 					S3::upload_file($dir_base . $file_default, false);
 				}
-
-				$amp = Helpers::getOption('amp_rlout');
+				
 				if(!empty($amp) && !empty($file_default) && !$search_amp){
-					Curl::generate($url.'amp/', false, false, true);
+					
+					Curl::generate($url.'amp/', false, false, $upload);
+					
+					$urls_pagination = Amp::urls();
+					foreach($urls_pagination as $url_pg){
+						$page_compare = explode('amp/', $url_pg);
+						if($url==$page_compare[0]){
+							Curl::generate($url_pg, false, false, $upload);
+						}
+					}
 				}
 			}
 			
-
 			if($json_default!='' && is_object($object)){
-
+				
 				$file_json = fopen($dir_base . $json_default,"w");
-
+				
 				if(term_exists($object->term_id)){
 					$object = Terms::object_term($object, true);
 				}else if($object->ID){
 					$object = Posts::new_params($object, true);
 				}
-
-
+				
+				
 				$response_json = Helpers::replace_reponse(Helpers::getOption('uri_rlout'), json_encode($object), null, $items);
 				
 				$ignore_json_rlout = explode(',' , Helpers::getOption('ignore_json_rlout'));
 				if(empty(in_array($url, $ignore_json_rlout))){
-
+					
 					fwrite($file_json,  $response_json);
 					fclose($file_json);
-
+					
 					if($upload==true){
 						Git::upload_file('Atualização de object');
 						Ftp::upload_file($dir_base . $json_default);
@@ -195,120 +207,120 @@ Class Curl {
 			return $url;
 		}
 	}
-
+	
 	// Recebe a URl da página ou media e gera o HTML, em seguida faz upload no S3 e FTP
-    static function deploy_upload($url, $media=null){
+	static function deploy_upload($url, $media=null){
 		
-        if(empty(in_array($url, App::$repeat_files_rlout)) && !empty($url)){
-            
-            $url = explode('?', $url);
-            
-            $url = $url[0];
-            
-            $url_point = explode(".", $url);
-            
-            $url_space = explode(" ", $url_point[count($url_point)-1]);
-            
-            $url_point[count($url_point)-1] = $url_space[0];
-            
-            $url = implode(".", $url_point);
-            
-            $response = Curl::get($url);
-            
-            if ($response) {
-                
-                $response = Helpers::replace_json($response);
-                
-                $dir_base = Helpers::getOption('path_rlout');
-                if( is_dir($dir_base) === false ){
-                    mkdir($dir_base);
-                }
-                
-                if($media){
-                    $dir_base = Helpers::getOption('path_rlout') . $media;
-                    if( is_dir($dir_base) === false ){
-                        mkdir($dir_base);
-                    }
-                }
-                
-                $url = urldecode($url);
-                
-                if($media){
-                    $upload_url = wp_upload_dir();
-                    $uploads_url_rlout = Helpers::getOption('uploads_url_rlout'); 
-                    $file_name = str_replace($upload_url['baseurl'], '', $url);
-                    
-                    if($uploads_url_rlout){
-                        $file_name = str_replace($uploads_url_rlout, '', $file_name);
-                    }
-                }else{
-                    $file_name = str_replace(Helpers::getOption('uri_rlout'), '', $url);
-                    $file_name = str_replace(site_url(), '', $file_name);
-                }
-                
-                $folders = explode("/", $file_name);
-                foreach ($folders as $key => $folder) {
-                    if($key+1<count($folders)){
-                        $dir_base = $dir_base . '/' . $folder;
-                        if( is_dir($dir_base) === false ){
-                            mkdir($dir_base);
-                        }
-                    }
-                }
-                
-                $css = explode(".css", end($folders));
-                if(!empty($css[1])){
-                    $attrs = explode("url(", $response);
-                    if(empty($attrs)){
-                        $attrs = explode("url (", $response);
-                    }						
-                    
-                    if(!empty($attrs)){
-                        unset($attrs[0]);
-                        foreach ($attrs as $key_att => $attr) {
-                            $http = explode("http", $attr);
-                            if(!$http[1]){
-                                $attr = explode(")", $attr);
-                                $attr = str_replace('"', '', $attr[0]);
-                                $attr = str_replace("'", "", $attr);
-                                
-                                $attr = $dir_base  . '/' . $attr;
-                                
-                                $attr = str_replace(Helpers::getOption('path_rlout'), '', $attr);
-                                
-                                $attr = Helpers::getOption('uri_rlout') . $attr;
-                                
-                                $svg = explode("data:image", $attr);
-                                
-                                if(!$svg[1]){
-                                    Curl::deploy_upload($attr);
-                                    App::$repeat_files_rlout[] = $attr;
-                                }
-                            }
-                        }
-                    }
-                }
-                
-                $folders_point = explode(".", end($folders));
-                
-                $folders_space = explode(" ", $folders_point[count($folders_point)-1]);
-                
-                $folders_point[count($folders_point)-1] = $folders_space[0];
-                
-                $folders = implode(".", $folders_point);
-                
-                $file = fopen( $dir_base . '/' . $folders,"w");
-                
-                fwrite($file, $response);
-                fclose($file);
-
-                Ftp::upload_file($dir_base . '/' . $folders);
-                S3::upload_file($dir_base . '/' . $folders);
-            }
-        }
+		if(empty(in_array($url, App::$repeat_files_rlout)) && !empty($url)){
+			
+			$url = explode('?', $url);
+			
+			$url = $url[0];
+			
+			$url_point = explode(".", $url);
+			
+			$url_space = explode(" ", $url_point[count($url_point)-1]);
+			
+			$url_point[count($url_point)-1] = $url_space[0];
+			
+			$url = implode(".", $url_point);
+			
+			$response = Curl::get($url);
+			
+			if ($response) {
+				
+				$response = Helpers::replace_json($response);
+				
+				$dir_base = Helpers::getOption('path_rlout');
+				if( is_dir($dir_base) === false ){
+					mkdir($dir_base);
+				}
+				
+				if($media){
+					$dir_base = Helpers::getOption('path_rlout') . $media;
+					if( is_dir($dir_base) === false ){
+						mkdir($dir_base);
+					}
+				}
+				
+				$url = urldecode($url);
+				
+				if($media){
+					$upload_url = wp_upload_dir();
+					$uploads_url_rlout = Helpers::getOption('uploads_url_rlout'); 
+					$file_name = str_replace($upload_url['baseurl'], '', $url);
+					
+					if($uploads_url_rlout){
+						$file_name = str_replace($uploads_url_rlout, '', $file_name);
+					}
+				}else{
+					$file_name = str_replace(Helpers::getOption('uri_rlout'), '', $url);
+					$file_name = str_replace(site_url(), '', $file_name);
+				}
+				
+				$folders = explode("/", $file_name);
+				foreach ($folders as $key => $folder) {
+					if($key+1<count($folders)){
+						$dir_base = $dir_base . '/' . $folder;
+						if( is_dir($dir_base) === false ){
+							mkdir($dir_base);
+						}
+					}
+				}
+				
+				$css = explode(".css", end($folders));
+				if(!empty($css[1])){
+					$attrs = explode("url(", $response);
+					if(empty($attrs)){
+						$attrs = explode("url (", $response);
+					}						
+					
+					if(!empty($attrs)){
+						unset($attrs[0]);
+						foreach ($attrs as $key_att => $attr) {
+							$http = explode("http", $attr);
+							if(!$http[1]){
+								$attr = explode(")", $attr);
+								$attr = str_replace('"', '', $attr[0]);
+								$attr = str_replace("'", "", $attr);
+								
+								$attr = $dir_base  . '/' . $attr;
+								
+								$attr = str_replace(Helpers::getOption('path_rlout'), '', $attr);
+								
+								$attr = Helpers::getOption('uri_rlout') . $attr;
+								
+								$svg = explode("data:image", $attr);
+								
+								if(!$svg[1]){
+									Curl::deploy_upload($attr);
+									App::$repeat_files_rlout[] = $attr;
+								}
+							}
+						}
+					}
+				}
+				
+				$folders_point = explode(".", end($folders));
+				
+				$folders_space = explode(" ", $folders_point[count($folders_point)-1]);
+				
+				$folders_point[count($folders_point)-1] = $folders_space[0];
+				
+				$folders = implode(".", $folders_point);
+				
+				$file = fopen( $dir_base . '/' . $folders,"w");
+				
+				fwrite($file, $response);
+				fclose($file);
+				
+				Ftp::upload_file($dir_base . '/' . $folders);
+				S3::upload_file($dir_base . '/' . $folders);
+			}
+		}
 		return $url;
-    }
-
+	}
+	
 	static function get($url){
 		$curl = curl_init();
 		curl_setopt_array($curl, array(
@@ -330,7 +342,7 @@ Class Curl {
 		
 		$response = curl_exec($curl);
 		$err = curl_error($curl);
-
+		
 		$httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
 		curl_close($curl);
 		
