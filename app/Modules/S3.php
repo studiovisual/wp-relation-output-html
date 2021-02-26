@@ -51,10 +51,14 @@ Class S3 {
                     ));
                     
                     if($response && $ignore_cloud==false){
-                        
-                        $key_file_s3 = str_replace('index.html', '', $key_file_s3);
-                        
+
                         Cloudfront::invalid('/'.$key_file_s3);
+                        
+                        $key_file_s3_json = str_replace('index.html', 'index.json', $key_file_s3);
+                        Cloudfront::invalid('/'.$key_file_s3_json);
+                        
+                        $key_file_s3_dir = str_replace('index.html', '', $key_file_s3);
+                        Cloudfront::invalid('/'.$key_file_s3_dir);
                     }
                 }else if(empty(end($directory_empty))){
                     
