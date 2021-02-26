@@ -23,6 +23,14 @@ Class Enqueue {
 
         // Action que incorpora funções inline no footer de HTML/CSS/JS
 		add_filter( 'update_footer', array($this, 'config_admin_var') );
+
+        add_action('enqueue_block_editor_assets', function() {
+            wp_enqueue_script(
+                'relation-output-gutenberg',
+                trailingslashit(plugins_url()) . 'wp-relation-output-html/resources/inc/js/gutenberg.js',
+                array( 'wp-i18n', 'wp-blocks', 'wp-edit-post', 'wp-element', 'wp-editor', 'wp-components', 'wp-data', 'wp-plugins', 'wp-edit-post' )
+            );
+        } );
     }
 
     public function my_enqueue($hook) {
