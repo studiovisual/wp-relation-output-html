@@ -2,7 +2,6 @@
 
 namespace WpRloutHtml;
 
-use WpRloutHtml\App;
 use WpRloutHtml\Essentials\Curl;
 use WpRloutHtml\Modules\Git;
 use WpRloutHtml\Modules\S3;
@@ -11,31 +10,41 @@ use WpRloutHtml\Helpers;
 use WpRloutHtml\Terms;
 
 Class Posts {
+
+	public $is_block_editor = false;
 	
-	public function __construct(){
-		
+	public function __construct() {
+		$current_screen = get_current_screen();
+		$this->is_block_editor = $current_screen->is_block_editor();	
+
 		// verifica alterações de posts
 		$post_types = explode(',', Helpers::getOption('post_types_rlout'));
-		foreach ($post_types as $key => $post_type) {
-			add_action( 'publish_'.$post_type, array($this, 'create_folder'));
-			add_action( 'pre_'.$post_type.'_update', array($this, 'delete_folder'));
+		foreach ($post_types as $post_type) {
+			if($this->is_block_editor && wp_doing_ajax()):
+				add_action("rest_insert_{$post_type}", array($this, 'create_folder'));
+				add_action("rest_pre_insert_{$post_type}", array($this, 'delete_folder'));
+			else:
+				add_action("publish_{$post_type}", array($this, 'create_folder'));
+				add_action("pre_{$post_type}_update", array($this, 'delete_folder'));
+			endif;
 		}
 	}
 	
-	public function create_folder($post_id=null){
-		
-		if($_POST['static_output_html']){
-			
-			add_action('updated_post_meta', function($meta_id, $post_id, $meta_key){
+	public function create_folder($post_id=null) {
+		add_action('updated_post_meta', function($meta_id, $post_id, $meta_key) {
+			if($meta_key=='_edit_lock'):
 				
-				if($meta_key=='_edit_lock'){
-					
+				$static = get_post_meta($post_id, '_static_output_html', true);
+
+				if($static || (isset($_POST['static_output_html']) && $_POST['static_output_html'])):
+					if($static)
+						update_post_meta($post_id, '_static_output_html', 0);
+
 					$post_types = explode(',', Helpers::getOption('post_types_rlout'));
-					
 					$post =  get_post($post_id);
 					
 					if(in_array($post->post_type, $post_types)){
-						
+							
 						// Gerador da archive do post estatizado
 						$link_archive = get_post_type_archive_link($post->post_type);
 						if($link_archive && $link_archive!=site_url()){
@@ -50,31 +59,38 @@ Class Posts {
 						
 						$objects[] = $post;
 						
+						
 						// categorias relacionadas
 						foreach ($terms as $key => $term) {
 							$objects[] = $term;
 							Terms::api($term);
 						}
-						
+							
 						Curl::list_deploy($objects);
-
 						Posts::api($post);
 					}
-				}
-			},10,3);
-		}
+				endif;
+			endif;
+		}, 10, 3);
 	}
 	
-	public function delete_folder($post_id){
-		
-		if(empty($_POST) || $_POST['post_status']!='publish'){
+	public function delete_folder($post_id) {	
+		if(empty($_POST) || $_POST['post_status'] != 'publish') {
+			if(!function_exists('get_sample_permalink')) {
+				/** Load WordPress Bootstrap */
+				require_once ABSPATH . '/wp-load.php';
+				/** Load WordPress Administration APIs */
+				require_once ABSPATH . 'wp-admin/includes/admin.php';
+	
+				do_action('admin_init');
+			}
 
 			$post = get_post($post_id);
+			$post->post_status = 'publish';
 
 			$post_types = explode(',', Helpers::getOption('post_types_rlout'));
-			
-			if(in_array($post->post_type, $post_types)){
 
+			if(in_array($post->post_type, $post_types)){
 				// rename vindo da funciona create
 				// if($post->post_status=='publish' && $_POST['post_status']=='publish'){
 					
@@ -100,6 +116,7 @@ Class Posts {
 				$url_del = str_replace('%postname%',$url_delete[1],$url_del);
 
 				$url_delete = $url_del;
+
 				if($url_delete){
 					$dir_base =  str_replace('__trashed', '', $url_delete);
 					$dir_base = Helpers::getOption('path_rlout') . str_replace(site_url(), '', $dir_base);
