@@ -330,11 +330,13 @@ Class Curl {
 		
 		$response = curl_exec($curl);
 		$err = curl_error($curl);
-		
+
+		$httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
 		curl_close($curl);
 		
-		if ($err) {
-			return null;
+		if ($err || $httpCode!=200) {
+			header('HTTP/1.0 404 not found'); 
+			die();
 		} else {
 			return $response;
 		}

@@ -300,9 +300,14 @@ $user = wp_get_current_user();
 				jQuery('.statics_page').html(total+1);
 				jQuery('#results_static').append('<p><a href="'+url_main+'" target="_blank">'+url_main+'</a> - OK</p>');
 				
+			}).fail(function(){
+				var total = parseInt(jQuery('.statics_page').html());
+				var url_main = response[key_main].replace("<?php echo site_url(); ?>","<?php echo Helpers::getOption('replace_url_rlout'); ?>");
+				jQuery('.statics_page').html(total+1);
+				jQuery('#results_static').append('<p><a href="'+url_main+'" target="_blank">'+url_main+'</a> - FAIL </p>');
+				
+			}).always(function(response_url){
 				if(jQuery('.statics_page').html()==jQuery('.total_page').html()){
-
-					upload_all();
 
 					jQuery('#loading_static img').hide();
 					jQuery("#post_type_static").removeAttr('disabled');
@@ -310,21 +315,6 @@ $user = wp_get_current_user();
 					jQuery("#deploy_all_static").removeAttr('disabled');
 				}else{
 					deploy(key_main+1, response);
-				}
-			}).fail(function(response_url){
-				var total = parseInt(jQuery('.statics_page').html());
-				var url_main = response_url.replace("<?php echo site_url(); ?>","<?php echo Helpers::getOption('replace_url_rlout'); ?>");
-				jQuery('.statics_page').html(total+1);
-				jQuery('#results_static').append('<p><a href="'+url_main+'" target="_blank">'+url_main+'</a> - FAIL </p>');
-				
-				if(jQuery('.statics_page').html()==jQuery('.total_page').html()){
-
-					jQuery('#loading_static img').hide();
-					jQuery("#post_type_static").removeAttr('disabled');
-					jQuery("#taxonomy_static").removeAttr('disabled');
-					jQuery("#deploy_all_static").removeAttr('disabled');
-				}else{
-					deploy(key_main+1, response[key_main]);
 				}
 			});
 		}
