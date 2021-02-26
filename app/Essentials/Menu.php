@@ -259,8 +259,11 @@ Class Menu {
         
         $fields['subfiles_rlout'] = array('type'=>'repeater','label'=>'Arquivos ignorados<br>
         <small>insira a URL de todos os arquivos que foram ignorados pelo sistema.</small>');
+
+        $fields['amp_label_rlout'] = array('type'=>'label','label'=>'Configurações de AMP');
         
-        $fields['amp_rlout'] = array('type'=>'checkbox', 'label'=>"<small> Estatizar Páginas AMP");
+        $fields['amp_rlout'] = array('type'=>'checkbox', 'label'=>'<small> Estatizar Páginas AMP</small>');
+        $fields['amp_pagination_rlout'] = array('type'=>'number', 'label'=>'<small> Quantidade de paginação em AMP</small>');
 
         $fields['s3_rlout'] = array('type'=>'label','label'=>'Storage AWS S3');
         

@@ -58,20 +58,20 @@ Class S3 {
                     }
                 }else if(empty(end($directory_empty))){
                     
-                        $verify_files = scandir($file_dir);
-
-                        if(count($verify_files)!=0){
+                    $verify_files = scandir($file_dir);
+                    
+                    if(count($verify_files)!=0){
                         
-                            $construct = array('concurrency'=>30);
-                            
-                            $S3Transfer = new Transfer($clientS3, $file_dir, 's3://'.Helpers::getOption('s3_bucket_rlout').'/'.$key_file_s3, $construct);
-                            $response = $S3Transfer->transfer();
-                            
-                            debug_print_backtrace();
-                            
-                            if($S3Transfer && $ignore_cloud==false){
-                                Cloudfront::invalid('/*');
-                            }
+                        $construct = array('concurrency'=>30);
+                        
+                        $S3Transfer = new Transfer($clientS3, $file_dir, 's3://'.Helpers::getOption('s3_bucket_rlout').'/'.$key_file_s3, $construct);
+                        $response = $S3Transfer->transfer();
+                        
+                        debug_print_backtrace();
+                        
+                        if($S3Transfer && $ignore_cloud==false){
+                            Cloudfront::invalid('/*');
+                        }
                     }
                 }
                 
@@ -86,16 +86,21 @@ Class S3 {
         
         $access_key = Helpers::getOption('s3_key_rlout');
         $secret_key = Helpers::getOption('s3_secret_rlout');
+        $acl_key = Helpers::getOption('s3_acl_rlout');
+        $region = Helpers::getOption('s3_region_rlout');
         
         if(!empty($secret_key)){
             
-            session_start();
-            
             // creates a client object, informing AWS credentials
-            $clientS3 = S3Client::factory(array(
-                'key'    => $access_key,
-                'secret' => $secret_key
-            ));
+            $clientS3 = new S3Client([
+                'credentials' => [  
+                    'key'    => $access_key,
+                    'secret' => $secret_key,
+                ],
+                'version' => 'latest',
+                'region' => $region,
+                ]
+            );
             
             $key_file_s3 = str_replace(Helpers::getOption('path_rlout').'/','', $file_dir);
             $key_file_s3 = str_replace(Helpers::getOption('path_rlout'),'', $key_file_s3);

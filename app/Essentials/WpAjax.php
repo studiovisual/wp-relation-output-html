@@ -125,7 +125,7 @@ Class WpAjax {
         $args_posts = array();
         $args_posts['post_type'] = $post_type;
         $args_posts['posts_per_page'] = 100;
-        $args_posts['post_status'] = 'publish';
+        $args_posts['post_status'] = array('publish');
         $args_posts['order'] = 'DESC';
         $args_posts['orderby'] = 'date';
         $args_posts['post__not_in'] = $not_in;

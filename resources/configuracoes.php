@@ -40,6 +40,17 @@ $user = wp_get_current_user();
 						</tr>
 					<?php endif; ?>
 
+					<?php if($field['type']=='number'): ?>
+						<tr>
+							<th scope="row">
+								<label for="<?php echo $key_field; ?>"><?php echo $field['label']; ?></label>
+							</th>
+							<td>
+								<input name="<?php echo $key_field; ?>" <?php if(!empty($field['disabled'])){echo 'disabled="'.$field['disabled'].'"';} ?> type="number" id="<?php echo $key_field; ?>" value="<?php echo Helpers::getOption($key_field); ?>" class="regular-text">
+							</td>
+						</tr>
+					<?php endif; ?>
+
 					<?php if($field['type']=='repeater'): ?>
 
 						<tr>
