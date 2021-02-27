@@ -336,9 +336,9 @@ $user = wp_get_current_user();
 			});
 		}
 
-		function upload_all(){
+		function upload_all(offset=0){
 			var settings = {
-				"url": "<?php echo site_url(); ?>/wp-admin/admin-ajax.php?action=static_output_upload",
+				"url": "<?php echo site_url(); ?>/wp-admin/admin-ajax.php?action=static_output_upload&offset="+offset,
 				"method": "GET",
 				"timeout": 0,
 			};
@@ -347,6 +347,7 @@ $user = wp_get_current_user();
 
 			jQuery.ajax(settings).done(function (response) {
 				jQuery('#results_static').append('<p>'+response+'</a>');
+				upload_all(offset+100);
 			});
 		}
 

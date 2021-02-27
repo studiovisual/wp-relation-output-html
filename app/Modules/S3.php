@@ -71,8 +71,6 @@ Class S3 {
                         $S3Transfer = new Transfer($clientS3, $file_dir, 's3://'.Helpers::getOption('s3_bucket_rlout').'/'.$key_file_s3, $construct);
                         $response = $S3Transfer->transfer();
                         
-                        debug_print_backtrace();
-                        
                         if($S3Transfer && $ignore_cloud==false){
                             Cloudfront::invalid('/*');
                         }

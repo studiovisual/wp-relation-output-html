@@ -34,19 +34,49 @@ Class WpAjax {
 
         $base_html = Helpers::getOption('path_rlout');
 
-        $delete_static = Helpers::rrmdir($base_html.'/');
+        // $delete_static = Helpers::rrmdir($base_html.'/');
         
-        if($delete_static==true){
+        // if($delete_static==true){
             die('Tudo pronto, estamos iniciando a estatização!');
-        }
+        // }
     }
 
     public function upload_all(){
 
-        $base_html = Helpers::getOption('path_rlout');
+        $base_html = Helpers::getOption('path_rlout').'/';
 
-        $response = S3::upload_file($base_html.'/');
-        die('Upload dos arquivos/categorias e páginas realizado com sucesso!');
+        $verify_files = scandir($base_html);
+        unset($verify_files[0]);
+        unset($verify_files[1]);
+        
+        $per_page = 100;
+        $offset = $_GET['offset'];
+
+        foreach($verify_files as $obj_key => $object){
+            $dir = $base_html.$object;
+            if(is_dir($dir)){
+
+                $dir = $base_html.$object.'/';
+
+                if($obj_key>=$offset){
+                    if($obj_key<=$per_page+$offset){
+                        
+                        $response = S3::upload_file($dir);
+                    }else{
+                        die('- Upload de '.$_GET['offset'].' até '.($per_page+$_GET['offset']).' arquivos/categorias e páginas realizado com sucesso!');
+                    }
+                }
+
+            }else{
+
+                $dir = $base_html.$object;
+
+                $response = S3::upload_file($dir);
+            }
+        }
+
+        die('- Upload da pasta em pequeno porte realizado!');
+
     }
 
     public function deploy(){
