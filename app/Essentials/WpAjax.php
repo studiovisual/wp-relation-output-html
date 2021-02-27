@@ -61,7 +61,7 @@ Class WpAjax {
                 if($obj_key>=$offset){
                     if($obj_key<=$per_page+$offset){
                         
-                        $response = S3::upload_file($dir);
+                        $response = S3::upload_file($dir, false);
                     }else{
                         die('- Upload de '.$_GET['offset'].' até '.($per_page+$_GET['offset']).' arquivos/categorias e páginas realizado com sucesso!');
                     }
@@ -71,7 +71,7 @@ Class WpAjax {
 
                 $dir = $base_html.$object;
 
-                $response = S3::upload_file($dir);
+                $response = S3::upload_file($dir, false);
             }
         }
 

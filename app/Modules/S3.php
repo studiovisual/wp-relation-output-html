@@ -72,7 +72,7 @@ Class S3 {
                         $response = $S3Transfer->transfer();
                         
                         if($S3Transfer && $ignore_cloud==false){
-                            Cloudfront::invalid('/*');
+                            Cloudfront::invalid($key_file_s3);
                         }
                     }
                 }
