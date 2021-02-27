@@ -34,11 +34,11 @@ Class WpAjax {
 
         $base_html = Helpers::getOption('path_rlout');
 
-        // $delete_static = Helpers::rrmdir($base_html.'/');
+        $delete_static = Helpers::rrmdir($base_html.'/');
         
-        // if($delete_static==true){
+        if($delete_static==true){
             die('Tudo pronto, estamos iniciando a estatização!');
-        // }
+        }
     }
 
     public function upload_all(){
