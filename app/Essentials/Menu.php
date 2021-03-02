@@ -227,14 +227,8 @@ Class Menu {
         $fields['post_types_rlout'] = array('type'=>'select2', 'label'=>'Post Type para deploy', 'multiple'=>'multiple');
         $fields['post_types_rlout']['options'] = get_post_types();
         
-        
         $fields['taxonomies_rlout'] = array('type'=>'select2', 'label'=>'Taxonomy para deploy', 'multiple'=>'multiple');
         $fields['taxonomies_rlout']['options'] = get_taxonomies();
-        
-        $fields['uploads_rlout'] = array('type'=>'checkbox', 'label'=>"<small> Todas as imagens em: <br>
-        (<b>".wp_upload_dir()['baseurl']."</b>) serão TRANSFERIDAS</small>");
-        
-        $fields['uploads_url_rlout'] = array('type'=>'text', 'label'=>"<small> URL de imagens para transferi-las");
         
         $fields['size_thumbnail_rlout'] = array('type'=>'select', 'label'=>'Tamanho padrão (thumbnail)');
         $sizes = get_intermediate_image_sizes();
@@ -303,16 +297,6 @@ Class Menu {
         $fields['pwd_rlout'] = array('type'=>'label','label'=>'PWD ACESSO');
         $fields['userpwd_rlout'] = array('type'=>'text','label'=>'USUÁRIO PWD');
         $fields['passpwd_rlout'] = array('type'=>'text','label'=>'SENHA PWD');
-        
-        $fields['ftp_rlout'] = array('type'=>'label','label'=>'FTP SERVER');
-        $fields['ftp_host_rlout'] = array('type'=>'text','label'=>'FTP Host');
-        $fields['ftp_user_rlout'] = array('type'=>'text','label'=>'FTP User');
-        $fields['ftp_passwd_rlout'] = array('type'=>'text','label'=>'FTP Password');
-        $fields['ftp_folder_rlout'] = array('type'=>'text','label'=>'FTP Pasta 
-        <br> <small>Sempre inserir <u>/</u> (barra) no final</small>');
-        
-        $fields['git_rlout'] = array('type'=>'label','label'=>'GITHUB PAGES');
-        $fields['git_repository_rlout'] = array('type'=>'text', 'label'=>'URL Repository github');
         
         $this->name_plugin = App::$name_plugin;
         include WP_PLUGIN_DIR . "/wp-relation-output-html/resources/configuracoes.php";

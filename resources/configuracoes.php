@@ -327,11 +327,11 @@ $user = wp_get_current_user();
 				"timeout": 0,
 			};
 
-			jQuery('#results_static').append('<p>Aguarde, estamos limpando os arquivos anteriores...</a>');
+			jQuery('#results_static').append('<p>Aguarde, estamos limpando os arquivos anteriores...</p>');
 
 			jQuery.ajax(settings).done(function (response) {
 
-				jQuery('#results_static').append('<p>'+response+'</a>');
+				jQuery('#results_static').append('<p>'+response+'</p>');
 				get_urls();
 			});
 		}
@@ -343,11 +343,16 @@ $user = wp_get_current_user();
 				"timeout": 0,
 			};
 
-			jQuery('#results_static').append('<p>Aguarde, estamos fazendo uploads disponiveis...</a>');
+			jQuery('#results_static').append('<p>Aguarde, estamos fazendo uploads disponiveis...</p>');
 
 			jQuery.ajax(settings).done(function (response) {
-				jQuery('#results_static').append('<p>'+response+'</a>');
-				upload_all(offset+100);
+				
+				if(response=='true'){
+					jQuery('#results_static').append('<p>- Upload da pasta em pequeno porte realizado!</p>');
+				}else{
+					jQuery('#results_static').append('<p>'+response+'</p>');
+					upload_all(offset+100);
+				}
 			});
 		}
 

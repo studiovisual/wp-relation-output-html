@@ -126,22 +126,6 @@ Class Curl {
 			
 			$file = fopen($dir_base . $file_default,"w");
 			
-			$replace_uploads = Helpers::getOption('uploads_rlout');
-			
-			$uploads_url_rlout = Helpers::getOption('uploads_url_rlout'); 
-			
-			if($replace_uploads){
-				
-				$upload_url = wp_upload_dir();
-				
-				$response = Helpers::replace_reponse($upload_url['baseurl'], $response, '/uploads', $items);
-				
-				if($uploads_url_rlout){
-					$response = Helpers::replace_reponse($uploads_url_rlout, $response, '/uploads', $items);
-				}
-				
-			}
-			
 			$response = Helpers::replace_reponse(Helpers::getOption('uri_rlout'), $response, null, $items);
 			$amp = Helpers::getOption('amp_rlout');
 			if(!empty($amp)){
@@ -157,8 +141,7 @@ Class Curl {
 				fclose($file);
 				
 				if($upload==true){
-					Git::upload_file('Atualização de object');
-					Ftp::upload_file($dir_base . $file_default);
+					
 					S3::upload_file($dir_base . $file_default, false);
 				}
 				
@@ -196,8 +179,6 @@ Class Curl {
 					fclose($file_json);
 					
 					if($upload==true){
-						Git::upload_file('Atualização de object');
-						Ftp::upload_file($dir_base . $json_default);
 						S3::upload_file($dir_base . $json_default, true);
 					}
 				}
@@ -245,18 +226,8 @@ Class Curl {
 				
 				$url = urldecode($url);
 				
-				if($media){
-					$upload_url = wp_upload_dir();
-					$uploads_url_rlout = Helpers::getOption('uploads_url_rlout'); 
-					$file_name = str_replace($upload_url['baseurl'], '', $url);
-					
-					if($uploads_url_rlout){
-						$file_name = str_replace($uploads_url_rlout, '', $file_name);
-					}
-				}else{
-					$file_name = str_replace(Helpers::getOption('uri_rlout'), '', $url);
-					$file_name = str_replace(site_url(), '', $file_name);
-				}
+				$file_name = str_replace(Helpers::getOption('uri_rlout'), '', $url);
+				$file_name = str_replace(site_url(), '', $file_name);
 				
 				$folders = explode("/", $file_name);
 				foreach ($folders as $key => $folder) {
@@ -314,7 +285,6 @@ Class Curl {
 				fwrite($file, $response);
 				fclose($file);
 				
-				Ftp::upload_file($dir_base . '/' . $folders);
 				S3::upload_file($dir_base . '/' . $folders);
 			}
 		}

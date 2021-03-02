@@ -75,7 +75,7 @@ Class WpAjax {
             }
         }
 
-        die('- Upload da pasta em pequeno porte realizado!');
+        die('true');
 
     }
 

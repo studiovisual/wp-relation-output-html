@@ -28,18 +28,31 @@ Class Posts {
 				add_action("pre_{$post_type}_update", array($this, 'delete_folder'));
 			endif;
 		}
+
+		if($_GET['post'] && $_GET['action']=='edit'){
+			$post = get_post($_GET['post']);
+			if($post){
+				$link = get_sample_permalink($post);
+				$link = str_replace(site_url().'/', '', $link);
+				$url_del = str_replace('%pagename%',$link[1],$link[0]);
+				$url_del = str_replace('%postname%',$link[1],$url_del);
+				setcookie('old_slug', $url_del);
+			}
+		}
 	}
 	
 	public function create_folder($post_id=null) {
+
 		add_action('updated_post_meta', function($meta_id, $post_id, $meta_key) {
+			
 			if($meta_key=='_edit_lock'):
 				
 				$static = get_post_meta($post_id, '_static_output_html', true);
-
+				
 				if($static || (isset($_POST['static_output_html']) && $_POST['static_output_html'])):
 					if($static)
 						update_post_meta($post_id, '_static_output_html', 0);
-
+					
 					$post_types = explode(',', Helpers::getOption('post_types_rlout'));
 					$post =  get_post($post_id);
 					
@@ -70,39 +83,46 @@ Class Posts {
 						Posts::api($post);
 					}
 				endif;
+
 			endif;
 		}, 10, 3);
 	}
 	
-	public function delete_folder($post_id) {	
-		if(empty($_POST) || $_POST['post_status'] != 'publish') {
-			if(!function_exists('get_sample_permalink')) {
-				/** Load WordPress Bootstrap */
-				require_once ABSPATH . '/wp-load.php';
-				/** Load WordPress Administration APIs */
-				require_once ABSPATH . 'wp-admin/includes/admin.php';
-	
-				do_action('admin_init');
-			}
+	public function delete_folder($post_id) {
 
-			$post = get_post($post_id);
-			$post->post_status = 'publish';
+		if(!function_exists('get_sample_permalink')) {
+			/** Load WordPress Bootstrap */
+			require_once ABSPATH . '/wp-load.php';
+			/** Load WordPress Administration APIs */
+			require_once ABSPATH . 'wp-admin/includes/admin.php';
+
+			do_action('admin_init');
+		}
+
+		$post = get_post($post_id);
+
+		$url_delete = get_sample_permalink($post);
+		$url_del = str_replace('%pagename%',$url_delete[1],$url_delete[0]);
+		$url_del = str_replace('%postname%',$url_delete[1],$url_del);
+		$url_delete = $url_del;
+		$dir_base =  str_replace('__trashed', '', $url_delete);
+		$dir_base = Helpers::getOption('path_rlout') . str_replace(site_url(), '', $dir_base);
+	
+		$delete_old = $_COOKIE['old_slug'];
+		if($delete_old){
+			$delete_old = Helpers::getOption('path_rlout').'/'.$delete_old;
+
+			if($delete_old!=$dir_base || !strpos($dir_base, $_POST['post_name'].'/')){
+				Helpers::rrmdir($delete_old);
+				S3::remove_file($delete_old . 'index.html');
+			}
+		}
+
+		if(empty($_POST) || $_POST['post_status'] != 'publish') {
 
 			$post_types = explode(',', Helpers::getOption('post_types_rlout'));
 
 			if(in_array($post->post_type, $post_types)){
-				// rename vindo da funciona create
-				// if($post->post_status=='publish' && $_POST['post_status']=='publish'){
-					
-				// 	$slug_old = $post->post_name;
-					
-				// 	$slug_new = $_POST['post_name'];
-					
-				// 	if($slug_old==$slug_new){
-						
-				// 		return false;
-				// 	}
-				// }
 				
 				$taxonomies = explode(",", Helpers::getOption('taxonomies_rlout'));
 				$terms = wp_get_post_terms($post->ID, $taxonomies);
@@ -110,20 +130,10 @@ Class Posts {
 					$objects[] = $term;
 					Terms::api($term);
 				}
-				
-				$url_delete = get_sample_permalink($post);
-				$url_del = str_replace('%pagename%',$url_delete[1],$url_delete[0]);
-				$url_del = str_replace('%postname%',$url_delete[1],$url_del);
-
-				$url_delete = $url_del;
 
 				if($url_delete){
-					$dir_base =  str_replace('__trashed', '', $url_delete);
-					$dir_base = Helpers::getOption('path_rlout') . str_replace(site_url(), '', $dir_base);
 					
 					Helpers::rrmdir($dir_base);
-					
-					Ftp::remove_file($dir_base . 'index.html');
 					S3::remove_file($dir_base . 'index.html');
 				}
 				
@@ -173,20 +183,6 @@ Class Posts {
 				$response = json_encode($post_arr , JSON_UNESCAPED_SLASHES);
 				
 				if(!empty($response)){
-					$replace_uploads = Helpers::getOption('uploads_rlout');
-					
-					if($replace_uploads){
-						
-						$uploads_url_rlout = Helpers::getOption('uploads_url_rlout'); 
-						
-						$upload_url = wp_upload_dir();						
-						
-						$response = str_replace($upload_url['baseurl'], $replace_url.'/uploads', $response);
-						if($uploads_url_rlout){
-							$response = str_replace($uploads_url_rlout, $replace_url.'/uploads', $response);
-						}
-						
-					}
 					
 					if($post_arr!=end($posts_arr)){
 						$response = $response.',';
@@ -201,8 +197,6 @@ Class Posts {
 			fclose($file);
 			
 			if($upload==true){
-				Git::upload_file('Atualização de object');
-				Ftp::upload_file($file_raiz);
 				S3::upload_file($file_raiz, true);
 			}
 			

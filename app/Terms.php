@@ -17,14 +17,17 @@ Class Terms Extends App {
 		// verifica alterações de terms
 		add_action( 'create_term', array($this, 'create_folder'), 1, 1);
 		add_action( 'edit_term', array($this, 'create_folder'), 1, 1);
-		add_action( 'pre_delete_term', array($this, 'delete_folder'), 1, 2);
+		add_action( 'pre_delete_term', array($this, 'delete_folder'), 1, 1);
 	}
 	
 	public function create_folder($term_id){
+
+		$term = get_term($term_id);
+		if($term->slug!=$_POST['slug']){
+			$this->delete_folder($term_id);
+		}
 		
 		if($_POST['static_output_html']){
-
-			$term = get_term($term_id);
 			
 			$taxonomies = explode(',', Helpers::getOption('taxonomies_rlout'));
 			
@@ -46,7 +49,7 @@ Class Terms Extends App {
 		}
 	}
 	
-	public function delete_folder($term_id, $taxonomy){
+	public function delete_folder($term_id){
 		
 		$term = get_term($term_id);
 		
@@ -60,7 +63,6 @@ Class Terms Extends App {
 			
 			Helpers::rrmdir($dir_base);
 			
-			Ftp::remove_file($dir_base . '/index.html');
 			S3::remove_file($dir_base . '/index.html');
 		}
 	}
@@ -115,8 +117,6 @@ Class Terms Extends App {
 					fclose($file);
 
 					if($upload==true){
-						Git::upload_file('Atualização de object');
-						Ftp::upload_file($file_raiz);
 						S3::upload_file($file_raiz, true);
 					}
 					
@@ -130,21 +130,6 @@ Class Terms Extends App {
 			
 			$response = json_encode($terms , JSON_UNESCAPED_SLASHES);
 			
-			$replace_uploads = Helpers::getOption('uploads_rlout');
-			
-			$uploads_url_rlout = Helpers::getOption('uploads_url_rlout'); 
-			
-			if($replace_uploads){
-				
-				$upload_url = wp_upload_dir();						
-				
-				$response = str_replace($upload_url['baseurl'], $replace_url.'/uploads', $response);
-				
-				if($uploads_url_rlout){
-					$response = str_replace($uploads_url_rlout, $replace_url.'/uploads', $response);
-				}
-			}
-			
 			$file_raiz = $dir_base . '/'.$tax.'.json';
 			
 			$file = fopen($file_raiz, "w");
@@ -152,8 +137,6 @@ Class Terms Extends App {
 			fwrite($file, $response);
 			fclose($file);
 
-			Git::upload_file('Atualização de object');
-			Ftp::upload_file($file_raiz);
 			S3::upload_file($file_raiz, true);
 			
 			$urls[] = str_replace($dir_base,$replace_url,$file_raiz);

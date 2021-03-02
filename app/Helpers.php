@@ -83,8 +83,8 @@ Class Helpers {
 			
 			if( is_dir($dir_base) === true ){
 				
-				rmdir($dir_base);
-				Ftp::remove_file($dir_base);
+				Helpers::rrmdir($dir_base);
+				
 				S3::remove_file($dir_base);
 			}
 			
