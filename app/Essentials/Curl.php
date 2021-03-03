@@ -25,8 +25,7 @@ Class Curl {
 	}
 	
 	// Recebe o Objeto (post ou term) e descobre a Url para enviar a função deploy_upload();
-	static function generate($object, $home=null, $items=true, $upload=true){
-		
+	static function generate($object, $home=null, $items=true, $upload=true, $return=true){
 		update_option('robots_rlout', '0');
 		update_option('blog_public', '1');
 		
@@ -70,7 +69,7 @@ Class Curl {
 			return $url.' - URL COM ERRO DE SINTAX';
 		}
 		
-		$response = Curl::get($url);
+		$response = Curl::get($url, $return);
 		
 		$original_response = $response;
 		
@@ -150,13 +149,13 @@ Class Curl {
 
 					if($verify_amp){
 
-						Curl::generate($url.'amp/', false, false, $upload);
+						Curl::generate($url.'amp/', false, false, $upload, false);
 						
 						$urls_pagination = Amp::urls();
 						foreach($urls_pagination as $url_pg){
 							$page_compare = explode('amp/', $url_pg);
 							if($url==$page_compare[0]){
-								Curl::generate($url_pg, false, false, $upload);
+ 								Curl::generate($url_pg, false, false, $upload, false);
 							}
 						}
 					}
