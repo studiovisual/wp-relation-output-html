@@ -259,25 +259,8 @@ $user = wp_get_current_user();
 
 				jQuery('.total_page').html(response_json.length+parseInt(jQuery('.total_page').html()));
 				
-				for (let index_j = 0; index_j < response_json.length; index_j++) {
-					var current = parseInt(jQuery('.statics_page').html());
-					jQuery('.statics_page').html(current+1);
-					jQuery('#results_static').append('<p><a href="'+response_json[index_j]+'" target="_blank">'+response_json[index_j]+'</a></p>');
-				}
+				deploy_json(0, response_json);
 
-				var post_type = jQuery('select#post_type_static').val();
-				var taxonomy = jQuery('select#taxonomy_static').val();
-				var settings = {
-					"url": "<?php echo site_url(); ?>/wp-admin/admin-ajax.php?action=static_output_files&post_type="+post_type+"&taxonomy="+taxonomy,
-					"method": "GET",
-					"timeout": 0,
-				};
-
-				jQuery.ajax(settings).done(function (response) {
-					var qtd = response.length;
-					jQuery('.total_page').html(qtd+parseInt(jQuery('.total_page').html()));
-					deploy(0, response);
-				});
 			}).fail(function (response_json){
 				jQuery('#results_static').append('<p><a href="'+response_json+'" target="_blank">FAIL JSON</a></p>');
 				setTimeout(function(){
@@ -287,6 +270,53 @@ $user = wp_get_current_user();
 
 		}
 		
+		function deploy_json(key_main, response){
+			var settings_url = {
+			"url": "<?php echo site_url(); ?>/wp-admin/admin-ajax.php?action=static_output_deploy_curl_json&file="+response[key_main],
+			"method": "GET",
+			"timeout": 0,
+			};
+
+			jQuery.ajax(settings_url).done(function (response_url) {
+				var total = parseInt(jQuery('.statics_page').html());
+				var url_main = response_url.replace("<?php echo site_url(); ?>","<?php echo Helpers::getOption('replace_url_rlout'); ?>");
+				jQuery('.statics_page').html(total+1);
+				jQuery('#results_static').append('<p><a href="'+url_main+'" target="_blank">'+url_main+'</a> - OK</p>');
+				
+				
+			}).fail(function(){
+				var total = parseInt(jQuery('.statics_page').html());
+				var url_main = response[key_main].replace("<?php echo site_url(); ?>","<?php echo Helpers::getOption('replace_url_rlout'); ?>");
+				jQuery('.statics_page').html(total+1);
+				jQuery('#results_static').append('<p><a href="'+url_main+'" target="_blank">'+url_main+'</a> - FAIL </p>');
+				
+			}).always(function(response_url){
+				if(jQuery('.statics_page').html()==jQuery('.total_page').html()){
+
+					set_deploy();
+				}else{
+					deploy_json(key_main+1, response);
+				}
+			});
+		}
+		
+		function set_deploy(){
+
+			var post_type = jQuery('select#post_type_static').val();
+			var taxonomy = jQuery('select#taxonomy_static').val();
+			var settings = {
+				"url": "<?php echo site_url(); ?>/wp-admin/admin-ajax.php?action=static_output_files&post_type="+post_type+"&taxonomy="+taxonomy,
+				"method": "GET",
+				"timeout": 0,
+			};
+
+			jQuery.ajax(settings).done(function (response) {
+				var qtd = response.length;
+				jQuery('.total_page').html(qtd+parseInt(jQuery('.total_page').html()));
+				deploy(0, response);
+			});
+		}
+
 		function deploy(key_main, response){
 			var settings_url = {
 			"url": "<?php echo site_url(); ?>/wp-admin/admin-ajax.php?action=static_output_deploy&file_url="+response[key_main],

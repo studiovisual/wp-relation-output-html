@@ -22,11 +22,12 @@ Class WpAjax {
         
         // Ajax Gerador de JSON (postype, taxonomy): /wp-admin/admin-ajax.php?action=output_deploy_json
         add_action('wp_ajax_static_output_deploy_json', array($this, 'deploy_json') );
+        add_action('wp_ajax_static_output_deploy_curl_json', array($this, 'curl_json') );
         
         // Ajax que lista todas os posts e terms escolhidos individualmente
         add_action('wp_ajax_static_output_files', array($this, 'files') );
         
-        // Ajax que lista todas os posts e terms disponiveis para estatização
+        // Ajax que busca e lista todas os posts e terms
         add_action('wp_ajax_all_search_posts', array($this, 'all_search_posts') );
     }
     
@@ -91,11 +92,34 @@ Class WpAjax {
     public function deploy_json(){
         
 		header( "Content-type: application/json");
+		$urls = array();
+        
+        $taxonomies = explode(",", Helpers::getOption('taxonomies_rlout'));
+		foreach($taxonomies as $tax){
+            $urls[] = Helpers::getOption('replace_url_rlout').'/'. $tax.'.json';
+			$terms = get_terms(array("taxonomy"=>$tax, 'hide_empty' => false));
+            foreach($terms as $term){
+                $urls[] = str_replace(site_url(), Helpers::getOption('replace_url_rlout'), get_term_link($term).'index.json');
+            }
+        }
 
-        $terms = Terms::api(null, false);
-        $posts = Posts::api(null, false);
-        $urls = array_merge($terms, $posts);
+		$post_types = explode(',', Helpers::getOption('post_types_rlout'));
+        foreach($post_types as $post_type){
+            $urls[] = Helpers::getOption('replace_url_rlout').'/'. $post_type.'.json';
+            $archive = get_post_type_archive_link($post_type);
+			if($archive && $archive!=site_url()){
+                $urls[] = str_replace(site_url(), Helpers::getOption('replace_url_rlout'), $archive.'/index.json');
+            }
+        }
+
         die(json_encode($urls));
+    }
+
+    public function curl_json(){
+        
+        $url = Curl::generate_json($_GET['file']);
+
+        die($url);
     }
     
     public function files(){
@@ -154,7 +178,7 @@ Class WpAjax {
     public function recursive_post($post_type, $urls=array(), $not_in=array()){
         $args_posts = array();
         $args_posts['post_type'] = $post_type;
-        $args_posts['posts_per_page'] = 100;
+        $args_posts['posts_per_page'] = 50;
         $args_posts['post_status'] = array('publish');
         $args_posts['order'] = 'DESC';
         $args_posts['orderby'] = 'date';
@@ -169,8 +193,8 @@ Class WpAjax {
                 $urls[] = $url;
             }
         }
-        if(count($posts)==100){
-            sleep(0.5);
+        if(count($posts)==50){
+            sleep(0.1);
             $urls = array_unique(array_merge($urls, $this->recursive_post($post_type, $urls, $not_in)));
         }
         return array_values($urls);

@@ -141,19 +141,23 @@ Class Curl {
 				fclose($file);
 				
 				if($upload==true){
-					
 					S3::upload_file($dir_base . $file_default, false);
 				}
 				
 				if(!empty($amp) && !empty($file_default) && !$search_amp){
 					
-					Curl::generate($url.'amp/', false, false, $upload);
-					
-					$urls_pagination = Amp::urls();
-					foreach($urls_pagination as $url_pg){
-						$page_compare = explode('amp/', $url_pg);
-						if($url==$page_compare[0]){
-							Curl::generate($url_pg, false, false, $upload);
+					$verify_amp = Curl::get($url.'amp/', false);
+
+					if($verify_amp){
+
+						Curl::generate($url.'amp/', false, false, $upload);
+						
+						$urls_pagination = Amp::urls();
+						foreach($urls_pagination as $url_pg){
+							$page_compare = explode('amp/', $url_pg);
+							if($url==$page_compare[0]){
+								Curl::generate($url_pg, false, false, $upload);
+							}
 						}
 					}
 				}
@@ -290,8 +294,48 @@ Class Curl {
 		}
 		return $url;
 	}
+
+	static function generate_json($json_url){
+
+		$type = explode('.json', $json_url);
+		if(count($type)>1){
+			$type = explode('/', $type[0]);
+			if(count($type)>1){
+				$type = end($type);
+			}
+		}
+
+		$object = new \StdClass();
+		$object->post_type = $type;
+		$post_type = Posts::api($object);
+		if(!empty($post_type)){
+			die($post_type[0]);
+		}
+
+		$object = new \StdClass();
+		$object->taxonomy = $type;
+		$taxonomy = Terms::api($object);
+		if(!empty($taxonomy)){
+			die($taxonomy[0]);
+		}
+
+		$json_url = explode('/index.json', $json_url);
+		$json_url = explode('/', $json_url[0]);
+
+		$taxonomies = explode(",", Helpers::getOption('taxonomies_rlout'));
+		foreach($taxonomies as $tax){
+			$object = get_term_by('slug', end($json_url), $tax);
+			if($object){
+				$term = Terms::api($object);
+				if(!empty($term)){
+					die($term[0]);
+				}
+			}
+		}
+
+	}
 	
-	static function get($url){
+	static function get($url, $return_status=true){
 		$curl = curl_init();
 		curl_setopt_array($curl, array(
 			CURLOPT_URL => $url,
@@ -316,10 +360,12 @@ Class Curl {
 		$httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
 		curl_close($curl);
 		
-		if ($httpCode!=200 && $_GET['file_url']) {
+		if ($httpCode!=200 && $_GET['file_url'] && $return_status==true) {
 			header('HTTP/1.0 404 not found');
 			die();
-		} else {
+		} else if($httpCode!=200 && $return_status==false) {
+			return false;
+		}else{
 			return $response;
 		}
 	}

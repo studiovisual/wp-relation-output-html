@@ -68,9 +68,15 @@ Class Terms Extends App {
 	}
 
 	static function api($term_update=null, $upload=true){
-		
 		$taxonomies = explode(",", Helpers::getOption('taxonomies_rlout'));
-		
+		if(!empty($term_update->taxonomy)){
+			if(in_array($term_update->taxonomy,$taxonomies)){
+				$taxonomies = array($term_update->taxonomy);
+			}else{
+				$taxonomies = array();
+			}
+		}
+
 		$urls = array();
 		
 		foreach($taxonomies as $tax){

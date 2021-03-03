@@ -155,52 +155,60 @@ Class Posts {
 		
 		$urls = array();
 		foreach($post_types as $post_type){
+
+			$generate = true;
 			
 			if($gerenate_all==true){
 				$post->post_type = $post_type;
+			}else{
+				if($post_type!=$post->post_type){
+					$generate=false;
+				}
 			}
 			
-			$replace_url = Helpers::getOption('replace_url_rlout');
-			if(empty($replace_url)){
-				$replace_url = site_url().'/html';
-			}
-
-			$posts_arr = Posts::get_post_json($post, array());
-			
-			$dir_base =  Helpers::getOption('path_rlout');
-			if( realpath($dir_base) === false ){
-				mkdir($dir_base);
-			}
-			
-			$file_raiz = $dir_base . '/'.$post->post_type.'.json';
-			
-			$file = fopen($file_raiz, "w");
-
-			fwrite($file, '[');
-			
-			foreach($posts_arr as $key_arr => $post_arr){
-				
-				$response = json_encode($post_arr , JSON_UNESCAPED_SLASHES);
-				
-				if(!empty($response)){
-					
-					if($post_arr!=end($posts_arr)){
-						$response = $response.',';
-					}
+			if($generate==true){
+				$replace_url = Helpers::getOption('replace_url_rlout');
+				if(empty($replace_url)){
+					$replace_url = site_url().'/html';
 				}
 
-				fwrite($file, $response);
-			}
+				$posts_arr = Posts::get_post_json($post, array());
+				
+				$dir_base =  Helpers::getOption('path_rlout');
+				if( realpath($dir_base) === false ){
+					mkdir($dir_base);
+				}
+				
+				$file_raiz = $dir_base . '/'.$post->post_type.'.json';
+				
+				$file = fopen($file_raiz, "w");
 
-			fwrite($file, ']');
-			
-			fclose($file);
-			
-			if($upload==true){
-				S3::upload_file($file_raiz, true);
+				fwrite($file, '[');
+				
+				foreach($posts_arr as $key_arr => $post_arr){
+					
+					$response = json_encode($post_arr , JSON_UNESCAPED_SLASHES);
+					
+					if(!empty($response)){
+						
+						if($post_arr!=end($posts_arr)){
+							$response = $response.',';
+						}
+					}
+
+					fwrite($file, $response);
+				}
+
+				fwrite($file, ']');
+				
+				fclose($file);
+				
+				if($upload==true){
+					S3::upload_file($file_raiz, true);
+				}
+				
+				$urls[] = str_replace($dir_base,$replace_url,$file_raiz);
 			}
-			
-			$urls[] = str_replace($dir_base,$replace_url,$file_raiz);
 		}
 		
 		
@@ -249,7 +257,7 @@ Class Posts {
 			
 			$args = array(
 				'post_type'=>$post->post_type,
-				'posts_per_page' => 100,
+				'posts_per_page' => 50,
 				'order'=>'DESC',
 				'orderby'=>'date',
 				'post_status' => 'publish',
@@ -277,8 +285,8 @@ Class Posts {
 				
 			}
 			
-			if(count($posts)==100){
-				sleep(0.5);
+			if(count($posts)==50){
+				sleep(0.1);
 				$posts_arr = array_merge($posts_arr, Posts::get_post_json($object, $not_in, $term));
 			}
 			
