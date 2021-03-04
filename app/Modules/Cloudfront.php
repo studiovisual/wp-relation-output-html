@@ -56,13 +56,12 @@ Class Cloudfront {
 					]
 				];
 				
-				$result = $cloudFrontClient->createInvalidation($args);
+				return $cloudFrontClient->createInvalidation($args);
 			}
 			catch(\Aws\CloudFront\Exception\CloudFrontException $e) {
-				// die($e);
+				return false;
 			}
 
-			return $result;
 		}
     }
 }
