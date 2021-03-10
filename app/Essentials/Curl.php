@@ -308,14 +308,14 @@ Class Curl {
 		$object->post_type = $type;
 		$post_type = Posts::api($object);
 		if(!empty($post_type)){
-			die($post_type[0]);
+			wp_die($post_type[0]);
 		}
 
 		$object = new \StdClass();
 		$object->taxonomy = $type;
 		$taxonomy = Terms::api($object);
 		if(!empty($taxonomy)){
-			die($taxonomy[0]);
+			wp_die($taxonomy[0]);
 		}
 
 		$json_url = explode('/index.json', $json_url);
@@ -327,7 +327,7 @@ Class Curl {
 			if($object){
 				$term = Terms::api($object);
 				if(!empty($term)){
-					die($term[0]);
+					wp_die($term[0]);
 				}
 			}
 		}
@@ -361,7 +361,7 @@ Class Curl {
 		
 		if ($httpCode!=200 && $_GET['file_url'] && $return_status==true) {
 			header('HTTP/1.0 404 not found');
-			die();
+			wp_die();
 		} else if($httpCode!=200 && $return_status==false) {
 			return false;
 		}else{

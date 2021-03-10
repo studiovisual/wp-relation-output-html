@@ -38,7 +38,7 @@ Class WpAjax {
         $delete_static = Helpers::rrmdir($base_html.'/');
         
         if($delete_static==true){
-            die('Tudo pronto, estamos iniciando a estatização!');
+            wp_die('Tudo pronto, estamos iniciando a estatização!');
         }
     }
 
@@ -64,7 +64,7 @@ Class WpAjax {
                         
                         $response = S3::upload_file($dir, false);
                     }else{
-                        die('- Upload de '.$_GET['offset'].' até '.($per_page+$_GET['offset']).' arquivos/categorias e páginas realizado com sucesso!');
+                        wp_die('- Upload de '.$_GET['offset'].' até '.($per_page+$_GET['offset']).' arquivos/categorias e páginas realizado com sucesso!');
                     }
                 }
 
@@ -76,7 +76,7 @@ Class WpAjax {
             }
         }
 
-        die('true');
+        wp_die('true');
 
     }
 
@@ -85,7 +85,7 @@ Class WpAjax {
         $file = $_GET['file_url'];
         if(!empty($file) && filter_var($file, FILTER_VALIDATE_URL)){
             $response = Curl::generate($file,false,false,false);
-            die($response);
+            wp_die($response);
         }
     }
     
@@ -112,14 +112,14 @@ Class WpAjax {
             }
         }
 
-        die(json_encode($urls));
+        wp_die(json_encode($urls));
     }
 
     public function curl_json(){
         
         $url = Curl::generate_json($_GET['file']);
 
-        die($url);
+        wp_die($url);
     }
     
     public function files(){
@@ -173,7 +173,7 @@ Class WpAjax {
         }
         
         header("Content-type: application/json");
-        die(json_encode($urls));
+        wp_die(json_encode($urls));
     }
     public function recursive_post($post_type, $urls=array(), $not_in=array()){
         $args_posts = array();
@@ -247,7 +247,7 @@ Class WpAjax {
         $array_search['total'] = count($array_search['results']);
         
         header("Content-type: application/json");
-        die(json_encode($array_search));
+        wp_die(json_encode($array_search));
         
     }
 }
