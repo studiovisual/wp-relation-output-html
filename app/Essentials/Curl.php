@@ -107,7 +107,7 @@ Class Curl {
 						if(isset($sitemap->loc)){
 							$url_map = (array) $sitemap->loc;
 							if(!empty($url_map)){
-								Curl::generate($url_map[0]);
+								Curl::generate($url_map[0], null, false, false, false);
 							}
 						}
 					}
