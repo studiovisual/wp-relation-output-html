@@ -66,7 +66,14 @@ Class S3 {
                     
                     if(count($verify_files)!=0){
                         
-                        $construct = array('concurrency'=>30);
+                        $construct = array(
+                            'concurrency'=>30,
+                            'before' => function (\Aws\CommandInterface $command) {
+                                if (in_array($command->getName(), ['PutObject', 'CreateMultipartUpload'])) {
+                                    $command['ACL'] = Helpers::getOption('s3_acl_rlout');
+                                }
+                            }
+                        );
                         
                         $S3Transfer = new Transfer($clientS3, $file_dir, 's3://'.Helpers::getOption('s3_bucket_rlout').'/'.$key_file_s3, $construct);
                         $response = $S3Transfer->transfer();
