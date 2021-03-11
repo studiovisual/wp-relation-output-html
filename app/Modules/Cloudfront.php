@@ -15,7 +15,6 @@ Class Cloudfront {
 			$response_cloudfront = Cloudfront::invalid('/*');
 			if($response_cloudfront){
 				echo '<script>alert("Cloudfront Atualizados!");</script>';
-				echo '<script>window.location = document.URL.replace("&cloudfront_rlout=true","").replace("?cloudfront_rlout=true","");</script>';
 			}
 		}
 	}
