@@ -35,8 +35,7 @@ Class Menu {
 				if($response_essenciais){
 					
 					echo '<script>alert("Páginas importantes Atualizadas!");</script>';
-					echo '<script>window.location = document.URL.replace("&importants_rlout=true","").replace("?importants_rlout=true","");</script>';
-				}
+                }
 			});
 		}
 
@@ -48,8 +47,7 @@ Class Menu {
 			if($response_essenciais){
 				
 				echo '<script>alert("Arquivos Essenciais Atualizados!");</script>';
-				echo '<script>window.location = document.URL.replace("&essenciais_rlout=true","").replace("?essenciais_rlout=true","");</script>';
-			}
+            }
 		}
 
         if(!empty($_POST['salvar_rlout'])){
