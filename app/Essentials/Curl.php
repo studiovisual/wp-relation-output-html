@@ -308,7 +308,14 @@ Class Curl {
 		}
 		
 		$json_url = explode('index.json', $json_url);
-		$json_url = str_replace('html/','',$json_url[0]);
+
+		$rpl = Helpers::getOption('replace_url_rlout');
+		if(empty($rpl)){
+			$rpl = site_url().'/html';
+		}
+		
+		$json_url = str_replace($rpl,site_url(),$json_url[0]);
+
 		$taxonomies = explode(",", Helpers::getOption('taxonomies_rlout'));
 		foreach($taxonomies as $tax){
 			$terms = get_terms(array("taxonomy"=>$tax, 'hide_empty' => false));
