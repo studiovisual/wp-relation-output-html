@@ -35,7 +35,7 @@ Class Menu {
 				if($response_essenciais){
 					
 					echo '<script>alert("Páginas importantes Atualizadas!");</script>';
-                }
+				}
 			});
 		}
 
@@ -45,9 +45,8 @@ Class Menu {
 			$response_essenciais = Helpers::subfiles_generate();
 			
 			if($response_essenciais){
-				
 				echo '<script>alert("Arquivos Essenciais Atualizados!");</script>';
-            }
+			}
 		}
 
         if(!empty($_POST['salvar_rlout'])){

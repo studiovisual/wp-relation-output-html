@@ -22,7 +22,7 @@ Class S3 {
                 
                 // creates a client object, informing AWS credentials
                 $clientS3 = new S3Client([
-                    'credentials' => [  
+                    'credentials' => [
                         'key'    => $access_key,
                         'secret' => $secret_key,
                     ],
@@ -30,7 +30,6 @@ Class S3 {
                     'region' => $region,
                     ]
                 );
-                
                 
                 // putObject method sends data to the chosen bucket
                 $file_dir = str_replace("//", "/", $file_dir);

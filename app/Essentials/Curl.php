@@ -34,17 +34,6 @@ Class Curl {
 		if($search_amp===false){
 			if(!empty($url_post)){
 				$object = get_post($url_post);
-			}else{
-				$taxonomy = explode(",", Helpers::getOption('taxonomies_rlout'));
-				foreach($taxonomy as $tax){
-					$slug_term = explode("/",$object);
-					foreach($slug_term as $key_b => $barra){
-						$term_exist = get_term_by('slug',$slug_term[$key_b], $tax);
-						if($term_exist){
-							$object = $term_exist;
-						}
-					}
-				}
 			}
 		}
 		
@@ -146,16 +135,16 @@ Class Curl {
 				if(!empty($amp) && !empty($file_default) && !$search_amp){
 					
 					$verify_amp = Curl::get($url.'amp/', false);
-
+					
 					if($verify_amp){
-
+						
 						Curl::generate($url.'amp/', false, false, $upload, false);
 						
 						$urls_pagination = Amp::urls();
 						foreach($urls_pagination as $url_pg){
 							$page_compare = explode('amp/', $url_pg);
 							if($url==$page_compare[0]){
- 								Curl::generate($url_pg, false, false, $upload, false);
+								Curl::generate($url_pg, false, false, $upload, false);
 							}
 						}
 					}
@@ -293,9 +282,9 @@ Class Curl {
 		}
 		return $url;
 	}
-
+	
 	static function generate_json($json_url){
-
+		
 		$type = explode('.json', $json_url);
 		if(count($type)>1){
 			$type = explode('/', $type[0]);
@@ -303,35 +292,36 @@ Class Curl {
 				$type = end($type);
 			}
 		}
-
+		
 		$object = new \StdClass();
 		$object->post_type = $type;
 		$post_type = Posts::api($object);
 		if(!empty($post_type)){
 			wp_die($post_type[0]);
 		}
-
+		
 		$object = new \StdClass();
 		$object->taxonomy = $type;
 		$taxonomy = Terms::api($object);
 		if(!empty($taxonomy)){
 			wp_die($taxonomy[0]);
 		}
-
-		$json_url = explode('/index.json', $json_url);
-		$json_url = explode('/', $json_url[0]);
-
+		
+		$json_url = explode('index.json', $json_url);
+		$json_url = str_replace('html/','',$json_url[0]);
 		$taxonomies = explode(",", Helpers::getOption('taxonomies_rlout'));
 		foreach($taxonomies as $tax){
-			$object = get_term_by('slug', end($json_url), $tax);
-			if($object){
-				$term = Terms::api($object);
-				if(!empty($term)){
-					wp_die($term[0]);
+			$terms = get_terms(array("taxonomy"=>$tax, 'hide_empty' => false));
+			foreach($terms as $term){
+				$term_link = get_term_link($term);
+				if($term_link==$json_url){
+					$term = Terms::api($term);
+					if(!empty($term)){
+						wp_die($term[0]);
+					}
 				}
 			}
 		}
-
 	}
 	
 	static function get($url, $return_status=true){
