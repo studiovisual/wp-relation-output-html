@@ -34,6 +34,20 @@ Class Curl {
 		if($search_amp===false){
 			if(!empty($url_post)){
 				$object = get_post($url_post);
+			}else{
+				$taxonomy = explode(",", Helpers::getOption('taxonomies_rlout'));
+				foreach($taxonomy as $tax){
+					$slug_term = explode("/",$object);
+					foreach($slug_term as $key_b => $barra){
+						$term_exist = get_term_by('slug',$slug_term[$key_b], $tax);
+						if($term_exist){
+							$link_term = get_term_link($term_exist);
+							if($link_term==$object){
+								$object = $term_exist;
+							}
+						}
+					}
+				}
 			}
 		}
 		
@@ -313,7 +327,7 @@ Class Curl {
 		if(empty($rpl)){
 			$rpl = site_url().'/html';
 		}
-		
+
 		$json_url = str_replace($rpl,site_url(),$json_url[0]);
 
 		$taxonomies = explode(",", Helpers::getOption('taxonomies_rlout'));

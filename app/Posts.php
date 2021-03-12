@@ -25,7 +25,7 @@ Class Posts {
 				add_action("rest_pre_insert_{$post_type}", array($this, 'delete_folder'));
 			else:
 				add_action("publish_{$post_type}", array($this, 'create_folder'));
-				add_action("pre_{$post_type}_update", array($this, 'delete_folder'));
+				add_action("pre_post_update", array($this, 'delete_folder'));
 			endif;
 		}
 
@@ -109,9 +109,9 @@ Class Posts {
 		$dir_base = Helpers::getOption('path_rlout') . str_replace(site_url(), '', $dir_base);
 	
 		$delete_old = $_COOKIE['old_slug'];
+
 		if($delete_old){
 			$delete_old = Helpers::getOption('path_rlout').'/'.$delete_old;
-
 			if($delete_old!=$dir_base || !strpos($dir_base, $_POST['post_name'].'/')){
 				Helpers::rrmdir($delete_old);
 				S3::remove_file($delete_old . 'index.html');
