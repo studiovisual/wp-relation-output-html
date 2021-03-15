@@ -115,7 +115,7 @@ Class S3 {
             
             $directory_empty = explode('/', $key_file_s3);
             
-            if(!empty($key_file_s3) && !empty(end($directory_empty)) ){
+            if(!empty($key_file_s3) && !empty(end($directory_empty))){
                 
                 $response = $clientS3->deleteObject(array(
                     'Bucket' => Helpers::getOption('s3_bucket_rlout'),
@@ -123,6 +123,7 @@ Class S3 {
                 ));
                 
                 if($response){
+                    Cloudfront::invalid('/'.$key_file_s3);
                     $key_file_s3 = str_replace('index.html', '', $key_file_s3);
                     Cloudfront::invalid('/'.$key_file_s3);
                 }
