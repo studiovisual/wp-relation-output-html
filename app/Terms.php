@@ -15,13 +15,17 @@ Class Terms Extends App {
 	public function __construct(){
 		
 		// verifica alterações de terms
-		add_action( 'create_term', array($this, 'create_folder'), 1, 1);
-		add_action( 'edit_term', array($this, 'create_folder'), 1, 1);
 		add_action( 'pre_delete_term', array($this, 'delete_folder'), 1, 1);
+
+		$taxonomies = explode(',', Helpers::getOption('taxonomies_rlout'));
+		foreach($taxonomies as $tax){
+			add_action( 'created_'.$tax, array($this, 'create_folder'), 1, 1);
+			add_action( 'edited_'.$tax, array($this, 'create_folder'), 1, 1);
+		}
 	}
 	
 	public function create_folder($term_id){
-
+		
 		$term = get_term($term_id);
 		if($term->slug!=$_POST['slug']){
 			$this->delete_folder($term_id);
@@ -40,7 +44,6 @@ Class Terms Extends App {
 					
 					$term->slug = $slug_new;
 				}
-
 				Curl::generate($term);
 
 				Terms::api($term);
