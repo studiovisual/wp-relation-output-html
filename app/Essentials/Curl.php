@@ -81,7 +81,9 @@ Class Curl {
 			$response = Helpers::replace_json($response);
 			$dir_base = Helpers::getOption('path_rlout');
 			if( is_dir($dir_base) === false ){
-				mkdir($dir_base);
+				$dir_base = str_replace(get_home_path(),'', $dir_base);
+				mkdir(get_home_path() . $dir_base);
+				$dir_base = get_home_path() . $dir_base;
 			}
 			
 			$uri = Helpers::getOption('uri_rlout');
@@ -122,7 +124,9 @@ Class Curl {
 			foreach ($explode_raiz as $keyp => $raiz) {
 				$wp_raiz = $wp_raiz . $raiz . '/';
 				if( realpath($wp_raiz) === false && $keyp+1<count($explode_raiz)){
-					mkdir($wp_raiz);
+					$wp_raiz = str_replace(get_home_path(),'', $wp_raiz);
+					mkdir(get_home_path() . $wp_raiz);
+					$wp_raiz = get_home_path() . $wp_raiz;
 				}
 			}
 			
@@ -220,13 +224,17 @@ Class Curl {
 				
 				$dir_base = Helpers::getOption('path_rlout');
 				if( is_dir($dir_base) === false ){
-					mkdir($dir_base);
+					$dir_base = str_replace(get_home_path(),'', $dir_base);
+					mkdir(get_home_path() . $dir_base);
+					$dir_base = get_home_path() . $dir_base;
 				}
 				
 				if($media){
 					$dir_base = Helpers::getOption('path_rlout') . $media;
 					if( is_dir($dir_base) === false ){
-						mkdir($dir_base);
+						$dir_base = str_replace(get_home_path(),'', $dir_base);
+						mkdir(get_home_path() . $dir_base);
+						$dir_base = get_home_path() . $dir_base;
 					}
 				}
 				
@@ -240,7 +248,9 @@ Class Curl {
 					if($key+1<count($folders)){
 						$dir_base = $dir_base . '/' . $folder;
 						if( is_dir($dir_base) === false ){
-							mkdir($dir_base);
+							$dir_base = str_replace(get_home_path(),'', $dir_base);
+							mkdir(get_home_path() . $dir_base);
+							$dir_base = get_home_path() . $dir_base;
 						}
 					}
 				}
