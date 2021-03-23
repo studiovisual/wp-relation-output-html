@@ -34,6 +34,7 @@ Class App {
         $this->terms = new Terms;
 
         add_action('init', function() {
+            
 			register_meta('post', '_static_output_html', array(
 				'type'		=> 'boolean',
 				'single'	=> true,
@@ -42,14 +43,11 @@ Class App {
                     return current_user_can('edit_posts');
                 }
 			 ));
+
+            $this->posts = new Posts;
+
 		});
 
-        add_action('current_screen', array($this, 'init'));
-    }
-
-    public function init() {
-        // Iniciando verificação para as alterações de posts
-        $this->posts = new Posts;
     }
     
 }

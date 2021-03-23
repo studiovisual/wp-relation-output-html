@@ -226,6 +226,8 @@ Class Menu {
         
         $fields['taxonomies_rlout'] = array('type'=>'select2', 'label'=>'Taxonomy para deploy', 'multiple'=>'multiple');
         $fields['taxonomies_rlout']['options'] = get_taxonomies();
+
+        $fields['parent_term_rlout'] = array('type'=>'checkbox', 'label'=>'Verificar se os terms possui um parent');
         
         $fields['size_thumbnail_rlout'] = array('type'=>'select', 'label'=>'Tamanho padrão (thumbnail)');
         $sizes = get_intermediate_image_sizes();

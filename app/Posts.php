@@ -14,24 +14,29 @@ Class Posts {
 	public $is_block_editor = false;
 	
 	public function __construct() {
-		$current_screen = get_current_screen();
-		$this->is_block_editor = $current_screen->is_block_editor();	
+
+		if(!function_exists('get_sample_permalink')) {
+			/** Load WordPress Bootstrap */
+			require_once ABSPATH . '/wp-load.php';
+			/** Load WordPress Administration APIs */
+			require_once ABSPATH . 'wp-admin/includes/admin.php';
+
+			do_action('admin_init');
+		}	
 
 		// verifica alterações de posts
 		$post_types = explode(',', Helpers::getOption('post_types_rlout'));
 		foreach ($post_types as $post_type) {
-			if($this->is_block_editor && wp_doing_ajax()):
-				add_action("rest_insert_{$post_type}", array($this, 'create_folder'));
-				add_action("rest_pre_insert_{$post_type}", array($this, 'delete_folder'));
-			else:
-				add_action("publish_{$post_type}", array($this, 'create_folder'));
-				add_action("pre_post_update", array($this, 'delete_folder'));
-			endif;
+			add_action("publish_{$post_type}", array($this, 'create_folder'));
+			add_action("pre_post_update", array($this, 'delete_folder'));
 		}
+
+		add_action("future_to_publish", array($this, 'publish_folder'));
 
 		if($_GET['post'] && $_GET['action']=='edit'){
 			$post = get_post($_GET['post']);
 			if($post){
+				
 				$link = get_sample_permalink($post);
 				$link = str_replace(site_url().'/', '', $link);
 				$url_del = str_replace('%pagename%',$link[1],$link[0]);
@@ -40,48 +45,56 @@ Class Posts {
 			}
 		}
 	}
+
+	public function publish_folder($post_id=null) {
+
+		$post_types = explode(',', Helpers::getOption('post_types_rlout'));
+
+		$post = get_post($post_id);
+		
+		if(in_array($post->post_type, $post_types)){
+				
+			// Gerador da archive do post estatizado
+			$link_archive = get_post_type_archive_link($post->post_type);
+			if($link_archive && $link_archive!=site_url()){
+				Curl::generate($link_archive);
+			}
+			
+			// Verificando os terms do post de todas as taxonomies selecionadas
+			$taxonomies = explode(",", Helpers::getOption('taxonomies_rlout'));
+			$terms = wp_get_post_terms($post->ID, $taxonomies);
+			
+			$objects = array();
+			
+			$objects[] = $post;
+			
+			
+			// categorias relacionadas
+			foreach ($terms as $key => $term) {
+				$objects[] = $term;
+				Terms::api($term);
+				if(!empty($term->parent) && Helpers::getOption('parent_term_rlout')){
+					$objects = $this->recursive_term($term->term_id, $objects);
+				}
+			}
+				
+			Curl::list_deploy($objects);
+			Posts::api($post);
+		}
+	}
 	
 	public function create_folder($post_id=null) {
 
 		add_action('updated_post_meta', function($meta_id, $post_id, $meta_key) {
 			
 			if($meta_key=='_edit_lock'):
-				
 				$static = get_post_meta($post_id, '_static_output_html', true);
 				
 				if($static || (isset($_POST['static_output_html']) && $_POST['static_output_html'])):
 					if($static)
 						update_post_meta($post_id, '_static_output_html', 0);
 					
-					$post_types = explode(',', Helpers::getOption('post_types_rlout'));
-					$post =  get_post($post_id);
-					
-					if(in_array($post->post_type, $post_types)){
-							
-						// Gerador da archive do post estatizado
-						$link_archive = get_post_type_archive_link($post->post_type);
-						if($link_archive && $link_archive!=site_url()){
-							Curl::generate($link_archive);
-						}
-						
-						// Verificando os terms do post de todas as taxonomies selecionadas
-						$taxonomies = explode(",", Helpers::getOption('taxonomies_rlout'));
-						$terms = wp_get_post_terms($post->ID, $taxonomies);
-						
-						$objects = array();
-						
-						$objects[] = $post;
-						
-						
-						// categorias relacionadas
-						foreach ($terms as $key => $term) {
-							$objects[] = $term;
-							Terms::api($term);
-						}
-							
-						Curl::list_deploy($objects);
-						Posts::api($post);
-					}
+					$this->publish_folder($post_id);
 				endif;
 
 			endif;
@@ -98,6 +111,7 @@ Class Posts {
 
 			do_action('admin_init');
 		}
+		
 
 		$post = get_post($post_id);
 
@@ -141,6 +155,15 @@ Class Posts {
 			
 			Posts::api($post);
 		}
+	}
+
+	public function recursive_term($term_id, $objects){
+		$term = get_term($term_id);
+		$objects[] = $term;
+		if(!empty($term->parent)){
+			$objects = $this->recursive_term($term->parent, $objects);
+		}
+		return $objects;
 	}
 	
 	static function api($post=null, $upload=true){
