@@ -615,7 +615,11 @@ Class RelOutputHtml {
 				$json_name = $json_name[0];
 				
 				$curl = curl_init();
-				
+
+				$url_original = Helpers::getOption('original_url_rlout');
+				if(!empty($url_original)){
+					$url = str_replace(site_url(), $url_original, $url);
+				}
 				curl_setopt_array($curl, array(
 					CURLOPT_URL => $json,
 					CURLOPT_RETURNTRANSFER => true,
@@ -725,7 +729,11 @@ Class RelOutputHtml {
 		// $this->save_log($url);
 
 		$curl = curl_init();
-		
+
+		$url_original = Helpers::getOption('original_url_rlout');
+		if(!empty($url_original)){
+			$url = str_replace(site_url(), $url_original, $url);
+		}
 		curl_setopt_array($curl, array(
 			CURLOPT_URL => $url,
 			CURLOPT_RETURNTRANSFER => true,
@@ -1252,6 +1260,10 @@ Class RelOutputHtml {
 				
 				$url = implode(".", $url_point);
 				
+				$url_original = Helpers::getOption('original_url_rlout');
+				if(!empty($url_original)){
+					$url = str_replace(site_url(), $url_original, $url);
+				}
 				curl_setopt_array($curl, array(
 					CURLOPT_URL => $url,
 					CURLOPT_RETURNTRANSFER => true,
@@ -1537,6 +1549,10 @@ Class RelOutputHtml {
 			}
 			
 			$fields = array();
+
+			$fields['original_url_rlout'] = array('type'=>'text','label'=>'URL original<br>
+        	<small>Url em que será feita a requisição sem "/" no final</small>');
+
 			$fields['replace_url_rlout'] = array('type'=>'text','label'=>'Substituir a URL <br>
 			<small>Default: ('.site_url().'/html)</small>');
 			
