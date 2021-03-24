@@ -616,7 +616,7 @@ Class RelOutputHtml {
 				
 				$curl = curl_init();
 
-				$url_original = Helpers::getOption('original_url_rlout');
+				$url_original = get_option('original_url_rlout');
 				if(!empty($url_original)){
 					$url = str_replace(site_url(), $url_original, $url);
 				}
@@ -730,7 +730,7 @@ Class RelOutputHtml {
 
 		$curl = curl_init();
 
-		$url_original = Helpers::getOption('original_url_rlout');
+		$url_original = get_option('original_url_rlout');
 		if(!empty($url_original)){
 			$url = str_replace(site_url(), $url_original, $url);
 		}
@@ -1260,7 +1260,7 @@ Class RelOutputHtml {
 				
 				$url = implode(".", $url_point);
 				
-				$url_original = Helpers::getOption('original_url_rlout');
+				$url_original = get_option('original_url_rlout');
 				if(!empty($url_original)){
 					$url = str_replace(site_url(), $url_original, $url);
 				}
