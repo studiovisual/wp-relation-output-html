@@ -346,6 +346,12 @@ Class Curl {
 	}
 	
 	static function get($url, $return_status=true){
+
+		$url_original = Helpers::getOption('original_url_rlout');
+		if(!empty($url_original)){
+			$url = str_replace(site_url(), $url_original, $url);
+		}
+
 		$curl = curl_init();
 		curl_setopt_array($curl, array(
 			CURLOPT_URL => $url,

@@ -218,6 +218,10 @@ Class Menu {
         }
         
         $fields = array();
+
+        $fields['original_url_rlout'] = array('type'=>'text','label'=>'URL original<br>
+        <small>Url em que será feita a requisição sem "/" no final</small>');
+
         $fields['replace_url_rlout'] = array('type'=>'text','label'=>'Substituir a URL <br>
         <small>Default: ('.site_url().'/html)</small>');
         
