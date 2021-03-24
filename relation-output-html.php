@@ -623,7 +623,6 @@ Class RelOutputHtml {
 				curl_setopt_array($curl, array(
 					CURLOPT_URL => $json,
 					CURLOPT_SSL_VERIFYPEER => false,
-					CURLOPT_PORT => 80,
 					CURLOPT_RETURNTRANSFER => true,
 					CURLOPT_ENCODING => "",
 					CURLOPT_MAXREDIRS => 10,
@@ -739,7 +738,6 @@ Class RelOutputHtml {
 		curl_setopt_array($curl, array(
 			CURLOPT_URL => $url,
 			CURLOPT_SSL_VERIFYPEER => false,
-			CURLOPT_PORT => 80,
 			CURLOPT_RETURNTRANSFER => true,
 			CURLOPT_ENCODING => "",
 			CURLOPT_MAXREDIRS => 10,
@@ -1271,7 +1269,6 @@ Class RelOutputHtml {
 				curl_setopt_array($curl, array(
 					CURLOPT_URL => $url,
 					CURLOPT_SSL_VERIFYPEER => false,
-					CURLOPT_PORT => 80,
 					CURLOPT_RETURNTRANSFER => true,
 					CURLOPT_ENCODING => "",
 					CURLOPT_MAXREDIRS => 10,
