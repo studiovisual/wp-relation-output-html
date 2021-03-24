@@ -616,10 +616,10 @@ Class RelOutputHtml {
 				
 				$curl = curl_init();
 
-				$url_original = get_option('original_url_rlout');
-				if(!empty($url_original)){
-					$url = str_replace(site_url(), $url_original, $url);
-				}
+				$loginpassw = get_option('login_proxy_rlout').':'.get_option('pass_proxy_rlout');
+				$proxy_ip = get_option('ip_proxy_rlout');
+				$proxy_port = get_option('port_proxy_rlout');
+
 				curl_setopt_array($curl, array(
 					CURLOPT_URL => $json,
 					CURLOPT_RETURNTRANSFER => true,
@@ -629,6 +629,10 @@ Class RelOutputHtml {
 					CURLOPT_FOLLOWLOCATION => true,
 					CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
 					CURLOPT_CUSTOMREQUEST => "GET",
+					CURLOPT_PROXYPORT => $proxy_port,
+					CURLOPT_PROXYTYPE => 'HTTP',
+					CURLOPT_PROXY =>  $proxy_ip,
+					CURLOPT_PROXYUSERPWD => $loginpassw,
 					CURLOPT_HTTPHEADER => array(
 						"cache-control: no-cache",
 						"Authorization: Basic ".base64_encode(get_option('userpwd_rlout').":".get_option('passpwd_rlout'))
@@ -730,10 +734,10 @@ Class RelOutputHtml {
 
 		$curl = curl_init();
 
-		$url_original = get_option('original_url_rlout');
-		if(!empty($url_original)){
-			$url = str_replace(site_url(), $url_original, $url);
-		}
+		$loginpassw = get_option('login_proxy_rlout').':'.get_option('pass_proxy_rlout');
+		$proxy_ip = get_option('ip_proxy_rlout');
+		$proxy_port = get_option('port_proxy_rlout');
+
 		curl_setopt_array($curl, array(
 			CURLOPT_URL => $url,
 			CURLOPT_RETURNTRANSFER => true,
@@ -743,6 +747,10 @@ Class RelOutputHtml {
 			CURLOPT_FOLLOWLOCATION => true,
 			CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
 			CURLOPT_CUSTOMREQUEST => "GET",
+			CURLOPT_PROXYPORT => $proxy_port,
+			CURLOPT_PROXYTYPE => 'HTTP',
+			CURLOPT_PROXY =>  $proxy_ip,
+			CURLOPT_PROXYUSERPWD => $loginpassw,
 			CURLOPT_HTTPHEADER => array(
 				"cache-control: no-cache",
 				"Authorization: Basic ".base64_encode(get_option('userpwd_rlout').":".get_option('passpwd_rlout'))
@@ -1259,11 +1267,11 @@ Class RelOutputHtml {
 				$url_point[count($url_point)-1] = $url_space[0];
 				
 				$url = implode(".", $url_point);
-				
-				$url_original = get_option('original_url_rlout');
-				if(!empty($url_original)){
-					$url = str_replace(site_url(), $url_original, $url);
-				}
+
+				$loginpassw = get_option('login_proxy_rlout').':'.get_option('pass_proxy_rlout');
+				$proxy_ip = get_option('ip_proxy_rlout');
+				$proxy_port = get_option('port_proxy_rlout');
+
 				curl_setopt_array($curl, array(
 					CURLOPT_URL => $url,
 					CURLOPT_RETURNTRANSFER => true,
@@ -1273,6 +1281,10 @@ Class RelOutputHtml {
 					CURLOPT_FOLLOWLOCATION => true,
 					CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
 					CURLOPT_CUSTOMREQUEST => "GET",
+					CURLOPT_PROXYPORT => $proxy_port,
+					CURLOPT_PROXYTYPE => 'HTTP',
+					CURLOPT_PROXY =>  $proxy_ip,
+					CURLOPT_PROXYUSERPWD => $loginpassw,
 					CURLOPT_HTTPHEADER => array(
 						"cache-control: no-cache",
 						"Authorization: Basic ".base64_encode(get_option('userpwd_rlout').":".get_option('passpwd_rlout'))
@@ -1550,9 +1562,6 @@ Class RelOutputHtml {
 			
 			$fields = array();
 
-			$fields['original_url_rlout'] = array('type'=>'text','label'=>'URL original<br>
-        	<small>Url em que será feita a requisição sem "/" no final</small>');
-
 			$fields['replace_url_rlout'] = array('type'=>'text','label'=>'Substituir a URL <br>
 			<small>Default: ('.site_url().'/html)</small>');
 			
@@ -1636,6 +1645,12 @@ Class RelOutputHtml {
 			$fields['pwd_rlout'] = array('type'=>'label','label'=>'PWD ACESSO');
 			$fields['userpwd_rlout'] = array('type'=>'text','label'=>'USUÁRIO PWD');
 			$fields['passpwd_rlout'] = array('type'=>'text','label'=>'SENHA PWD');
+
+			$fields['proxy_rlout'] = array('type'=>'label','label'=>'PROXY ACESSO');
+			$fields['ip_proxy_rlout'] = array('type'=>'text','label'=>'IP PROXY');
+			$fields['port_proxy_rlout'] = array('type'=>'text','label'=>'PORT PROXY');
+			$fields['login_proxy_rlout'] = array('type'=>'text','label'=>'USUÁRIO PROXY');
+			$fields['pass_proxy_rlout'] = array('type'=>'text','label'=>'SENHA PROXY');
 			
 			$fields['ftp_rlout'] = array('type'=>'label','label'=>'FTP SERVER');
 			$fields['ftp_host_rlout'] = array('type'=>'text','label'=>'FTP Host');
