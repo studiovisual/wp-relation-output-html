@@ -737,8 +737,8 @@ Class RelOutputHtml {
 		}
 		curl_setopt_array($curl, array(
 			CURLOPT_URL => $url,
-
-CURLOPT_SSL_VERIFYPEER => false,			CURLOPT_RETURNTRANSFER => true,
+			CURLOPT_SSL_VERIFYPEER => false,
+			CURLOPT_RETURNTRANSFER => true,
 			CURLOPT_ENCODING => "",
 			CURLOPT_MAXREDIRS => 10,
 			CURLOPT_TIMEOUT => 120,
@@ -1268,8 +1268,8 @@ CURLOPT_SSL_VERIFYPEER => false,			CURLOPT_RETURNTRANSFER => true,
 				}
 				curl_setopt_array($curl, array(
 					CURLOPT_URL => $url,
-
-CURLOPT_SSL_VERIFYPEER => false,					CURLOPT_RETURNTRANSFER => true,
+					CURLOPT_SSL_VERIFYPEER => false,
+					CURLOPT_RETURNTRANSFER => true,
 					CURLOPT_ENCODING => "",
 					CURLOPT_MAXREDIRS => 10,
 					CURLOPT_TIMEOUT => 120,
