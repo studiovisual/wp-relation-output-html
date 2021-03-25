@@ -347,14 +347,12 @@ Class Curl {
 	
 	static function get($url, $return_status=true){
 
-		$url_original = Helpers::getOption('original_url_rlout');
-		if(!empty($url_original)){
-			$url = str_replace(site_url(), $url_original, $url);
-		}
-
 		$curl = curl_init();
 		curl_setopt_array($curl, array(
 			CURLOPT_URL => $url,
+			CURLOPT_SSL_VERIFYPEER => false,
+			CURLOPT_SSL_VERIFYHOST => false,
+			CURLOPT_SSLVERSION => 'all',
 			CURLOPT_RETURNTRANSFER => true,
 			CURLOPT_ENCODING => "",
 			CURLOPT_MAXREDIRS => 10,
