@@ -126,7 +126,7 @@ Class Curl {
 				}
 			}
 			
-			$file = fopen($dir_base . $file_default,"w");
+			$file = fopen($dir_base . $file_default,"wa+");
 			
 			$response = Helpers::replace_reponse(Helpers::getOption('uri_rlout'), $response, null, $items);
 			$amp = Helpers::getOption('amp_rlout');
@@ -167,7 +167,7 @@ Class Curl {
 			
 			if($json_default!='' && is_object($object)){
 				
-				$file_json = fopen($dir_base . $json_default,"w");
+				$file_json = fopen($dir_base . $json_default,"wa+");
 				
 				if(term_exists($object->term_id)){
 					$object = Terms::object_term($object, true);
@@ -286,7 +286,7 @@ Class Curl {
 				
 				$folders = implode(".", $folders_point);
 				
-				$file = fopen( $dir_base . '/' . $folders,"w");
+				$file = fopen( $dir_base . '/' . $folders,"wa+");
 				
 				fwrite($file, $response);
 				fclose($file);
