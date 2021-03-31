@@ -14,7 +14,7 @@ Class Cloudfront {
 			
 			$response_cloudfront = Cloudfront::invalid('/*');
 			if($response_cloudfront){
-				echo '<script>alert("Cloudfront Atualizados!");</script>';
+				echo '<script>alert("Cloudfront Atualizado!");</script>';
 			}
 		}
 	}
