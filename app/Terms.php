@@ -118,7 +118,7 @@ Class Terms Extends App {
 					}
 
 					$file_raiz = $term_link.'index.json';
-					$file = fopen($file_raiz, "w");
+					$file = fopen($file_raiz, "wa+");
 					
 					$response = json_encode($term , JSON_UNESCAPED_SLASHES);
 
@@ -141,7 +141,7 @@ Class Terms Extends App {
 			
 			$file_raiz = $dir_base . '/'.$tax.'.json';
 			
-			$file = fopen($file_raiz, "w");
+			$file = fopen($file_raiz, "wa+");
 			
 			fwrite($file, $response);
 			fclose($file);

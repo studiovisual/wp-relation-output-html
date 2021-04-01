@@ -132,7 +132,7 @@ Class Posts {
 			}
 		}
 
-		if(empty($_POST) || $_POST['post_status'] != 'publish') {
+		if($_GET['action']=='trash' || (!empty($_POST['post_status']) && $_POST['post_status'] != 'publish') ) {
 
 			$post_types = explode(',', Helpers::getOption('post_types_rlout'));
 
@@ -204,7 +204,7 @@ Class Posts {
 				
 				$file_raiz = $dir_base . '/'.$post->post_type.'.json';
 				
-				$file = fopen($file_raiz, "w");
+				$file = fopen($file_raiz, "wa+");
 
 				fwrite($file, '[');
 				
