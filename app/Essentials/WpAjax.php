@@ -177,9 +177,15 @@ Class WpAjax {
         wp_die(json_encode($urls));
     }
     public function recursive_post($post_type, $urls=array(), $not_in=array()){
+
+        $range = Helpers::getOption('range_posts_rlout');
+        if(empty($range)){
+            $range = 50;
+        }
+
         $args_posts = array();
         $args_posts['post_type'] = $post_type;
-        $args_posts['posts_per_page'] = 50;
+        $args_posts['posts_per_page'] = $range;
         $args_posts['post_status'] = array('publish');
         $args_posts['order'] = 'DESC';
         $args_posts['orderby'] = 'date';
@@ -194,10 +200,12 @@ Class WpAjax {
                 $urls[] = $url;
             }
         }
-        if(count($posts)==50){
+
+        if(count($posts)==$range){
             sleep(0.1);
             $urls = array_unique(array_merge($urls, $this->recursive_post($post_type, $urls, $not_in)));
         }
+        
         return array_values($urls);
     }
     

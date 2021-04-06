@@ -31,7 +31,7 @@ Class Posts {
 			add_action("pre_post_update", array($this, 'delete_folder'));
 		}
 
-		add_action("future_to_publish", array($this, 'publish_folder'));
+		add_action("future_to_publish", array($this, 'future_callback'));
 
 		if($_GET['post'] && $_GET['action']=='edit'){
 			$post = get_post($_GET['post']);
@@ -44,6 +44,13 @@ Class Posts {
 				setcookie('old_slug', $url_del);
 			}
 		}
+	}
+
+	public function future_callback($post_id=null){
+
+		Helpers::importantfiles_generate();
+
+		$this->publish_folder($post_id);
 	}
 
 	public function publish_folder($post_id=null) {
@@ -277,10 +284,15 @@ Class Posts {
 			
 			$object = new \StdClass();
 			$object->post_type = $post->post_type;
-			
+
+			$range = Helpers::getOption('range_posts_rlout');
+			if(empty($range)){
+				$range = 50;
+			}
+
 			$args = array(
 				'post_type'=>$post->post_type,
-				'posts_per_page' => 50,
+				'posts_per_page' => $range,
 				'order'=>'DESC',
 				'orderby'=>'date',
 				'post_status' => 'publish',
@@ -308,7 +320,7 @@ Class Posts {
 				
 			}
 			
-			if(count($posts)==50){
+			if(count($posts)==$range){
 				sleep(0.1);
 				$posts_arr = array_merge($posts_arr, Posts::get_post_json($object, $not_in, $term));
 			}

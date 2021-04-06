@@ -228,6 +228,8 @@ Class Menu {
         $fields['taxonomies_rlout'] = array('type'=>'select2', 'label'=>'Taxonomy para deploy', 'multiple'=>'multiple');
         $fields['taxonomies_rlout']['options'] = get_taxonomies();
 
+        $fields['range_posts_rlout'] = array('type'=>'number', 'label'=>'<small> Range de estatização</small>');
+
         $fields['parent_term_rlout'] = array('type'=>'checkbox', 'label'=>'Verificar se os terms possui um parent');
         
         $fields['size_thumbnail_rlout'] = array('type'=>'select', 'label'=>'Tamanho padrão (thumbnail)');
