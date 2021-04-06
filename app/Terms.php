@@ -70,7 +70,7 @@ Class Terms Extends App {
 		}
 	}
 
-	static function api($term_update=null, $upload=true){
+	static function api($term_update=null, $upload=true, $last_post=null){
 		$taxonomies = explode(",", Helpers::getOption('taxonomies_rlout'));
 		if(!empty($term_update->taxonomy)){
 			if(in_array($term_update->taxonomy,$taxonomies)){
@@ -88,7 +88,6 @@ Class Terms Extends App {
 
 			$dir_base = Helpers::getOption('path_rlout');
 
-			
 			if( realpath($dir_base) === false ){
 				mkdir($dir_base);
 			}
@@ -104,7 +103,39 @@ Class Terms Extends App {
 					
 					$term_link = get_term_link($term);
 					
-					$term = Terms::object_term($term, true);
+					if($last_post){
+						$url_link_static = str_replace(site_url(), $replace_url, $term_link);
+
+						$term_json_exist = Curl::get($url_link_static.'index.json');
+
+						$posts = array();
+
+						$decode_json = json_decode($term_json_exist);
+						if(property_exists($decode_json, 'posts')){
+							if(is_array($decode_json->posts)){
+								
+								$new_post = Posts::new_params($last_post, true);
+								$posts = $decode_json->posts;
+								$create_post = true;
+								foreach($posts as $key_post => $post){
+									if($post->ID==$last_post->ID){
+										$posts[$key_post] = $new_post;
+										$create_post = false;
+										if($last_post->post_status!='publish'){
+											unset($posts[$key_post]);
+										}
+									}
+								}
+
+								if($create_post==true && $last_post->post_status=='publish'){
+									array_unshift($posts, $new_post);
+								}
+							}
+						}
+					}
+
+					$term = Terms::object_term($term, true, $posts);
+					
 					$term_link = str_replace(site_url(), $dir_base, $term_link);
 
 					$new_folder = str_replace($dir_base, '', $term_link);
@@ -154,7 +185,7 @@ Class Terms Extends App {
 		return $urls;
 	}
 
-	static function object_term($object, $show_posts=true){
+	static function object_term($object, $show_posts=true, $posts = array()){
 		
 		$url = get_term_link($object);
 		$ignore_json_rlout = explode(',', Helpers::getOption('ignore_json_rlout'));
@@ -168,17 +199,20 @@ Class Terms Extends App {
 			$object = Helpers::url_json_obj($object);
 			
 			if($show_posts){
-				$post_types = explode(",", Helpers::getOption('post_types_rlout'));
-				$posts = array();
 
-				// foreach($post_types as $post_type):
-					$post = new stdClass;
-					$post->post_type = $post_types;
-					$posts = Posts::get_post_json($post, array(), $object);
-				// endforeach;
+				if(empty($posts)){
+					$post_types = explode(",", Helpers::getOption('post_types_rlout'));
+					$posts = array();
 
-				// if(!empty($posts))
-				// 	die(var_dump($posts));
+					// foreach($post_types as $post_type):
+						$post = new stdClass;
+						$post->post_type = $post_types;
+						$posts = Posts::get_post_json($post, array(), $object);
+					// endforeach;
+
+					// if(!empty($posts))
+					// 	die(var_dump($posts));
+				}
 				
 				$object->posts = $posts;
 			}

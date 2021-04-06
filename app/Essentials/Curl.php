@@ -15,10 +15,19 @@ Class Curl {
 	
 	// Envia todos os objetos recebidos para o generate
 	static function list_deploy($objs=null){
-		
+
 		if(!empty($objs)){
+			$terms_repeat = array();
 			foreach ($objs as $key => $obj) {
-				Curl::generate($obj);
+				if($obj->term_id){
+					if(!in_array($obj->term_id, $terms_repeat)){
+						$terms_repeat[] = $obj->term_id;
+						Curl::generate($obj);
+					}
+				}else{
+				
+					Curl::generate($obj);
+				}
 			}
 		}
 		
@@ -165,7 +174,7 @@ Class Curl {
 				}
 			}
 			
-			if($json_default!='' && is_object($object)){
+			if($json_default!='' && is_object($object) && $upload==false || $json_default!='' && is_object($object) && $object->ID){
 				
 				$file_json = fopen($dir_base . $json_default,"wa+");
 				

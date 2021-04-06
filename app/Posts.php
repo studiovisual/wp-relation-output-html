@@ -78,11 +78,19 @@ Class Posts {
 			
 			// categorias relacionadas
 			foreach ($terms as $key => $term) {
+
 				$objects[] = $term;
-				Terms::api($term);
+				Terms::api($term, true, $post);
+
 				if(!empty($term->parent) && Helpers::getOption('parent_term_rlout')){
-					$objects = $this->recursive_term($term->term_id, $objects);
+					$terms_recursive = array();
+					$terms_recursive = $this->recursive_term($term->parent, $terms_recursive);
+					foreach($terms_recursive as $term_recursive){
+						Terms::api($term_recursive, true, $post);
+						$objects[] = $term_recursive;
+					}
 				}
+
 			}
 				
 			Curl::list_deploy($objects);
@@ -148,8 +156,17 @@ Class Posts {
 				$taxonomies = explode(",", Helpers::getOption('taxonomies_rlout'));
 				$terms = wp_get_post_terms($post->ID, $taxonomies);
 				foreach ($terms as $key => $term) {
-					$objects[] = $term;
-					Terms::api($term);
+
+					Terms::api($term, true, $post);
+	
+					if(!empty($term->parent) && Helpers::getOption('parent_term_rlout')){
+						$terms_recursive = array();
+						$terms_recursive = $this->recursive_term($term->parent, $terms_recursive);
+						foreach($terms_recursive as $term_recursive){
+							Terms::api($term_recursive, true, $post);
+						}
+					}
+	
 				}
 
 				if($url_delete){
