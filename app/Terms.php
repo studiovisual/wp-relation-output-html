@@ -124,6 +124,7 @@ Class Terms Extends App {
 										if($last_post->post_status!='publish'){
 											unset($posts[$key_post]);
 										}
+										break;
 									}
 								}
 

@@ -287,6 +287,7 @@ Class Posts {
 							}else{
 								unset($post_arr[$arr_key]);
 							}
+							break;
 						}
 					}
 					
