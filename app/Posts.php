@@ -106,8 +106,8 @@ Class Posts {
 				$static = get_post_meta($post_id, '_static_output_html', true);
 				
 				if($static || (isset($_POST['static_output_html']) && $_POST['static_output_html'])):
-					// if($static)
-					// 	update_post_meta($post_id, '_static_output_html', 1);
+					if($static)
+						update_post_meta($post_id, '_static_output_html', 0);
 					
 					$this->publish_folder($post_id);
 				endif;
