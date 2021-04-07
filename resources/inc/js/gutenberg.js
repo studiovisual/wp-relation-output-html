@@ -14,14 +14,15 @@
             }
         }))(function(props) {
             let [isChecked, setChecked] = element.useState(true);
-
+ 			wp.data.dispatch('core/editor').editPost({meta: {_static_output_html: true}});
+		
             return el(CheckboxControl, {
                     metaKey: '_static_output_html',
                     label: 'Gerar página estática',
                     checked: isChecked,
                     onChange: () => {
-                        setChecked(!isChecked)
-                        wp.data.dispatch('core/editor').editPost({meta: {_static_output_html: !isChecked}})
+                        setChecked(!isChecked);
+                        wp.data.dispatch('core/editor').editPost({meta: {_static_output_html: !isChecked}});
                     },
                 }
             );
@@ -41,6 +42,7 @@
         if(newFormat=='publish' && typeof plugin_relation=='undefined'){
             registerPlugin('relation-output', { render: Output });
         }else if(newFormat!='publish' && typeof plugin_relation!='undefined'){
+			wp.data.dispatch('core/editor').editPost({meta: {_static_output_html: false}});
             unregisterPlugin('relation-output');
         }
       } 
