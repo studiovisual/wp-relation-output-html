@@ -89,7 +89,7 @@ Class Terms Extends App {
 			$dir_base = Helpers::getOption('path_rlout');
 
 			if( realpath($dir_base) === false ){
-				mkdir($dir_base);
+				wp_mkdir_p($dir_base);
 			}
 			
 			$replace_url = Helpers::getOption('replace_url_rlout');
@@ -145,7 +145,7 @@ Class Terms Extends App {
 					foreach($new_folder_explode as $new_folder){
 						$folder_create = $folder_create.'/'.$new_folder;
 						if(realpath($dir_base . $folder_create) === false){
-							mkdir($dir_base . $folder_create);
+							wp_mkdir_p($dir_base . $folder_create);
 						}
 					}
 

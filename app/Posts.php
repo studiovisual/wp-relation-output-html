@@ -13,16 +13,14 @@ Class Posts {
 
 	public $is_block_editor = false;
 	
-	public function __construct() {
+	public function __construct() {	
 
 		if(!function_exists('get_sample_permalink')) {
 			/** Load WordPress Bootstrap */
 			require_once ABSPATH . '/wp-load.php';
 			/** Load WordPress Administration APIs */
 			require_once ABSPATH . 'wp-admin/includes/admin.php';
-
-			do_action('admin_init');
-		}	
+		}
 
 		// verifica alterações de posts
 		$post_types = explode(',', Helpers::getOption('post_types_rlout'));
@@ -123,8 +121,6 @@ Class Posts {
 			require_once ABSPATH . '/wp-load.php';
 			/** Load WordPress Administration APIs */
 			require_once ABSPATH . 'wp-admin/includes/admin.php';
-
-			do_action('admin_init');
 		}
 		
 
@@ -223,7 +219,7 @@ Class Posts {
 				
 				$dir_base =  Helpers::getOption('path_rlout');
 				if( realpath($dir_base) === false ){
-					mkdir($dir_base);
+					wp_mkdir_p($dir_base);
 				}
 				
 				$file_raiz = $dir_base . '/'.$post->post_type.'.json';
