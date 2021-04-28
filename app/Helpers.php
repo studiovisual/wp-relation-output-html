@@ -158,8 +158,19 @@ Class Helpers {
         if($rpl!=site_url() && $rpl!=$url_replace){
             $response = str_replace($url_replace, $rpl, $response);
             if(!$media){
-                
                 $response = str_replace(site_url(), $rpl, $response);
+
+				$site_url_concat = str_replace("https://","",site_url());
+				$site_url_concat = str_replace("http://","",$site_url_concat);
+				$site_url_concat = explode("/", $site_url_concat);
+				$site_url_concat = $site_url_concat[0];
+
+				$rpl_url_concat = str_replace("https://","",$rpl);
+				$rpl_url_concat = str_replace("http://","",$rpl_url_concat);
+				$rpl_url_concat = explode("/", $rpl_url_concat);
+				$rpl_url_concat = $rpl_url_concat[0];
+
+                $response = str_replace($site_url_concat, $rpl_url_concat, $response);
             }
         }
         $rpl_dir = str_replace(site_url(), '', $rpl_original);
