@@ -177,14 +177,36 @@ $user = wp_get_current_user();
 							</p>
 						</td>
 					</tr>
-
+					<tr>
+						<th>
+							<label for="sincronizar_html_erro">Arquivos com erro de upload</label>
+							<br>
+							<small>Todos os erros ao realizar UPLOAD</small>
+						</th>
+						<td>
+							<?php $logs = $this->logs->list(); ?>
+							<?php if(!empty($logs)): ?>
+								<div class="error_log_upload" style="background: #fff;">
+									<?php foreach($logs as $log): ?>
+										<p style="padding:0 7px;"> - <?php echo date('d/m/Y H:i:s', strtotime($log->date_time)); ?> | <?php echo $log->file_static; ?></p>
+									<?php endforeach; ?>
+								</div>
+								<br>
+								<a href="javascript:;" onclick="if(confirm('Tem certeza que deseja excluir todos os logs de erro?')){truncate_logs();}else{return false;}" style="float: right;">Limpar Logs</a>
+							<?php else: ?>
+								<div class="error_log_upload" style="background: #fff;">
+									<p style="padding: 7px;">Nenhum erro encontrado!</p>
+								</div>
+							<?php endif; ?>
+						</td>
+					</tr>
 					<tr>
 						<th>
 							<label for="sincronizar_html">Sincronizar O HTML</label>
 							<br>
-							<small>Irá remover todos os posts/páginas e categorias para que seja gerado novamente!</small>
+							<small>Irá gerar todos os posts/páginas e categorias!</small>
 						</th>
-						<td>
+						<td style="width: 500px;">
 						
 							<div class="form-group" style="margin-bottom: 16px;">
 								<label for="">Estatizar JSONs (archive, taxonomy, terms)</label>
@@ -211,10 +233,37 @@ $user = wp_get_current_user();
 									<?php endforeach ?>
 								</select>
 							</div>
-				
+
 							<div class="form-group">
 								<?php if(!in_array('administrator', $user->roles)){ echo '<small style="color:#f00;">Somente administradores podem gerar HTML!</small><br>'; } ?>
-								<input <?php if(!in_array('administrator', $user->roles)){ echo 'disabled'; } ?> type="button" onclick="if(confirm('Tem certeza que deseja sincronizar todas os posts e páginas HTML, isso pode demorar algumas horas.')){start_static();}else{return false;}" name="deploy_all_static" id="deploy_all_static" class="button button-primary" value="SINCRONIZAR HTML">						
+								<?php $aux = $this->aux->list(); ?>
+								<?php if(!empty($aux)): ?>			
+									<input <?php if(!in_array('administrator', $user->roles)){ echo 'disabled'; } ?> type="button" onclick="if(confirm('Tem certeza que deseja que deseja continuar a sincronização de onde parou?')){start_static('continue');}else{return false;}" name="deploy_all_static_c" id="deploy_all_static_c" class="button button-primary" value="CONTINUAR ESTAIZAÇÃO">
+								<?php endif; ?>			
+								<input <?php if(!in_array('administrator', $user->roles)){ echo 'disabled'; } ?> type="button" onclick="if(confirm('Tem certeza que deseja sincronizar todas os posts e páginas HTML, isso pode demorar algumas horas.')){start_static();}else{return false;}" name="deploy_all_static" id="deploy_all_static" class="button button-primary" value="SINCRONIZAR TODO O HTML">						
+							</div>
+						</td>
+
+						<td>
+							<div class="form-group" style="margin-bottom: 16px;">
+								<div class="form-group" style="margin-bottom: 16px;">
+									<label for=""><b>Arquivos e diretórios Gerados em ./html</b></label>
+									<br>
+									<br>
+									<select id="static_files_html" multiple class="form-control">
+										<?php $base_html = Helpers::getOption('path_rlout').'/'; ?>
+        								<?php $verify_files = scandir($base_html); ?>
+										<?php unset($verify_files[0]); ?>
+        								<?php unset($verify_files[1]); ?>
+										<?php foreach($verify_files as $file): ?>
+											<option value="<?php echo $base_html.$file; ?>">/<?php echo $file; ?></option>
+										<?php endforeach; ?>
+									</select>
+								</div>
+								<div class="form-group">
+									<?php if(!in_array('administrator', $user->roles)){ echo '<small style="color:#f00;">Somente administradores podem fazer upload!</small><br>'; } ?>
+									<input <?php if(!in_array('administrator', $user->roles)){ echo 'disabled'; } ?> type="button" onclick="if(confirm('Tem certeza que deseja realizar o upload, isso pode levar alguns minutos.')){start_static_upload();}else{return false;}" name="deploy_all_static_upload" id="deploy_all_static_upload" class="button button-primary" value="REALIZAR UPLOAD">						
+								</div>
 							</div>
 						</td>
 						
@@ -238,17 +287,18 @@ $user = wp_get_current_user();
 		<h1 style="text-align:center; top: 0; left: 0; width: 100%; margin: 30% auto; text-align: center; position: absolute;">Aguarde, estamos processando o HTML ...</h1>
 	</div> -->
 	<script>
-		function start_static(){
+		function start_static(status=null){
 			jQuery(function(){
 				jQuery("#loading_static").fadeIn();
 				jQuery("#post_type_static").attr('disabled','disabled');
 				jQuery("#taxonomy_static").attr('disabled','disabled');
 				jQuery("#deploy_all_static").attr('disabled','disabled');
+				jQuery("#deploy_all_static_c").attr('disabled','disabled');
 				
 				if(jQuery('input[name="json_static"]:checked').val()=="1"){
 					get_urls();
 				}else{
-					set_deploy();
+					set_deploy(status);
 				}
 			});
 		}
@@ -309,12 +359,12 @@ $user = wp_get_current_user();
 			});
 		}
 		
-		function set_deploy(){
+		function set_deploy(status){
 
 			var post_type = jQuery('select#post_type_static').val();
 			var taxonomy = jQuery('select#taxonomy_static').val();
 			var settings = {
-				"url": "<?php echo site_url(); ?>/wp-admin/admin-ajax.php?action=static_output_files&post_type="+post_type+"&taxonomy="+taxonomy,
+				"url": "<?php echo site_url(); ?>/wp-admin/admin-ajax.php?action=static_output_files&status="+status+"&post_type="+post_type+"&taxonomy="+taxonomy,
 				"method": "GET",
 				"timeout": 0,
 			};
@@ -374,7 +424,17 @@ $user = wp_get_current_user();
 		// 		get_urls();
 		// 	});
 		// }
+		function truncate_logs(){
+			var settings = {
+				"url": "<?php echo site_url(); ?>/wp-admin/admin-ajax.php?action=static_output_truncate_log",
+				"method": "GET",
+				"timeout": 0,
+			};
 
+			jQuery.ajax(settings).done(function (response) {
+				window.location.reload();
+			});
+		}
 		function upload_all(offset=0,key_main, response_all, charge){
 			var settings = {
 				"url": "<?php echo site_url(); ?>/wp-admin/admin-ajax.php?action=static_output_upload&offset="+offset,
@@ -387,11 +447,42 @@ $user = wp_get_current_user();
 			jQuery.ajax(settings).done(function (response) {
 				
 				if(response=='true'){
-					jQuery('#results_static').append('<p>- Upload da pasta em pequeno porte realizado!</p>');
-					deploy(key_main+1, response_all, 0);
+					jQuery('#results_static').append('<p>- Upload completo realizado!</p>');
+					if(response_all[key_main+1]){
+						deploy(key_main+1, response_all, 0);
+					}
 				}else{
 					jQuery('#results_static').append('<p>'+response+'</p>');
 					upload_all(offset+100,key_main, response_all, charge);
+				}
+			});
+		}
+
+		function start_static_upload(){
+
+			jQuery("#loading_static").fadeIn();
+			jQuery('#loading_static span').hide();
+
+			var form = new FormData();
+			form.append("files", jQuery("#static_files_html").val());
+
+			var settings = {
+				"url": "<?php echo site_url(); ?>/wp-admin/admin-ajax.php?action=static_output_upload_specific",
+				"method": "POST",
+				"timeout": 0,
+				"processData": false,
+				"mimeType": "multipart/form-data",
+				"contentType": false,
+				"data": form
+			};
+
+			jQuery('#results_static').append('<p>Aguarde, estamos fazendo uploads disponiveis...</p>');
+
+			jQuery.ajax(settings).done(function (response) {
+				
+				if(response){
+					jQuery('#loading_static img').hide();
+					jQuery('#results_static').append('<p>'+response+'</p>');
 				}
 			});
 		}

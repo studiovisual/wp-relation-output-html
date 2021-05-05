@@ -206,10 +206,7 @@ class Auxiliar {
             self::$wpdb->prepare(
                 "SELECT {$columnsSql}
                 FROM " . self::$table . "
-                WHERE date(date_time) >= %s AND date(date_time) <= %s
-                ORDER BY date_time DESC",
-                $_POST['date_from'],
-                $_POST['date_to']
+                ORDER BY id ASC"
             )
         );
          return $data;

@@ -59,6 +59,11 @@ class Logs {
 			update_option('static_output_errors_log_enabled', !get_option('static_output_errors_log_enabled'));
 	}
 
+    public static function truncate() {
+        self::init();
+        return self::$wpdb->query('TRUNCATE TABLE '.self::$table);
+    }
+
     /**
      * createTable Cria a tabela de registro de logs
      *
@@ -198,7 +203,7 @@ class Logs {
      *
      * @return void
      */
-    public static function export() {
+    public static function list() {
         self::init();
         $columns = self::getListTableColumns();
         $columns = array_map(function($object) {
@@ -211,39 +216,10 @@ class Logs {
             self::$wpdb->prepare(
                 "SELECT {$columnsSql}
                 FROM " . self::$table . "
-                WHERE date(date_time) >= %s AND date(date_time) <= %s
-                ORDER BY date_time DESC",
-                $_POST['date_from'],
-                $_POST['date_to']
+                ORDER BY date_time DESC"
             )
         );
-
-        foreach($data as $item)
-            $item->product = strlen($item->cpf_cnpj) == 11 ? 'e-CPF' : (strlen($item->cpf_cnpj) == 14 ? 'e-CNPJ' : '');
-
-        $data = json_decode(json_encode($data), true);
-        $data = array_map(function($object) {
-            return array_values($object);
-        }, $data);
-
-        array_unshift($data, $columns);
-
-        $filename = "identific-logs.csv";
-        $spreadsheet = new Spreadsheet();
-        $sheet = $spreadsheet->getActiveSheet();
-
-        $sheet->fromArray(
-            $data,   // The data to set
-            NULL,    // Array values with this value will not be set
-            'A1'     // Top left coordinate of the worksheet range where we want to set these values (default is A1)
-        );
-
-        $writer = new Csv($spreadsheet);
-        $writer->setDelimiter(';');
-        $writer->setUseBOM(true);
-        $writer->save($_SERVER['DOCUMENT_ROOT'] . "/" . $filename);
-
-        header("Location: " . $_SERVER['HTTP_ORIGIN'] . "/" . $filename);
+         return $data;
     }
 
 }

@@ -20,7 +20,9 @@ Class WpAjax {
         // Ajax de arquivos e páginas: /wp-admin/admin-ajax.php?action=static_output_reset
         // add_action('wp_ajax_static_output_reset', array($this, 'delete_all') );
         // Ajax de arquivos e páginas: /wp-admin/admin-ajax.php?action=static_output_upload
+        add_action('wp_ajax_static_output_upload_specific', array($this, 'upload_specific') );
         add_action('wp_ajax_static_output_upload', array($this, 'upload_all') );
+        add_action('wp_ajax_static_output_truncate_log', array($this, 'truncate_log') );
 
         // Ajax de arquivos e páginas: /wp-admin/admin-ajax.php?action=static_output_deploy&file_url=
         add_action('wp_ajax_static_output_deploy', array($this, 'deploy') );
@@ -46,6 +48,38 @@ Class WpAjax {
     //         wp_die('Tudo pronto, estamos iniciando a estatização!');
     //     }
     // }
+    public function truncate_log(){
+        $this->logs->truncate();
+    }
+
+    public function upload_specific(){
+
+        $verify_files = explode(",", $_POST['files']);
+
+        foreach($verify_files as $obj_key => $object){
+            if(is_dir($object)){
+                $object = $object.'/';
+            }
+            $response = S3::upload_file($object, true);
+            $object = str_replace(Helpers::getOption('path_rlout'),Helpers::getOption('replace_url_rlout'),$object);
+
+            if($response==false){
+                
+                echo '<p><a href="'.$object.'" target="_blank">'.$object.'</a> - FAIL</p>';
+
+                $data = array(
+                    'date_time'=>date('Y-m-d H:i:s'),
+                    'file_static' => $object,
+                    'error_log' => $response
+                );
+                $this->logs->insert($data);
+            }else{
+                echo '<p><a href="'.$object.'" target="_blank">'.$object.'</a> - OK</p>';
+            }
+        }
+
+        wp_die();
+    }
 
     public function upload_all(){
 
@@ -110,9 +144,8 @@ Class WpAjax {
     public function curl_json(){
         
         $url = Curl::generate_json($_GET['file']);
-
         $data = array(
-            'path_static' => str_replace(Helpers::getOption('uri_rlout'),Helpers::getOption('path_rlout'),$url)
+            'path_static' => str_replace(Helpers::getOption('replace_url_rlout'),Helpers::getOption('path_rlout'),$url)
         );
         $this->aux->insert($data);
         wp_die($url);
@@ -122,6 +155,10 @@ Class WpAjax {
         
         $taxonomy = $_GET['taxonomy'];
         $post_type = $_GET['post_type'];
+        if($_GET['status']=='continue'){
+            $taxonomy = null;
+            $post_type = null;
+        }
         $urls = array();
         
         // Subfiles
@@ -129,7 +166,8 @@ Class WpAjax {
         foreach ($files as $key => $file) {
             
             if(!empty($file)){
-                $urls[] = $file;
+                $explode = explode("?", $file);
+                $urls[] = $explode[0];
             }
         }
         
@@ -167,10 +205,27 @@ Class WpAjax {
             
             $urls = $this->recursive_post($post_type, $urls);
         }
+
+        if($_GET['status']=='continue'){
+            $urls_new = array();
+            $verify_files = $this->aux->list();
+            if(!empty($verify_files)){
+                $url_fisrt = site_url().str_replace(Helpers::getOption('path_rlout'),"",$verify_files[0]->path_static);
+                $key = array_search($url_fisrt, $urls);
+                foreach($urls as $key_url => $url){
+                    if($key<$key_url){
+                        $urls_new[] = $url;
+                    }
+                }
+                $urls = $urls_new;
+                $this->aux->truncate();
+            }
+        }
         
         header("Content-type: application/json");
         wp_die(json_encode($urls));
     }
+   
     public function recursive_post($post_type, $urls=array(), $not_in=array()){
 
         $range = Helpers::getOption('range_posts_rlout');

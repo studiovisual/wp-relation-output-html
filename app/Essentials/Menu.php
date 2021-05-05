@@ -5,6 +5,8 @@ namespace WpRloutHtml\Essentials;
 use WpRloutHtml\App;
 
 use WpRloutHtml\Modules\Cloudfront;
+use WpRloutHtml\Modules\Logs;
+use WpRloutHtml\Modules\Auxiliar;
 use WpRloutHtml\Helpers;
 use WpRloutHtml\Posts;
 use WpRloutHtml\Terms;
@@ -12,6 +14,9 @@ use WpRloutHtml\Terms;
 Class Menu {
 
     public function __construct(){
+
+        $this->logs = new Logs;
+        $this->aux = new Auxiliar;
         
         // Inserindo as opções no menu do wp-admin
         add_action( 'admin_menu', array( $this, 'add_admin_menu' ));
