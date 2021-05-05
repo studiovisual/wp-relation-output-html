@@ -49,11 +49,24 @@ Class S3 {
                         'ACL'    => $acl_key
                     ));
                     
-                    if($response && $ignore_cloud==false){
+                    try {
+
+                        $result = $clientS3->getObject([
+                            'Bucket' => Helpers::getOption('s3_bucket_rlout'),
+                            'Key' => $key_file_s3
+                        ]);
+                        if($result["@metadata"]["statusCode"]==200 && $ignore_cloud==false){
+                            
+                            $key_file_s3_dir = str_replace('/index.html', '', $key_file_s3);
+                            Cloudfront::invalid('/'.$key_file_s3_dir.'*');
+                        }
+                        return true;
                         
-                        $key_file_s3_dir = str_replace('/index.html', '', $key_file_s3);
-                        Cloudfront::invalid('/'.$key_file_s3_dir.'*');
+                    }catch (Exception $e){
+                        
+                        return false;
                     }
+
                 }else if(empty(end($directory_empty))){
                     
                     $verify_files = scandir($file_dir);
@@ -68,16 +81,22 @@ Class S3 {
                                 }
                             }
                         );
-                        
                         $S3Transfer = new Transfer($clientS3, $file_dir, 's3://'.Helpers::getOption('s3_bucket_rlout').'/'.$key_file_s3, $construct);
-                        $response = $S3Transfer->transfer();
                         
-                        if($S3Transfer && $ignore_cloud==false){
-                            Cloudfront::invalid($key_file_s3);
+                        $S3Transfer->transfer();
+                        $response = $S3Transfer->promise();
+                        
+                        if($response->getState()=="fulfilled"){
+                            if($S3Transfer && $ignore_cloud==false){
+                                Cloudfront::invalid($key_file_s3);
+                            }
+                            return true;
                         }
+
                     }
+                    
                 }
-                
+                return false;
             }
         }
     }

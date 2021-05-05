@@ -187,9 +187,13 @@ $user = wp_get_current_user();
 						<td>
 						
 							<div class="form-group" style="margin-bottom: 16px;">
+								<label for="">Estatizar JSONs (archive, taxonomy, terms)</label>
+								<input type="checkbox" name="json_static" value="1" />
+							</div>
+							<div class="form-group" style="margin-bottom: 16px;">
 								<label for="">Post type</label>
 								<select id="post_type_static" class="form-control">
-									<option value="" selected>Somente JSON</option>
+									<option value="" selected>Nenhum</option>
 									<option value="all">Todos</option>
 									<?php foreach(get_post_types() as $pt): ?>
 										<option value="<?php echo $pt; ?>"><?php echo $pt; ?></option>
@@ -200,7 +204,7 @@ $user = wp_get_current_user();
 							<div class="form-group" style="margin-bottom: 16px;">
 								<label for="">Taxonomy</label>
 								<select id="taxonomy_static" class="form-control">
-									<option value="" selected>Somente JSON</option>
+									<option value="" selected>Nenhum</option>
 									<option value="all" >Todos</option>
 									<?php foreach(get_taxonomies() as $tax): ?>
 										<option value="<?php echo $tax; ?>"><?php echo $tax; ?></option>
@@ -240,7 +244,12 @@ $user = wp_get_current_user();
 				jQuery("#post_type_static").attr('disabled','disabled');
 				jQuery("#taxonomy_static").attr('disabled','disabled');
 				jQuery("#deploy_all_static").attr('disabled','disabled');
-				reset_all();
+				
+				if(jQuery('input[name="json_static"]:checked').val()=="1"){
+					get_urls();
+				}else{
+					set_deploy();
+				}
 			});
 		}
 
@@ -313,11 +322,11 @@ $user = wp_get_current_user();
 			jQuery.ajax(settings).done(function (response) {
 				var qtd = response.length;
 				jQuery('.total_page').html(qtd+parseInt(jQuery('.total_page').html()));
-				deploy(0, response);
+				deploy(0, response, 0);
 			});
 		}
 
-		function deploy(key_main, response){
+		function deploy(key_main, response, charge=0){
 			var settings_url = {
 			"url": "<?php echo site_url(); ?>/wp-admin/admin-ajax.php?action=static_output_deploy&file_url="+response[key_main],
 			"method": "GET",
@@ -337,36 +346,36 @@ $user = wp_get_current_user();
 				jQuery('#results_static').append('<p><a href="'+url_main+'" target="_blank">'+url_main+'</a> - FAIL </p>');
 				
 			}).always(function(response_url){
-				if(jQuery('.statics_page').html()==jQuery('.total_page').html()){
-
+				if(jQuery('.statics_page').html()==jQuery('.total_page').html() || charge==100){
 					jQuery('#loading_static img').hide();
 					jQuery("#post_type_static").removeAttr('disabled');
 					jQuery("#taxonomy_static").removeAttr('disabled');
 					jQuery("#deploy_all_static").removeAttr('disabled');
-					upload_all();
+					upload_all(0,key_main, response, charge);
 				}else{
-					deploy(key_main+1, response);
+					charge++;
+					deploy(key_main+1, response, charge);
 				}
 			});
 		}
 
-		function reset_all(){
-			var settings = {
-				"url": "<?php echo site_url(); ?>/wp-admin/admin-ajax.php?action=static_output_reset",
-				"method": "GET",
-				"timeout": 0,
-			};
+		// function reset_all(){
+		// 	var settings = {
+		// 		"url": "<?php echo site_url(); ?>/wp-admin/admin-ajax.php?action=static_output_reset",
+		// 		"method": "GET",
+		// 		"timeout": 0,
+		// 	};
 
-			jQuery('#results_static').append('<p>Aguarde, estamos limpando os arquivos anteriores...</p>');
+		// 	jQuery('#results_static').append('<p>Aguarde, estamos limpando os arquivos anteriores...</p>');
 
-			jQuery.ajax(settings).done(function (response) {
+		// 	jQuery.ajax(settings).done(function (response) {
 
-				jQuery('#results_static').append('<p>'+response+'</p>');
-				get_urls();
-			});
-		}
+		// 		jQuery('#results_static').append('<p>'+response+'</p>');
+		// 		get_urls();
+		// 	});
+		// }
 
-		function upload_all(offset=0){
+		function upload_all(offset=0,key_main, response_all, charge){
 			var settings = {
 				"url": "<?php echo site_url(); ?>/wp-admin/admin-ajax.php?action=static_output_upload&offset="+offset,
 				"method": "GET",
@@ -379,9 +388,10 @@ $user = wp_get_current_user();
 				
 				if(response=='true'){
 					jQuery('#results_static').append('<p>- Upload da pasta em pequeno porte realizado!</p>');
+					deploy(key_main+1, response_all, 0);
 				}else{
 					jQuery('#results_static').append('<p>'+response+'</p>');
-					upload_all(offset+100);
+					upload_all(offset+100,key_main, response_all, charge);
 				}
 			});
 		}

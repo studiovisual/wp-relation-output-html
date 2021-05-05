@@ -320,14 +320,14 @@ Class Curl {
 		$object->post_type = $type;
 		$post_type = Posts::api($object);
 		if(!empty($post_type)){
-			wp_die($post_type[0]);
+			return $post_type[0];
 		}
 		
 		$object = new \StdClass();
 		$object->taxonomy = $type;
 		$taxonomy = Terms::api($object);
 		if(!empty($taxonomy)){
-			wp_die($taxonomy[0]);
+			return $taxonomy[0];
 		}
 		
 		$json_url = explode('index.json', $json_url);
@@ -347,7 +347,7 @@ Class Curl {
 				if($term_link==$json_url){
 					$term = Terms::api($term);
 					if(!empty($term)){
-						wp_die($term[0]);
+						return $term[0];
 					}
 				}
 			}
