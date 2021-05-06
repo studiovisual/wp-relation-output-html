@@ -174,8 +174,14 @@ Class Helpers {
 
                 $response = str_replace($site_url_concat, $rpl_url_concat, $response);
 
+				// url simples ajax
 				$url_ajax = $rpl_url_concat.'/wp-admin/admin-ajax.php';
 				$url_ajax_original = $site_url_concat.'/wp-admin/admin-ajax.php';
+                $response = str_replace($url_ajax, $url_ajax_original, $response);
+
+				// url concatenada ajax
+				$url_ajax = $rpl_url_concat.'\/wp-admin\/admin-ajax.php';
+				$url_ajax_original = $site_url_concat.'\/wp-admin\/admin-ajax.php';
                 $response = str_replace($url_ajax, $url_ajax_original, $response);
 
             }
