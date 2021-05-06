@@ -156,8 +156,8 @@ Class WpAjax {
         $taxonomy = $_GET['taxonomy'];
         $post_type = $_GET['post_type'];
         if($_GET['status']=='continue'){
-            $taxonomy = null;
-            $post_type = null;
+            $taxonomy = 'all';
+            $post_type = 'all';
         }
         $urls = array();
         
