@@ -50,17 +50,21 @@ Class S3 {
                     ));
                     
                     try {
-
                         $result = $clientS3->getObject([
                             'Bucket' => Helpers::getOption('s3_bucket_rlout'),
                             'Key' => $key_file_s3
                         ]);
-                        if($result["@metadata"]["statusCode"]==200 && $ignore_cloud==false){
-                            
-                            $key_file_s3_dir = str_replace('/index.html', '', $key_file_s3);
-                            Cloudfront::invalid('/'.$key_file_s3_dir.'*');
+
+                        if($result["@metadata"]["statusCode"]==200){
+                            if($ignore_cloud==false){
+                                
+                                $key_file_s3_dir = str_replace('/index.html', '', $key_file_s3);
+                                Cloudfront::invalid('/'.$key_file_s3_dir.'*');
+                            }
+                            return true;
                         }
-                        return true;
+
+                        return false;
                         
                     }catch (Exception $e){
                         
@@ -91,6 +95,8 @@ Class S3 {
                                 Cloudfront::invalid($key_file_s3);
                             }
                             return true;
+                        }else{
+                            return false;
                         }
 
                     }

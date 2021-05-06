@@ -87,14 +87,16 @@ Class WpAjax {
         
         foreach($verify_files as $obj_key => $object){
 
-            $response = S3::upload_file($object->path_static, true);
-            if($response==false){
-                $data = array(
-                    'date_time'=>date('Y-m-d H:i:s'),
-                    'file_static' => $object->path_static,
-                    'error_log' => $response
-                );
-                $this->logs->insert($data);
+            if(Helpers::getOption('path_rlout').'/'!=$object->path_static){
+                $response = S3::upload_file($object->path_static, true);
+                if($response==false){
+                    $data = array(
+                        'date_time'=>date('Y-m-d H:i:s'),
+                        'file_static' => $object->path_static,
+                        'error_log' => $response
+                    );
+                    $this->logs->insert($data);
+                }
             }
         }
 
