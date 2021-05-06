@@ -155,10 +155,7 @@ Class WpAjax {
         
         $taxonomy = $_GET['taxonomy'];
         $post_type = $_GET['post_type'];
-        if($_GET['status']=='continue'){
-            $taxonomy = 'all';
-            $post_type = 'all';
-        }
+       
         $urls = array();
         
         // Subfiles

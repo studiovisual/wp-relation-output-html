@@ -296,14 +296,14 @@ $user = wp_get_current_user();
 				jQuery("#deploy_all_static_c").attr('disabled','disabled');
 				
 				if(jQuery('input[name="json_static"]:checked').val()=="1"){
-					get_urls();
+					get_urls(status);
 				}else{
 					set_deploy(status);
 				}
 			});
 		}
 
-		function get_urls(){
+		function get_urls(status){
 
 			jQuery('.total_page').html('0');
 			jQuery('.statics_page').html('0');
@@ -318,18 +318,18 @@ $user = wp_get_current_user();
 
 				jQuery('.total_page').html(response_json.length+parseInt(jQuery('.total_page').html()));
 				
-				deploy_json(0, response_json);
+				deploy_json(0, response_json, status);
 
 			}).fail(function (response_json){
 				jQuery('#results_static').append('<p><a href="'+response_json+'" target="_blank">FAIL JSON</a></p>');
 				setTimeout(function(){
-					get_urls();
+					get_urls(status);
 				},1000);
 			});
 
 		}
 		
-		function deploy_json(key_main, response){
+		function deploy_json(key_main, response, status){
 			var settings_url = {
 			"url": "<?php echo site_url(); ?>/wp-admin/admin-ajax.php?action=static_output_deploy_curl_json&file="+response[key_main],
 			"method": "GET",
@@ -352,9 +352,9 @@ $user = wp_get_current_user();
 			}).always(function(response_url){
 				if(jQuery('.statics_page').html()==jQuery('.total_page').html()){
 
-					set_deploy();
+					set_deploy(status);
 				}else{
-					deploy_json(key_main+1, response);
+					deploy_json(key_main+1, response, status);
 				}
 			});
 		}
