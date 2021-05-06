@@ -158,6 +158,8 @@ Class Helpers {
         if($rpl!=site_url() && $rpl!=$url_replace){
             $response = str_replace($url_replace, $rpl, $response);
             if(!$media){
+
+				
                 $response = str_replace(site_url(), $rpl, $response);
 
 				$site_url_concat = str_replace("https://","",site_url());
@@ -171,6 +173,11 @@ Class Helpers {
 				$rpl_url_concat = $rpl_url_concat[0];
 
                 $response = str_replace($site_url_concat, $rpl_url_concat, $response);
+
+				$url_ajax = $rpl_url_concat.'/wp-admin/admin-ajax.php';
+				$url_ajax_original = $site_url_concat.'/wp-admin/admin-ajax.php';
+                $response = str_replace($url_ajax, $url_ajax_original, $response);
+
             }
         }
         $rpl_dir = str_replace(site_url(), '', $rpl_original);
