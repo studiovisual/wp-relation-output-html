@@ -46,7 +46,7 @@ $user = wp_get_current_user();
 								<label for="<?php echo $key_field; ?>"><?php echo $field['label']; ?></label>
 							</th>
 							<td>
-								<input name="<?php echo $key_field; ?>" <?php if(!empty($field['disabled'])){echo 'disabled="'.$field['disabled'].'"';} ?> type="number" id="<?php echo $key_field; ?>" value="<?php echo Helpers::getOption($key_field); ?>" class="regular-text">
+								<input name="<?php echo $key_field; ?>" <?php if(!empty($field['disabled'])){echo 'disabled="'.$field['disabled'].'"';} ?> type="number" id="<?php echo $key_field; ?>" value="<?php if(!empty(Helpers::getOption($key_field))){echo Helpers::getOption($key_field);}else{echo $field['default'];} ?>" class="regular-text">
 							</td>
 						</tr>
 					<?php endif; ?>
@@ -377,36 +377,47 @@ $user = wp_get_current_user();
 		}
 
 		function deploy(key_main, response, charge=0){
-			var settings_url = {
-			"url": "<?php echo site_url(); ?>/wp-admin/admin-ajax.php?action=static_output_deploy&file_url="+response[key_main],
-			"method": "GET",
-			"timeout": 0,
-			};
 
-			jQuery.ajax(settings_url).done(function (response_url) {
-				var total = parseInt(jQuery('.statics_page').html());
-				var url_main = response_url.replace("<?php echo site_url(); ?>","<?php echo Helpers::getOption('replace_url_rlout'); ?>");
-				jQuery('.statics_page').html(total+1);
-				jQuery('#results_static').append('<p><a href="'+url_main+'" target="_blank">'+url_main+'</a> - OK</p>');
+			var numbers_requisition = parseInt(jQuery('input[name="range_posts_get_rlout"]').val());
+			
+			for (let index = 0; index < numbers_requisition; index++) {
 				
-			}).fail(function(){
-				var total = parseInt(jQuery('.statics_page').html());
-				var url_main = response[key_main].replace("<?php echo site_url(); ?>","<?php echo Helpers::getOption('replace_url_rlout'); ?>");
-				jQuery('.statics_page').html(total+1);
-				jQuery('#results_static').append('<p><a href="'+url_main+'" target="_blank">'+url_main+'</a> - FAIL </p>');
-				
-			}).always(function(response_url){
-				if(jQuery('.statics_page').html()==jQuery('.total_page').html() || charge==100){
-					jQuery('#loading_static img').hide();
-					jQuery("#post_type_static").removeAttr('disabled');
-					jQuery("#taxonomy_static").removeAttr('disabled');
-					jQuery("#deploy_all_static").removeAttr('disabled');
-					upload_all(0,key_main, response, charge);
-				}else{
-					charge++;
-					deploy(key_main+1, response, charge);
-				}
-			});
+				key_main = key_main+index;
+				var settings_url = {
+				"url": "<?php echo site_url(); ?>/wp-admin/admin-ajax.php?action=static_output_deploy&file_url="+response[key_main],
+				"method": "GET",
+				"timeout": 0,
+				};
+
+				jQuery.ajax(settings_url).done(function (response_url) {
+					var url_main = response_url.replace("<?php echo site_url(); ?>","<?php echo Helpers::getOption('replace_url_rlout'); ?>");
+					jQuery('#results_static').append('<p><a href="'+url_main+'" target="_blank">'+url_main+'</a> - OK</p>');
+					
+					var total = parseInt(jQuery('.statics_page').html());
+					jQuery('.statics_page').html(total+1);
+					
+				}).fail(function(){
+					var url_main = response[key_main].replace("<?php echo site_url(); ?>","<?php echo Helpers::getOption('replace_url_rlout'); ?>");
+					jQuery('#results_static').append('<p><a href="'+url_main+'" target="_blank">'+url_main+'</a> - FAIL </p>');
+					
+					var total = parseInt(jQuery('.statics_page').html());
+					jQuery('.statics_page').html(total+1);
+					
+				}).always(function(response_url){
+					if(jQuery('.statics_page').html()==jQuery('.total_page').html() || charge==100){
+						jQuery('#loading_static img').hide();
+						jQuery("#post_type_static").removeAttr('disabled');
+						jQuery("#taxonomy_static").removeAttr('disabled');
+						jQuery("#deploy_all_static").removeAttr('disabled');
+						upload_all(0,key_main, response, charge);
+					}else{
+						charge++;
+						if(numbers_requisition==index+1){
+							deploy(key_main+1, response, charge);
+						}
+					}
+				});
+			}
 		}
 
 		// function reset_all(){

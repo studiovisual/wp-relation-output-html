@@ -233,7 +233,8 @@ Class Menu {
         $fields['taxonomies_rlout'] = array('type'=>'select2', 'label'=>'Taxonomy para deploy', 'multiple'=>'multiple');
         $fields['taxonomies_rlout']['options'] = get_taxonomies();
 
-        $fields['range_posts_rlout'] = array('type'=>'number', 'label'=>'<small> Range de estatização</small>');
+        $fields['range_posts_rlout'] = array('type'=>'number', 'label'=>'<small> Range de estatização</small>', 'default'=>50);
+        $fields['range_posts_get_rlout'] = array('type'=>'number', 'label'=>'<small> Quantidade de requisições por vez</small>','default'=>1);
 
         $fields['parent_term_rlout'] = array('type'=>'checkbox', 'label'=>'Verificar se os terms possui um parent');
         
