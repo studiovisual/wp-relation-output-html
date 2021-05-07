@@ -404,19 +404,19 @@ $user = wp_get_current_user();
 					jQuery('.statics_page').html(total+1);
 					
 				}).always(function(response_url){
-					if(jQuery('.statics_page').html()==jQuery('.total_page').html() || charge==100){
-						jQuery('#loading_static img').hide();
-						jQuery("#post_type_static").removeAttr('disabled');
-						jQuery("#taxonomy_static").removeAttr('disabled');
-						jQuery("#deploy_all_static").removeAttr('disabled');
-						upload_all(0,key_main, response, charge);
-					}else{
-						charge++;
-						if(numbers_requisition==index+1){
+					charge++;
+					if(numbers_requisition==index+1){
+						if(jQuery('.statics_page').html()==jQuery('.total_page').html() || charge==100){
+							jQuery('#loading_static img').hide();
+							jQuery("#post_type_static").removeAttr('disabled');
+							jQuery("#taxonomy_static").removeAttr('disabled');
+							jQuery("#deploy_all_static").removeAttr('disabled');
+							upload_all(0,key_main, response, charge);
+						}else{
 							deploy(key_main+1, response, charge);
 						}
 					}
-				});
+				})
 			}
 		}
 
