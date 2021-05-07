@@ -416,7 +416,7 @@ $user = wp_get_current_user();
 							deploy(key_main+1, response, charge);
 						}
 					}
-				})
+				});
 			}
 		}
 
