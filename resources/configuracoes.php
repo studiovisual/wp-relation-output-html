@@ -406,7 +406,7 @@ $user = wp_get_current_user();
 				}).always(function(response_url){
 					charge++;
 					if(numbers_requisition==index+1){
-						if(jQuery('.statics_page').html()==jQuery('.total_page').html() || charge==100){
+						if(jQuery('.statics_page').html()==jQuery('.total_page').html() || charge>=100){
 							jQuery('#loading_static img').hide();
 							jQuery("#post_type_static").removeAttr('disabled');
 							jQuery("#taxonomy_static").removeAttr('disabled');
