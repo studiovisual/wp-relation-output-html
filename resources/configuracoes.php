@@ -244,13 +244,13 @@ $user = wp_get_current_user();
 							</div>
 						</td>
 
-						<td>
+						<td class="select2-api-rlout">
 							<div class="form-group" style="margin-bottom: 16px;">
 								<div class="form-group" style="margin-bottom: 16px;">
 									<label for=""><b>Arquivos e diretórios Gerados em ./html</b></label>
 									<br>
 									<br>
-									<select id="static_files_html" multiple class="form-control">
+									<select id="static_files_html" multiple class="form-control"  data-action_ajax name="gerated[]" style="width:350px;">
 										<?php $base_html = Helpers::getOption('path_rlout').'/'; ?>
         								<?php $verify_files = scandir($base_html); ?>
 										<?php unset($verify_files[0]); ?>
