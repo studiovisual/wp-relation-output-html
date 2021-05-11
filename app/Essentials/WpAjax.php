@@ -87,7 +87,7 @@ Class WpAjax {
         
         foreach($verify_files as $obj_key => $object){
 
-            if(Helpers::getOption('path_rlout').'/'!=$object->path_static){
+            if(Helpers::getOption('path_rlout').'/'!=$object->path_static && Helpers::getOption('path_rlout')!=$object->path_static){
                 $response = S3::upload_file($object->path_static, true);
                 if($response==false){
                     $data = array(
@@ -219,6 +219,8 @@ Class WpAjax {
                 $urls = $urls_new;
                 $this->aux->truncate();
             }
+        }else{
+            $this->aux->truncate();
         }
         
         header("Content-type: application/json");
