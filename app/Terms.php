@@ -158,7 +158,7 @@ Class Terms Extends App {
 					fclose($file);
 
 					if($upload==true){
-						S3::upload_file($file_raiz, true);
+						S3::upload_file($file_raiz, false);
 					}
 					
 					if($term){

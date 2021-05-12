@@ -247,7 +247,7 @@ Class Posts {
 				fclose($file);
 				
 				if($upload==true){
-					S3::upload_file($file_raiz, true);
+					S3::upload_file($file_raiz, false);
 				}
 				
 				$urls[] = str_replace($dir_base,$replace_url,$file_raiz);
