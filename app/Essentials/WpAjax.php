@@ -161,14 +161,14 @@ Class WpAjax {
         $urls = array();
         
         // Subfiles
-        $files = explode(',', Helpers::getOption('subfiles_rlout'));
+        /*$files = explode(',', Helpers::getOption('subfiles_rlout'));
         foreach ($files as $key => $file) {
             
             if(!empty($file)){
                 $explode = explode("?", $file);
                 $urls[] = $explode[0];
             }
-        }
+        }*/
         
         // Taxonomy
         if($taxonomy=='all'){
