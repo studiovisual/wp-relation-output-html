@@ -1,4 +1,3 @@
-
 <?php 
 
 use WpRloutHtml\Helpers;
@@ -262,7 +261,8 @@ $user = wp_get_current_user();
 								</div>
 								<div class="form-group">
 									<?php if(!in_array('administrator', $user->roles)){ echo '<small style="color:#f00;">Somente administradores podem fazer upload!</small><br>'; } ?>
-									<input <?php if(!in_array('administrator', $user->roles)){ echo 'disabled'; } ?> type="button" onclick="if(confirm('Tem certeza que deseja realizar o upload, isso pode levar alguns minutos.')){start_static_upload();}else{return false;}" name="deploy_all_static_upload" id="deploy_all_static_upload" class="button button-primary" value="REALIZAR UPLOAD">						
+									<input <?php if(!in_array('administrator', $user->roles)){ echo 'disabled'; } ?> type="button" onclick="if(confirm('Tem certeza que deseja realizar o upload ? isso pode levar alguns minutos.')){start_static_upload();}else{return false;}" name="deploy_all_static_upload" id="deploy_all_static_upload" class="button button-primary" value="REALIZAR UPLOAD">						
+									<input <?php if(!in_array('administrator', $user->roles)){ echo 'disabled'; } ?> type="button" onclick="if(confirm('Tem certeza que deseja realizar o upload de tudo ?, isso pode levar alguns minutos.')){start_static_upload_all();}else{return false;}" name="deploy_all_static_upload_all" id="deploy_all_static_upload_all" class="button button-primary" value="UPLOAD DE TUDO">						
 								</div>
 							</div>
 						</td>
@@ -406,7 +406,7 @@ $user = wp_get_current_user();
 
 					}).always(function(response_url){
 						charge++;
-						if(numbers_requisition==index+1){
+						if(numbers_requisition==index+1 || charge+1>=jQuery('.total_page').html() || new_key_main+1>=jQuery('.total_page').html()){
 							if(jQuery('.statics_page').html()==jQuery('.total_page').html() || charge>=100 || new_key_main+1==jQuery('.total_page').html()){
 								jQuery('#loading_static img').hide();
 								jQuery("#post_type_static").removeAttr('disabled');
@@ -498,6 +498,55 @@ $user = wp_get_current_user();
 					jQuery('#results_static').append('<p>'+response+'</p>');
 				}
 			});
+		}
+
+		function start_static_upload_all(offset=0){
+
+			jQuery("#loading_static").fadeIn();
+
+			jQuery('.total_page').html(jQuery("#static_files_html option").length);
+
+			var statics = [];
+			jQuery("#static_files_html option").each(function(){
+				statics.push(jQuery(this).val());
+			});
+
+			var statics_send = [];
+			for (let index = offset; index < statics.length+1; index++) {
+
+				console.log(statics_send.length);
+
+				if(statics_send.length>=100 || statics_send.length==statics.length){
+						
+					var form = new FormData();
+					form.append("files", statics_send);
+
+					var settings = {
+						"url": "<?php echo site_url(); ?>/wp-admin/admin-ajax.php?action=static_output_upload_specific",
+						"method": "POST",
+						"timeout": 0,
+						"processData": false,
+						"mimeType": "multipart/form-data",
+						"contentType": false,
+						"data": form
+					};
+
+					jQuery('#results_static').append('<p>Aguarde, estamos fazendo uploads disponiveis...</p>');
+
+					jQuery.ajax(settings).done(function(response){
+						if(response){
+							jQuery('#loading_static img').hide();
+							jQuery('#results_static').append('<p>'+response+'</p>');
+							start_static_upload_all(offset+100);
+							jQuery('.statics_page').html(offset+100);
+						}
+					});
+
+					return;
+				}else{
+					statics_send.push(statics[index]);
+				}
+			}
 		}
 
 		function start_loading(){
