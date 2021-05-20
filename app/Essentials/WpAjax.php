@@ -87,7 +87,7 @@ Class WpAjax {
         
         foreach($verify_files as $obj_key => $object){
 
-            if(Helpers::getOption('path_rlout').'/'==$object->path_static && Helpers::getOption('path_rlout')==$object->path_static){
+            if(Helpers::getOption('path_rlout').'/'==$object->path_static || Helpers::getOption('path_rlout')==$object->path_static){
                 $object->path_static = $object->path_static.'index.html';
             }
             
