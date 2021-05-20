@@ -87,17 +87,20 @@ Class WpAjax {
         
         foreach($verify_files as $obj_key => $object){
 
-            if(Helpers::getOption('path_rlout').'/'!=$object->path_static && Helpers::getOption('path_rlout')!=$object->path_static){
-                $response = S3::upload_file($object->path_static, true);
-                if($response==false){
-                    $data = array(
-                        'date_time'=>date('Y-m-d H:i:s'),
-                        'file_static' => $object->path_static,
-                        'error_log' => $response
-                    );
-                    $this->logs->insert($data);
-                }
+            if(Helpers::getOption('path_rlout').'/'==$object->path_static && Helpers::getOption('path_rlout')==$object->path_static){
+                $object->path_static = $object->path_static.'index.html';
             }
+            
+            $response = S3::upload_file($object->path_static, true);
+            if($response==false){
+                $data = array(
+                    'date_time'=>date('Y-m-d H:i:s'),
+                    'file_static' => $object->path_static,
+                    'error_log' => $response
+                );
+                $this->logs->insert($data);
+            }
+            
         }
 
         $this->aux->truncate();
@@ -169,6 +172,15 @@ Class WpAjax {
                 $urls[] = $explode[0];
             }
         }*/
+
+        // Importants pages
+        $importants = explode(',', Helpers::getOption('pages_important_rlout'));
+        foreach ($importants as $key => $important) {
+            
+            if(!empty($important)){
+                $urls[] = $important;
+            }
+        }
         
         // Taxonomy
         if($taxonomy=='all'){
@@ -186,6 +198,7 @@ Class WpAjax {
                 }
             }
         }
+
         // Post_type
         $args_posts = array();
         if($post_type=='all'){
