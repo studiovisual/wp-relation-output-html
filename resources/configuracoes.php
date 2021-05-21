@@ -512,11 +512,14 @@ $user = wp_get_current_user();
 			});
 
 			var statics_send = [];
-			for (let index = offset; index < statics.length+1; index++) {
+			for (let index = offset; index < statics.length; index++) {
 
-				console.log(statics_send.length);
+				statics_send.push(statics[index]);
+				
+				jQuery('.statics_page').html(offset+statics_send.length);
+				var uploads_end = parseInt(jQuery('.statics_page').html());
 
-				if(statics_send.length>=100 || statics_send.length==statics.length){
+				if(statics_send.length==100 || uploads_end==statics.length){
 						
 					var form = new FormData();
 					form.append("files", statics_send);
@@ -537,14 +540,11 @@ $user = wp_get_current_user();
 						if(response){
 							jQuery('#loading_static img').hide();
 							jQuery('#results_static').append('<p>'+response+'</p>');
-							start_static_upload_all(offset+100);
-							jQuery('.statics_page').html(offset+100);
+							start_static_upload_all(offset+statics_send.length);
 						}
 					});
 
 					return;
-				}else{
-					statics_send.push(statics[index]);
 				}
 			}
 		}
