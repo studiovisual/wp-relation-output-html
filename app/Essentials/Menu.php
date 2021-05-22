@@ -213,7 +213,7 @@ Class Menu {
             $fields['size_thumbnail_rlout']['options'][] = $size;
         }
         
-        $fields['path_rlout'] = array('type'=>'text','disabled'=>'disabled','label'=>"Path:<br><small>define('PATH_RLOUT','".get_home_path() . "html');</small>");
+        $fields['path_rlout'] = array('type'=>'text','label'=>"Path HTML: <br><small>".get_home_path() . "html</small>",'default'=>get_home_path() . 'html');
         
         $fields['uri_rlout'] = array('type'=>'text', 'label'=>"Directory_uri():<br><small>Caminho do template</small>");
         

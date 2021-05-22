@@ -34,7 +34,7 @@ $user = wp_get_current_user();
 								<label for="<?php echo $key_field; ?>"><?php echo $field['label']; ?></label>
 							</th>
 							<td>
-								<input name="<?php echo $key_field; ?>" <?php if(!empty($field['disabled'])){echo 'disabled="'.$field['disabled'].'"';} ?> type="text" id="<?php echo $key_field; ?>" value="<?php echo Helpers::getOption($key_field); ?>" class="regular-text">
+								<input name="<?php echo $key_field; ?>" <?php if(!empty($field['disabled'])){echo 'disabled="'.$field['disabled'].'"';} ?> type="text" id="<?php echo $key_field; ?>" value="<?php if(!empty(Helpers::getOption($key_field))){echo Helpers::getOption($key_field);}else{echo $field['default'];} ?>" class="regular-text">
 							</td>
 						</tr>
 					<?php endif; ?>
@@ -374,8 +374,8 @@ $user = wp_get_current_user();
 				jQuery('.total_page').html(qtd+parseInt(jQuery('.total_page').html()));
 
 				window.localStorage.setItem('charge_static', 0);
-				deploy(9300, response, 0);
-				jQuery('.statics_page').html(9300);
+
+				deploy(0, response, 0);
 			});
 		}
 
@@ -416,7 +416,7 @@ $user = wp_get_current_user();
 							finished = true;
 						}
 
-						if(index+1==numbers_requisition){
+						if(index+1==numbers_requisition || finished==true){
 							recursive_charge(new_key_main, response, charge, finished);
 						}
 					});
@@ -424,7 +424,7 @@ $user = wp_get_current_user();
 			}
 		}
 
-		function recursive_charge(new_key_main, response, charge, finished){
+		function recursive_charge(new_key_main, response, charge, finished=false){
 
 			var limit_charge = 100;
 
@@ -444,7 +444,7 @@ $user = wp_get_current_user();
 				}else{
 					setTimeout(() => {
 						charge = parseInt(window.localStorage.getItem('charge_static'));
-						recursive_charge(new_key_main, response, charge, finished);
+						recursive_charge(new_key_main, response, charge);
 					}, 500);
 				}
 			}
