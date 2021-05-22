@@ -370,16 +370,13 @@ Class Posts {
 		$taxonomies = explode(",", Helpers::getOption('taxonomies_rlout'));
 		if(!empty($taxonomies) && $show_terms==true){
 			
-			foreach($taxonomies as $taxonomy){
-				$term = wp_get_post_terms($post->ID, array($taxonomy));
-				
-				if(!empty($term) && empty($term->errors)){
-					foreach($term as $tm_k => $tm){
-						$url = str_replace(site_url(),$rpl,get_term_link($tm)).'index.json';
-						$new_post[$taxonomy][$tm_k]['term_id'] = $tm->term_id;
-						$new_post[$taxonomy][$tm_k]['term_name'] = $tm->name;
-						$new_post[$taxonomy][$tm_k]['term_json'] = $url;
-					}
+			$term = wp_get_post_terms($post->ID, $taxonomies);
+			if(!empty($term) && empty($term->errors)){
+				foreach($term as $tm_k => $tm){
+					$url = str_replace(site_url(),$rpl,get_term_link($tm)).'index.json';
+					$new_post[$tm->taxonomy][$tm_k]['term_id'] = $tm->term_id;
+					$new_post[$tm->taxonomy][$tm_k]['term_name'] = $tm->name;
+					$new_post[$tm->taxonomy][$tm_k]['term_json'] = $url;
 				}
 			}
 		}

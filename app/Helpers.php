@@ -45,34 +45,6 @@ Class Helpers {
 		return $files;
 	}
 
-    static function blog_public(){
-		
-		$robots = self::getOption('robots_rlout');
-		
-		if($robots){
-			
-			update_option('blog_public', '0');
-		}else{
-			
-			update_option('blog_public', '1');
-		}
-		
-		include_once(ABSPATH . '/wp-admin/includes/file.php');
-		include_once(ABSPATH . '/wp-includes/pluggable.php');
-		
-		$raiz = get_home_path().'html';
-		update_option('path_rlout', $raiz);
-		
-		if(defined('PATH_RLOUT')==true){
-			update_option('path_rlout', PATH_RLOUT);
-		}
-		
-		$uri = self::getOption('uri_rlout');
-		if(empty($uri)){
-			update_option('uri_rlout', get_template_directory_uri());
-		}
-	}
-
     static function gen_html_cron_function() {
 		
 		$hora_marcada = strtotime(self::getOption('horario_cron_rlout'));

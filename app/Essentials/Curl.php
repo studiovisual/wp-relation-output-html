@@ -35,7 +35,6 @@ Class Curl {
 	
 	// Recebe o Objeto (post ou term) e descobre a Url para enviar a função deploy_upload();
 	static function generate($object, $home=null, $items=true, $upload=true, $return=true){
-		update_option('robots_rlout', '0');
 		update_option('blog_public', '1');
 		
 		$url_post = url_to_postid($object);
@@ -149,7 +148,6 @@ Class Curl {
 			if(empty(in_array($url, $ignore_files_rlout))){
 				
 				fwrite($file, $response);
-				fclose($file);
 				
 				if($upload==true){
 					S3::upload_file($dir_base . $file_default, false);
@@ -173,6 +171,7 @@ Class Curl {
 					}
 				}
 			}
+			fclose($file);
 			
 			if($json_default!='' && is_object($object) && $upload==false || $json_default!='' && is_object($object) && $object->ID){
 				
@@ -191,12 +190,12 @@ Class Curl {
 				if(empty(in_array($url, $ignore_json_rlout))){
 					
 					fwrite($file_json,  $response_json);
-					fclose($file_json);
 					
 					if($upload==true){
 						S3::upload_file($dir_base . $json_default, true);
 					}
 				}
+				fclose($file_json);
 			}
 			
 			update_option('robots_rlout', '1');

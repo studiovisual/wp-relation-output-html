@@ -24,9 +24,6 @@ Class Menu {
         // Inserindo as opções de atalho no header toolbar do wp-admin
         add_action('admin_bar_menu', array($this, 'add_toolbar_items'), 100);
 
-        // Verificação do evitar mecanismo de pesquisa
-		add_action('init', array($this, 'blog_public') );
-
         // Retirando o ver mais ou read more do excerpt padrão
 		add_filter('excerpt_more', array($this, 'custom_excerpt_more') );
 
@@ -83,34 +80,6 @@ Class Menu {
 		return '';
 	}
 
-    public function blog_public(){
-		
-		$robots = Helpers::getOption('robots_rlout');
-		
-		if($robots){
-			
-			update_option('blog_public', '0');
-		}else{
-			
-			update_option('blog_public', '1');
-		}
-		
-		include_once(ABSPATH . '/wp-admin/includes/file.php');
-		include_once(ABSPATH . '/wp-includes/pluggable.php');
-		
-		$raiz = get_home_path().'html';
-		update_option('path_rlout', $raiz);
-		
-		if(defined('PATH_RLOUT')==true){
-			update_option('path_rlout', PATH_RLOUT);
-		}
-		
-		$uri = Helpers::getOption('uri_rlout');
-		if(empty($uri)){
-			update_option('uri_rlout', get_template_directory_uri());
-		}
-	}
-    
     public function add_toolbar_items($admin_bar){
         
         $admin_bar->add_menu(array(
@@ -247,8 +216,6 @@ Class Menu {
         $fields['path_rlout'] = array('type'=>'text','disabled'=>'disabled','label'=>"Path:<br><small>define('PATH_RLOUT','".get_home_path() . "html');</small>");
         
         $fields['uri_rlout'] = array('type'=>'text', 'label'=>"Directory_uri():<br><small>Caminho do template</small>");
-        
-        $fields['robots_rlout'] = array('type'=>'checkbox', 'label'=>'Evitar mecanismos de pesquisa em: '.site_url());
         
         $fields['ignore_json_rlout'] = array( 'multiple'=>'multiple','type'=>'select2','action_ajax'=>'all_search_posts','label'=>'Ignorar páginas no JSON<br>
         <small>insira a URL de todos os arquivos que devem ser ignorados no JSON. </small>');

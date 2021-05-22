@@ -87,8 +87,10 @@ Class WpAjax {
         
         foreach($verify_files as $obj_key => $object){
 
-            if(Helpers::getOption('path_rlout').'/'==$object->path_static || Helpers::getOption('path_rlout')==$object->path_static){
+            if(Helpers::getOption('path_rlout').'/'==$object->path_static){
                 $object->path_static = $object->path_static.'index.html';
+            }else if(Helpers::getOption('path_rlout')==$object->path_static){
+                $object->path_static = $object->path_static.'/index.html';
             }
             
             $response = S3::upload_file($object->path_static, true);
@@ -149,10 +151,6 @@ Class WpAjax {
     public function curl_json(){
         
         $url = Curl::generate_json($_GET['file']);
-        $data = array(
-            'path_static' => str_replace(Helpers::getOption('replace_url_rlout'),Helpers::getOption('path_rlout'),$url)
-        );
-        $this->aux->insert($data);
         wp_die($url);
     }
     
