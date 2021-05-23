@@ -31,15 +31,18 @@ Class Helpers {
 		}
 	}
 
-	static function subfiles_generate(){
+	static function subfiles_generate($format=null){
 		
 		$files = explode(',', self::getOption('subfiles_rlout'));
 		
 		foreach ($files as $key => $file) {
 			
 			if(!empty($file)){
-				Curl::deploy_upload($file);
-				App::$repeat_files_rlout[] = $file;
+				$format_url = explode(".", $file);
+				if(empty($format) || (!empty($format_url) && end($format_url)==$format)){
+					Curl::deploy_upload($file);
+					App::$repeat_files_rlout[] = $file;
+				}
 			}
 		}
 		return $files;

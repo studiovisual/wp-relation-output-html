@@ -45,7 +45,7 @@ Class Terms Extends App {
 					$term->slug = $slug_new;
 				}
 				Curl::generate($term);
-
+				Helpers::subfiles_generate('xml');
 				Terms::api($term);
 			}
 
@@ -67,6 +67,7 @@ Class Terms Extends App {
 			Helpers::rrmdir($dir_base);
 			
 			S3::remove_file($dir_base . '/index.html');
+			Helpers::subfiles_generate('xml');
 		}
 	}
 

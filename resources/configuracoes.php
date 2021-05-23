@@ -374,8 +374,9 @@ $user = wp_get_current_user();
 				jQuery('.total_page').html(qtd+parseInt(jQuery('.total_page').html()));
 
 				window.localStorage.setItem('charge_static', 0);
+				window.localStorage.setItem('statics_page', 0);
 
-				deploy(0, response, 0);
+				deploy(0, response);
 			});
 		}
 
@@ -405,8 +406,12 @@ $user = wp_get_current_user();
 						
 					}).always(function(){
 
+						var statics_page = parseInt(window.localStorage.getItem('statics_page'))+1;
+						window.localStorage.setItem('statics_page', statics_page);
+
 						var total = parseInt(jQuery('.statics_page').html());
 						jQuery('.statics_page').html(total+1);
+
 
 						charge = parseInt(window.localStorage.getItem('charge_static'))+1;
 						window.localStorage.setItem('charge_static', charge);
@@ -437,9 +442,10 @@ $user = wp_get_current_user();
 				}
 				upload_all(new_key_main, response);
 			}else{
+				var statics_page = parseInt(window.localStorage.getItem('statics_page'));
 				var key_main_see = new_key_main+1;
 				
-				if(key_main_see==parseInt(jQuery('.statics_page').html())){
+				if(key_main_see==statics_page){
 					deploy(key_main_see, response);
 				}else{
 					setTimeout(() => {

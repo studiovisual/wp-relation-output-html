@@ -106,24 +106,6 @@ Class Curl {
 			if(count($verify_files_point)>1){
 				$file_default = '';
 				$json_default = '';
-				
-				if($verify_files_point[1]=='xml'){
-					
-					$htt = str_replace('https:', '', site_url());
-					$htt = str_replace('http:', '', $htt);
-					$original_response = str_replace(site_url(), Helpers::getOption('replace_url_rlout'), $original_response);
-					$original_response = str_replace('href="'.$htt, 'href="'. Helpers::getOption('replace_url_rlout'), $original_response);
-					$xml = simplexml_load_string($response);
-					foreach($xml->sitemap as $sitemap){
-						if(isset($sitemap->loc)){
-							$url_map = (array) $sitemap->loc;
-							if(!empty($url_map)){
-								Curl::generate($url_map[0], null, false, false, false);
-							}
-						}
-					}
-					$response=$original_response;
-				}
 			}
 			
 			$explode_raiz = explode("/", $dir_base);
@@ -223,7 +205,25 @@ Class Curl {
 			$response = Curl::get($url);
 			
 			if ($response) {
-				
+
+				if(end($url_point)=='xml'){
+					
+					$htt = str_replace('https:', '', site_url());
+					$htt = str_replace('http:', '', $htt);
+					$original_response = str_replace(site_url(), Helpers::getOption('replace_url_rlout'), $response);
+					$original_response = str_replace('href="'.$htt, 'href="'. Helpers::getOption('replace_url_rlout'), $original_response);
+					$xml = simplexml_load_string($response);
+					foreach($xml->sitemap as $sitemap){
+						if(isset($sitemap->loc)){
+							$url_map = (array) $sitemap->loc;
+							if(!empty($url_map)){
+								$url_finaly = preg_replace('/^\s*\/\/<!\[CDATA\[([\s\S]*)\/\/\]\]>\s*\z/','$1', $url_map[0]);
+								Curl::deploy_upload($url_finaly);
+							}
+						}
+					}
+					$response=$original_response;
+				}
 				$response = Helpers::replace_json($response);
 				
 				$dir_base = Helpers::getOption('path_rlout');
@@ -299,7 +299,7 @@ Class Curl {
 				fwrite($file, $response);
 				fclose($file);
 				
-				S3::upload_file($dir_base . '/' . $folders);
+				S3::upload_file($dir_base . '/' . $folders, false);
 			}
 		}
 		return $url;

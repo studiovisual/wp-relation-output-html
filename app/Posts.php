@@ -47,11 +47,14 @@ Class Posts {
 	public function future_callback($post_id=null){
 
 		Helpers::importantfiles_generate();
+		Helpers::subfiles_generate('xml');
 
 		$this->publish_folder($post_id);
 	}
 
 	public function publish_folder($post_id=null) {
+
+		Helpers::subfiles_generate('xml');
 
 		$post_types = explode(',', Helpers::getOption('post_types_rlout'));
 
@@ -173,6 +176,7 @@ Class Posts {
 				
 			}
 			
+			Helpers::subfiles_generate('xml');
 			Posts::api($post);
 		}
 	}

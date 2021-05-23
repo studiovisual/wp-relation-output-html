@@ -47,7 +47,7 @@ Class Menu {
 			$response_essenciais = Helpers::subfiles_generate();
 			
 			if($response_essenciais){
-				echo '<script>alert("Arquivos Essenciais Atualizados!");</script>';
+				echo '<script>alert("Arquivos ignorados atualizados!");</script>';
 			}
 		}
 
