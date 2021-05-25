@@ -14,7 +14,6 @@ Class Posts {
 	public $is_block_editor = false;
 	
 	public function __construct() {	
-
 		if(!function_exists('get_sample_permalink')) {
 			/** Load WordPress Bootstrap */
 			require_once ABSPATH . '/wp-load.php';
@@ -41,6 +40,8 @@ Class Posts {
 				$url_del = str_replace('%postname%',$link[1],$url_del);
 				setcookie('old_slug', $url_del);
 			}
+		}else{
+			setcookie('old_slug', null);
 		}
 	}
 
@@ -102,12 +103,11 @@ Class Posts {
 	public function create_folder($post_id=null) {
 
 		add_action('updated_post_meta', function($meta_id, $post_id, $meta_key) {
-			
+		
 			if($meta_key=='_edit_lock'):
 				$static = get_post_meta($post_id, '_static_output_html', true);
-				
-				if($static || (isset($_POST['static_output_html']) && $_POST['static_output_html'])):
-					if($static)
+				if(!empty($static) || (isset($_POST['static_output_html']) && !empty($_POST['static_output_html']))):
+					if(!empty($static))
 						update_post_meta($post_id, '_static_output_html', 0);
 					
 					$this->publish_folder($post_id);
@@ -126,7 +126,6 @@ Class Posts {
 			require_once ABSPATH . 'wp-admin/includes/admin.php';
 		}
 		
-
 		$post = get_post($post_id);
 
 		$url_delete = get_sample_permalink($post);

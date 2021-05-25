@@ -10,12 +10,12 @@
     var MetaTextControl = compose.compose(
         withSelect(function(select, props) {
             return {
-                metaValue: select('core/editor').getEditedPostAttribute('meta')[props.metaKey],
+                metaValue: select('core/editor').getEditedPostAttribute('meta')[props.metaKey]
             }
         }))(function(props) {
+            
             let [isChecked, setChecked] = element.useState(true);
- 			wp.data.dispatch('core/editor').editPost({meta: {_static_output_html: true}});
-		
+
             return el(CheckboxControl, {
                     metaKey: '_static_output_html',
                     label: 'Gerar página estática',
@@ -23,6 +23,7 @@
                     onChange: () => {
                         setChecked(!isChecked);
                         wp.data.dispatch('core/editor').editPost({meta: {_static_output_html: !isChecked}});
+                        var meta = wp.data.select( 'core/editor' ).getEditedPostAttribute( 'meta' );
                     },
                 }
             );
@@ -35,18 +36,52 @@
         );
     }
 
-    
+    function isSavingPost() {
+
+        // State data necessary to establish if a save is occuring.
+        const isSaving = wp.data.select('core/editor').isSavingPost() || wp.data.select('core/editor').isAutosavingPost();
+        const isSaveable = wp.data.select('core/editor').isEditedPostSaveable();
+        const isPostSavingLocked = wp.data.select('core/editor').isPostSavingLocked();
+        const hasNonPostEntityChanges = wp.data.select('core/editor').hasNonPostEntityChanges();
+        const isAutoSaving = wp.data.select('core/editor').isAutosavingPost();
+        const isButtonDisabled = isSaving || !isSaveable || isPostSavingLocked;
+        
+        // Reduces state into checking whether the post is saving and that the save button is disabled.
+        const isBusy = !isAutoSaving && isSaving;
+        const isNotInteractable = isButtonDisabled && ! hasNonPostEntityChanges;
+        
+        return isBusy && isNotInteractable;
+    }
+    // Current saving state. isSavingPost is defined above.
+    var wasSaving = isSavingPost();
+
     wp.data.subscribe( function () {
+
+        // New saving state
+        let isSaving = isSavingPost();
+
+        // It is done saving if it was saving and it no longer is.
+        let isDoneSaving = wasSaving && !isSaving;
+
+        // Update value for next use.
+        wasSaving = isSaving;
+
+        var old_format = wp.data.select( 'core/editor' ).getCurrentPostAttribute('status');
         var newFormat = wp.data.select( 'core/editor' ).getEditedPostAttribute( 'status' );
         var plugin_relation = getPlugin('relation-output');
-        if(newFormat=='publish' && typeof plugin_relation=='undefined'){
+        
+
+        if(newFormat=='publish' && typeof plugin_relation=='undefined' || isDoneSaving){
+            if(old_format!='auto-draft'){
+ 			    wp.data.dispatch('core/editor').editPost({meta: {_static_output_html: true}});
+            }
+            unregisterPlugin('relation-output');
             registerPlugin('relation-output', { render: Output });
+
         }else if(newFormat!='publish' && typeof plugin_relation!='undefined'){
-			wp.data.dispatch('core/editor').editPost({meta: {_static_output_html: false}});
             unregisterPlugin('relation-output');
         }
-      } 
-    );
+    });
 
 }) (
 	window.wp.plugins,
