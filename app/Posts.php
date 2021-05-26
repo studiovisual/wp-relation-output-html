@@ -107,8 +107,6 @@ Class Posts {
 			if($meta_key=='_edit_lock'):
 				$static = get_post_meta($post_id, '_static_output_html', true);
 				if(!empty($static) || (isset($_POST['static_output_html']) && !empty($_POST['static_output_html']))):
-					if(!empty($static))
-						update_post_meta($post_id, '_static_output_html', 0);
 					
 					$this->publish_folder($post_id);
 				endif;
