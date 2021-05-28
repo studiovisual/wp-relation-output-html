@@ -225,6 +225,7 @@ Class Curl {
 					$response=$original_response;
 				}
 				$response = Helpers::replace_json($response);
+				$response = Helpers::replace_reponse(Helpers::getOption('uri_rlout'), $response, null, false);
 				
 				$dir_base = Helpers::getOption('path_rlout');
 				if( is_dir($dir_base) === false ){
