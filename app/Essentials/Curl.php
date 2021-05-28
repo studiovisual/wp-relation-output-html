@@ -202,6 +202,11 @@ Class Curl {
 			
 			$url = implode(".", $url_point);
 			
+			$rpl = Helpers::getOption('replace_url_rlout');
+			if(empty($rpl)){
+				$rpl = site_url().'/html';
+			}
+
 			$response = Curl::get($url);
 			
 			if ($response) {
@@ -210,8 +215,8 @@ Class Curl {
 					
 					$htt = str_replace('https:', '', site_url());
 					$htt = str_replace('http:', '', $htt);
-					$original_response = str_replace(site_url(), Helpers::getOption('replace_url_rlout'), $response);
-					$original_response = str_replace('href="'.$htt, 'href="'. Helpers::getOption('replace_url_rlout'), $original_response);
+					$original_response = str_replace(site_url(), $rpl, $response);
+					$original_response = str_replace('href="'.$htt, 'href="'. $rpl, $original_response);
 					$xml = simplexml_load_string($response);
 					foreach($xml->sitemap as $sitemap){
 						if(isset($sitemap->loc)){
@@ -225,7 +230,7 @@ Class Curl {
 					$response=$original_response;
 				}
 				$response = Helpers::replace_json($response);
-				$response = Helpers::replace_reponse(Helpers::getOption('uri_rlout'), $response, null, false);
+				$response = str_replace(site_url(), $rpl,$response);
 				
 				$dir_base = Helpers::getOption('path_rlout');
 				if( is_dir($dir_base) === false ){
