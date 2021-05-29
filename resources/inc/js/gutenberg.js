@@ -30,14 +30,10 @@
             );
         }
     );
-
-    const MyExternalLink = () => (
-        <ExternalLink href="https://wordpress.org">claudioweb.org</ExternalLink>
-    );
     
     const Output = () => {
         return el(PluginPostStatusInfo, {},
-            el(MetaTextControl, MyExternalLink)
+            el(MetaTextControl),
         );
     }
 
@@ -61,6 +57,33 @@
     var wasSaving = isSavingPost();
 
     wp.data.subscribe( function () {
+
+        var editor_link = jQuery(".editor-post-link");
+        if(editor_link.length>0){
+            
+            jQuery('.clone_rlout').remove();
+
+            var parent_container = editor_link.closest('.components-panel__body');
+            var label_container = parent_container.find(".edit-post-post-link__preview-label");
+            
+            label_container.text('ver Post wordpress:');
+            var cloned_label = label_container.clone();
+            cloned_label.addClass('clone_rlout');
+            parent_container.append(cloned_label.text('Ver Post estático:'));
+
+            var spaces_br = '<br><br>';
+            cloned_label.prepend(spaces_br);
+
+            var link_static = jQuery('input[name="static_url_rlout"]').val();
+
+            var external_container = parent_container.find('.edit-post-post-link__preview-link-container').clone();
+            external_container.addClass('clone_rlout');
+            var post_name = external_container.find('.edit-post-post-link__link-post-name').text();
+            external_container.find('a').attr('href', link_static + post_name);
+            external_container.find('.edit-post-post-link__link-prefix').text(link_static);
+            parent_container.append(external_container);
+        }
+        
 
         // New saving state
         let isSaving = isSavingPost();
@@ -87,8 +110,6 @@
             unregisterPlugin('relation-output');
         }
 
-        // links
-        // var permalink = wp.data.select( 'core/editor' ).getPermalink();
     });
 
 }) (
