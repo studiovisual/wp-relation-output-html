@@ -5,6 +5,7 @@
 	const { getPlugin } = plugins;
 	const { PluginPostStatusInfo } = editPost;
 	const { CheckboxControl } = components;
+	const { ExternalLink } = components;
     const { withSelect } = data;
 
     var MetaTextControl = compose.compose(
@@ -29,10 +30,14 @@
             );
         }
     );
+
+    const MyExternalLink = () => (
+        <ExternalLink href="https://wordpress.org">claudioweb.org</ExternalLink>
+    );
     
     const Output = () => {
         return el(PluginPostStatusInfo, {},
-            el(MetaTextControl)
+            el(MetaTextControl, MyExternalLink)
         );
     }
 
@@ -81,6 +86,9 @@
         }else if(newFormat!='publish' && typeof plugin_relation!='undefined'){
             unregisterPlugin('relation-output');
         }
+
+        // links
+        // var permalink = wp.data.select( 'core/editor' ).getPermalink();
     });
 
 }) (

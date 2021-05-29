@@ -135,7 +135,7 @@ Class Posts {
 	
 		$delete_old = $_COOKIE['old_slug'];
 
-		if($delete_old){
+		if(!empty($delete_old)){
 			$delete_old = Helpers::getOption('path_rlout').'/'.$delete_old;
 			if($delete_old!=$dir_base || (!strpos($dir_base, $_POST['post_name'].'/') && !empty($_POST['post_name']))){
 				Helpers::rrmdir($delete_old);
