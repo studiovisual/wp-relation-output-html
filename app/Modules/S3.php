@@ -46,7 +46,8 @@ Class S3 {
                         'Bucket' => Helpers::getOption('s3_bucket_rlout'),
                         'Key'    => $key_file_s3,
                         'SourceFile' => $file_dir,
-                        'ACL'    => $acl_key
+                        'ACL'    => $acl_key,
+                        'CacheControl' => 'max-age='.Helpers::getOption('s3_cachecontrol_rlout')
                     ));
                     
                     try {
@@ -83,6 +84,7 @@ Class S3 {
                             'before' => function (\Aws\CommandInterface $command) {
                                 if (in_array($command->getName(), ['PutObject', 'CreateMultipartUpload'])) {
                                     $command['ACL'] = Helpers::getOption('s3_acl_rlout');
+                                    $command['CacheControl'] = 'max-age='.Helpers::getOption('s3_cachecontrol_rlout');
                                 }
                             }
                         );
