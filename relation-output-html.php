@@ -262,6 +262,7 @@ Class RelOutputHtml {
 			$access_key = get_option('s3_key_rlout');
 			$secret_key = get_option('s3_secret_rlout');
 			$acl_key = get_option('s3_acl_rlout');
+			$cache_control = 'max-age='.get_option('s3_cachecontrol_rlout');
 			$region = get_option('s3_region_rlout');
 			
 			$cloudFrontClient = CloudFrontClient::factory(array(
@@ -1409,6 +1410,7 @@ Class RelOutputHtml {
 				$access_key = get_option('s3_key_rlout');
 				$secret_key = get_option('s3_secret_rlout');
 				$acl_key = get_option('s3_acl_rlout');
+				$cache_control = 'max-age='.get_option('s3_cachecontrol_rlout');
 				
 				// echo $secret_key;
 				if(!empty($secret_key)){
@@ -1436,7 +1438,8 @@ Class RelOutputHtml {
 							'Bucket' => get_option('s3_bucket_rlout'),
 							'Key'    => $key_file_s3,
 							'SourceFile' => $file_dir,
-							'ACL'    => $acl_key
+							'ACL'    => $acl_key,
+							'CacheControl' => $cache_control
 						));
 
 						if($response && $ignore_cloud==false){
@@ -1612,6 +1615,8 @@ Class RelOutputHtml {
 			$fields['s3_key_rlout'] = array('type'=>'text', 'label'=>'S3 Key');
 			
 			$fields['s3_secret_rlout'] = array('type'=>'text', 'label'=>'S3 Secret');
+			
+			$fields['s3_cachecontrol_rlout'] = array('type'=>'number', 'label'=>'S3 Cache Control');
 			
 			$fields['s3_region_rlout'] = array('type'=>'select', 'label'=>'S3 Region');
 			$fields['s3_region_rlout']['options'][] = 'us-east-1';
