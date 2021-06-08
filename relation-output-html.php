@@ -1616,7 +1616,7 @@ Class RelOutputHtml {
 			
 			$fields['s3_secret_rlout'] = array('type'=>'text', 'label'=>'S3 Secret');
 			
-			$fields['s3_cachecontrol_rlout'] = array('type'=>'number', 'label'=>'S3 Cache Control');
+			$fields['s3_cachecontrol_rlout'] = array('type'=>'text', 'label'=>'S3 Cache Control');
 			
 			$fields['s3_region_rlout'] = array('type'=>'select', 'label'=>'S3 Region');
 			$fields['s3_region_rlout']['options'][] = 'us-east-1';
