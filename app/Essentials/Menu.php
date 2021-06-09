@@ -237,6 +237,7 @@ Class Menu {
         $fields['s3_rlout'] = array('type'=>'label','label'=>'Storage AWS S3');
         
         $fields['s3_distributionid_rlout'] = array('type'=>'text','label'=>'Distribution ID (Cloudfront)');
+        $fields['s3_cloudfront_auto_rlout'] = array('type'=>'checkbox', 'label'=>'Desativar limpeza automática (Cloudfront)');
         
         $fields['s3_key_rlout'] = array('type'=>'text', 'label'=>'S3 Key');
         

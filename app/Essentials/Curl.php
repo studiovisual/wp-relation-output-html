@@ -132,7 +132,7 @@ Class Curl {
 				fwrite($file, $response);
 				
 				if($upload==true){
-					S3::upload_file($dir_base . $file_default, false);
+					S3::upload_file($dir_base . $file_default, Helpers::getOption('s3_cloudfront_auto_rlout'));
 				}
 				
 				if(!empty($amp) && !empty($file_default) && !$search_amp){
@@ -305,7 +305,7 @@ Class Curl {
 				fwrite($file, $response);
 				fclose($file);
 				
-				S3::upload_file($dir_base . '/' . $folders, false);
+				S3::upload_file($dir_base . '/' . $folders, Helpers::getOption('s3_cloudfront_auto_rlout'));
 			}
 		}
 		return $url;

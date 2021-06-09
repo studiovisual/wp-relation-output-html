@@ -159,7 +159,7 @@ Class Terms Extends App {
 					fclose($file);
 
 					if($upload==true){
-						S3::upload_file($file_raiz, false);
+						S3::upload_file($file_raiz, Helpers::getOption('s3_cloudfront_auto_rlout'));
 					}
 					
 					if($term){
